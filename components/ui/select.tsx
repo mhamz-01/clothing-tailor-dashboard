@@ -35,16 +35,30 @@ export function SelectItem({
   return null
 }
 
-function flattenLabel(node: React.ReactNode): string {
-  if (node == null || typeof node === "boolean") return ""
-  if (typeof node === "string" || typeof node === "number") return String(node)
-  if (Array.isArray(node)) return node.map(flattenLabel).join("")
-  if (React.isValidElement(node) && node.props && "children" in node.props) {
-    return flattenLabel((node.props as { children?: React.ReactNode }).children)
-  }
-  return ""
-}
 
+
+function flattenLabel(node: React.ReactNode): string {
+  if (node == null || typeof node === "boolean") return "";
+  
+  if (typeof node === "string" || typeof node === "number") {
+    return String(node);
+  }
+  
+  if (Array.isArray(node)) {
+    return node.map(flattenLabel).join("");
+  }
+
+  // Check if it's a valid element and ensure props is an object
+  if (React.isValidElement(node) && typeof node.props === "object" && node.props !== null) {
+    // Use type narrowing or a cast to safely check for children
+    const props = node.props as { children?: React.ReactNode };
+    if ("children" in props) {
+      return flattenLabel(props.children);
+    }
+  }
+
+  return "";
+}
 type ParsedOption = {
   value: string
   label: string
