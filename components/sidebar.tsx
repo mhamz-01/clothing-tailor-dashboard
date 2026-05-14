@@ -1,0 +1,101 @@
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { LayoutDashboard, Scissors, Package, CheckCircle } from "lucide-react"
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+
+const navItems = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Add Tailor", href: "/tailors/add", icon: Scissors },
+  { label: "Assign Work", href: "/orders/assign", icon: Package },
+  { label: "Deliver Work", href: "/orders/deliver", icon: CheckCircle },
+]
+
+function AppSidebar() {
+  const pathname = usePathname()
+
+  return (
+    <Sidebar className="bg-black text-white border-r border-slate-800">
+  <SidebarHeader className="border-b bg-black border-slate-800  px-4 py-4">
+    <div className="flex items-center gap-2">
+      <div className="flex size-8 items-center justify-center rounded-lg bg-white/10">
+        <Scissors className="size-4 text-white" />
+      </div>
+      <div>
+        <p className="text-lg font-bold text-white">TailorPro</p>
+      </div>
+    </div>
+  </SidebarHeader>
+
+  <SidebarContent className="bg-black">
+    <SidebarGroup>
+      <SidebarGroupContent>
+        <SidebarMenu className="gap-2">
+        {navItems.map((item) => {
+  const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+  return (
+    <SidebarMenuItem key={item.href}>
+      <SidebarMenuButton
+  
+  isActive={isActive}
+  className={`h-11 w-full text-lg ${
+    isActive
+      ? "bg-white/15 text-white "
+      : "text-slate-200 hover:bg-white/10 hover:text-white"
+  }`}
+>
+  <Link href={item.href} className="flex w-full items-center gap-4 px-3">
+    <item.icon className="size-5" />
+    <span className="font-medium">{item.label}</span>
+  </Link>
+</SidebarMenuButton>
+    </SidebarMenuItem>
+  )
+})}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  </SidebarContent>
+
+  <SidebarFooter className="border-t border-slate-800 bg-black px-4 py-3">
+    <p className="text-xs text-slate-500">Tailor Management System</p>
+  </SidebarFooter>
+</Sidebar>
+  )
+}
+
+export function SidebarLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <AppSidebar />
+        <div className="flex flex-1 flex-col">
+          {/* Mobile trigger */}
+          <header className="flex h-12 items-center border-b bg-white px-4 md:hidden">
+            <SidebarTrigger />
+            <p className="ml-3 text-sm font-semibold text-slate-800">TailorPro</p>
+          </header>
+          <main className="flex-1 bg-gray-50 p-4 md:p-6">
+            {children}
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  )
+}
+
+export default AppSidebar
