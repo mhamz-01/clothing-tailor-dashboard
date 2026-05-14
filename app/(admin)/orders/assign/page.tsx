@@ -1,21 +1,23 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, Loader2, Plus, Trash2, SendHorizonal, ClipboardList } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react"
+import {
+  ArrowLeft,
+  Loader2,
+  Plus,
+  Trash2,
+  SendHorizonal,
+  ClipboardList,
+} from "lucide-react"
+import { useMemo, useState, type FormEvent } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { toast } from "@/hooks/use-toast"
 import { createClient } from "@/lib/supabase/client"
+import { fetchTailors, fetchActiveOrderCounts } from "@/lib/queries"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,121 +39,138 @@ type FormValues = {
   tailor_id: string
   customer_ref_id: string
   quantity: string
-  due_date: string
 }
 
 type FormErrors = Partial<Record<keyof FormValues, string>>
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const initialValues: FormValues = {
   tailor_id: "",
   customer_ref_id: "",
   quantity: "1",
-  due_date: "",
 }
 
 function todayDateInputValue() {
   const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
-}
 
-function formatDate(ymd: string) {
-  const [y, m, d] = ymd.split("-")
-  return `${d}/${m}/${y}`
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(d.getDate()).padStart(2, "0")}`
 }
 
 function validate(values: FormValues): FormErrors {
   const errors: FormErrors = {}
-  if (!values.tailor_id.trim()) errors.tailor_id = "Please select a tailor."
-  if (!values.customer_ref_id.trim()) errors.customer_ref_id = "Customer ID is required."
+
+  if (!values.tailor_id.trim()) {
+    errors.tailor_id = "Please select a tailor."
+  }
+
+  if (!values.customer_ref_id.trim()) {
+    errors.customer_ref_id = "Customer ID is required."
+  }
+
   const qty = parseInt(values.quantity, 10)
-  if (!values.quantity || isNaN(qty) || qty < 1) errors.quantity = "Quantity must be at least 1."
-  if (!values.due_date.trim()) errors.due_date = "Due date is required."
-  else if (values.due_date < todayDateInputValue()) errors.due_date = "Due date cannot be in the past."
+
+  if (!values.quantity || isNaN(qty) || qty < 1) {
+    errors.quantity = "Quantity must be at least 1."
+  }
+
   return errors
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AssignWorkPage() {
-  const [tailors, setTailors] = useState<TailorRow[]>([])
-  const [activeByTailor, setActiveByTailor] = useState<Map<string, number>>(new Map())
+  const queryClient = useQueryClient()
+
+  // ── Queries ────────────────────────────────────────────────────────────────
+
+  const {
+    data: tailors = [],
+    isLoading: isLoadingTailors,
+    error: tailorsError,
+  } = useQuery({
+    queryKey: ["tailors"],
+    queryFn: fetchTailors,
+  })
+
+  const {
+    data: activeByTailor = new Map(),
+    error: countsError,
+  } = useQuery({
+    queryKey: ["activeOrderCounts"],
+    queryFn: fetchActiveOrderCounts,
+  })
+
+  const loadError =
+    tailorsError?.message ?? countsError?.message ?? null
+
+  // ── State ──────────────────────────────────────────────────────────────────
+
   const [tailorSearch, setTailorSearch] = useState("")
-  const [isLoadingTailors, setIsLoadingTailors] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
   const [tailorDropdownOpen, setTailorDropdownOpen] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState(-1)
 
   const [values, setValues] = useState<FormValues>(initialValues)
   const [errors, setErrors] = useState<FormErrors>({})
 
-  // Staged orders window
   const [stagedOrders, setStagedOrders] = useState<StagedOrder[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // ── Load tailors ─────────────────────────────────────────────────────────────
+  const totalQuantity = stagedOrders.reduce(
+    (sum, order) => sum + order.quantity,
+    0
+  )
 
-  const loadData = useCallback(async () => {
-    setIsLoadingTailors(true)
-    setLoadError(null)
-    const supabase = createClient()
-
-    const [tailorsRes, ordersRes] = await Promise.all([
-      supabase.from("tailors").select("id, name").order("name", { ascending: true }),
-      supabase.from("orders").select("tailor_id").eq("status", "assigned"),
-    ])
-
-    if (tailorsRes.error || ordersRes.error) {
-      setLoadError((tailorsRes.error ?? ordersRes.error)?.message ?? "Failed to load.")
-      setIsLoadingTailors(false)
-      return
-    }
-
-    const counts = new Map<string, number>()
-    for (const row of ordersRes.data ?? []) {
-      const tid = row.tailor_id as string | null
-      if (!tid) continue
-      counts.set(tid, (counts.get(tid) ?? 0) + 1)
-    }
-
-    setTailors((tailorsRes.data as TailorRow[]) ?? [])
-    setActiveByTailor(counts)
-    setIsLoadingTailors(false)
-  }, [])
-
-  useEffect(() => { void loadData() }, [loadData])
-
-  const minDate = useMemo(() => todayDateInputValue(), [])
-
-  // ── Filtered tailors by search ────────────────────────────────────────────────
+  // ── Filtered Tailors ───────────────────────────────────────────────────────
 
   const filteredTailors = useMemo(() => {
     const q = tailorSearch.toLowerCase().trim()
+
     if (!q) return tailors
-    return tailors.filter((t) => t.name.toLowerCase().includes(q))
+
+    return tailors.filter((t: TailorRow) =>
+      t.name.toLowerCase().includes(q)
+    )
   }, [tailors, tailorSearch])
 
-  // ── Add order to staging window ───────────────────────────────────────────────
+  // ── Add To Window ──────────────────────────────────────────────────────────
 
   function handleAddToWindow(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+
     const validationErrors = validate(values)
+
     setErrors(validationErrors)
+
     if (Object.keys(validationErrors).length > 0) return
 
-    const tailor = tailors.find((t) => t.id === values.tailor_id)
+    const tailor = tailors.find(
+      (t: TailorRow) => t.id === values.tailor_id
+    )
+
     if (!tailor) return
 
-    // Check 50 order cap (staged + active)
-    const alreadyActive = activeByTailor.get(values.tailor_id) ?? 0
-    const alreadyStaged = stagedOrders.filter((o) => o.tailor_id === values.tailor_id).length
+    const alreadyActive =
+      activeByTailor.get(values.tailor_id) ?? 0
+
+    const alreadyStaged = stagedOrders.filter(
+      (o) => o.tailor_id === values.tailor_id
+    ).length
+
     if (alreadyActive + alreadyStaged >= 50) {
       toast({
         title: "Limit reached",
         description: `${tailor.name} already has 50 active orders.`,
         variant: "destructive",
       })
+
       return
     }
+
+    const currentDate = todayDateInputValue()
 
     const newOrder: StagedOrder = {
       tempId: crypto.randomUUID(),
@@ -159,24 +178,31 @@ export default function AssignWorkPage() {
       tailor_name: tailor.name,
       customer_ref_id: values.customer_ref_id.trim(),
       quantity: parseInt(values.quantity, 10),
-      due_date: values.due_date,
+      due_date: currentDate,
     }
 
     setStagedOrders((prev) => [...prev, newOrder])
+
     setValues(initialValues)
     setErrors({})
     setTailorSearch("")
   }
 
+  // ── Remove Staged ──────────────────────────────────────────────────────────
+
   function removeStaged(tempId: string) {
-    setStagedOrders((prev) => prev.filter((o) => o.tempId !== tempId))
+    setStagedOrders((prev) =>
+      prev.filter((o) => o.tempId !== tempId)
+    )
   }
 
-  // ── Submit all staged orders to DB ────────────────────────────────────────────
+  // ── Submit Orders ──────────────────────────────────────────────────────────
 
   async function handleSubmitAll() {
     if (stagedOrders.length === 0) return
+
     setIsSubmitting(true)
+
     const supabase = createClient()
 
     try {
@@ -189,23 +215,43 @@ export default function AssignWorkPage() {
         delivered_at: null,
       }))
 
-      const { error } = await supabase.from("orders").insert(inserts)
+      const { error } = await supabase
+        .from("orders")
+        .insert(inserts)
 
       if (error) {
-        toast({ title: "Error", description: error.message, variant: "destructive" })
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        })
+
         return
       }
 
       toast({
         title: "Work assigned!",
-        description: `${stagedOrders.length} order${stagedOrders.length > 1 ? "s" : ""} submitted successfully.`,
+        description: `${
+          stagedOrders.length
+        } order${stagedOrders.length > 1 ? "s" : ""} submitted successfully.`,
       })
+
       setStagedOrders([])
-      await loadData()
+
+      await queryClient.invalidateQueries({
+        queryKey: ["tailors"],
+      })
+
+      await queryClient.invalidateQueries({
+        queryKey: ["activeOrderCounts"],
+      })
     } catch (err) {
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : "Unexpected error.",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Unexpected error.",
         variant: "destructive",
       })
     } finally {
@@ -213,21 +259,24 @@ export default function AssignWorkPage() {
     }
   }
 
-  // ─── Render ───────────────────────────────────────────────────────────────────
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div >
-      <div className="mx-auto max-w-8xl p-4 md:p-6 space-y-4">
+    <div>
+      <div className="mx-auto max-w-8xl space-y-4 p-4 md:p-6">
 
         {/* Header */}
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="flex size-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm hover:text-gray-900 transition"
+            className="flex size-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:text-gray-900"
           >
             <ArrowLeft className="size-4" />
           </Link>
-          <h1 className="text-xl font-bold text-gray-900">Assign Work</h1>
+
+          <h1 className="text-xl font-bold text-gray-900">
+            Assign Work
+          </h1>
         </div>
 
         {loadError && (
@@ -238,7 +287,7 @@ export default function AssignWorkPage() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
 
-          {/* ── LEFT: Form ───────────────────────────────────────────── */}
+          {/* LEFT */}
           <div className="rounded-xl border bg-white p-5 lg:col-span-2">
 
             <div className="mb-5 border-b pb-4">
@@ -251,7 +300,10 @@ export default function AssignWorkPage() {
               </p>
             </div>
 
-            <form onSubmit={handleAddToWindow} className="space-y-5">
+            <form
+              onSubmit={handleAddToWindow}
+              className="space-y-5"
+            >
 
               {/* Tailor */}
               <div className="space-y-2">
@@ -260,51 +312,93 @@ export default function AssignWorkPage() {
                 </Label>
 
                 <div className="relative">
-                <Input
-  placeholder="Search tailor..."
-  value={
-    tailorSearch ||
-    (values.tailor_id
-      ? tailors.find((t) => t.id === values.tailor_id)?.name ?? ""
-      : "")
-  }
-  onChange={(e) => {
-    setTailorSearch(e.target.value)
-    setFocusedIndex(-1)
-    setValues((prev) => ({ ...prev, tailor_id: "" }))
-    setErrors((prev) => ({ ...prev, tailor_id: undefined }))
-  }}
-  onFocus={() => setTailorDropdownOpen(true)}
-  onBlur={() => setTimeout(() => setTailorDropdownOpen(false), 150)}
-  onKeyDown={(e) => {
-    if (!tailorDropdownOpen) return
+                  <Input
+                    placeholder="Search tailor..."
+                    value={
+                      tailorSearch ||
+                      (values.tailor_id
+                        ? tailors.find(
+                            (t: TailorRow) =>
+                              t.id === values.tailor_id
+                          )?.name ?? ""
+                        : "")
+                    }
+                    onChange={(e) => {
+                      setTailorSearch(e.target.value)
+                      setFocusedIndex(-1)
 
-    if (e.key === "ArrowDown") {
-      e.preventDefault()
-      setFocusedIndex((prev) => Math.min(prev + 1, filteredTailors.length - 1))
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault()
-      setFocusedIndex((prev) => Math.max(prev - 1, 0))
-    } else if (e.key === "Enter") {
-      e.preventDefault()
-      const tailor = filteredTailors[focusedIndex]
-      if (!tailor) return
-      const n = activeByTailor.get(tailor.id) ?? 0
-      if (n >= 50) return
-      setValues((prev) => ({ ...prev, tailor_id: tailor.id }))
-      setErrors((prev) => ({ ...prev, tailor_id: undefined }))
-      setTailorSearch("")
-      setTailorDropdownOpen(false)
-      setFocusedIndex(-1)
-    } else if (e.key === "Escape") {
-      setTailorDropdownOpen(false)
-      setFocusedIndex(-1)
-    }
-  }}
-  disabled={isLoadingTailors}
-  autoComplete="off"
-  className="h-10"
-/>
+                      setValues((prev) => ({
+                        ...prev,
+                        tailor_id: "",
+                      }))
+
+                      setErrors((prev) => ({
+                        ...prev,
+                        tailor_id: undefined,
+                      }))
+                    }}
+                    onFocus={() =>
+                      setTailorDropdownOpen(true)
+                    }
+                    onBlur={() =>
+                      setTimeout(
+                        () => setTailorDropdownOpen(false),
+                        150
+                      )
+                    }
+                    onKeyDown={(e) => {
+                      if (!tailorDropdownOpen) return
+
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault()
+
+                        setFocusedIndex((prev) =>
+                          Math.min(
+                            prev + 1,
+                            filteredTailors.length - 1
+                          )
+                        )
+                      } else if (e.key === "ArrowUp") {
+                        e.preventDefault()
+
+                        setFocusedIndex((prev) =>
+                          Math.max(prev - 1, 0)
+                        )
+                      } else if (e.key === "Enter") {
+                        e.preventDefault()
+
+                        const tailor =
+                          filteredTailors[focusedIndex]
+
+                        if (!tailor) return
+
+                        const n =
+                          activeByTailor.get(tailor.id) ?? 0
+
+                        if (n >= 50) return
+
+                        setValues((prev) => ({
+                          ...prev,
+                          tailor_id: tailor.id,
+                        }))
+
+                        setErrors((prev) => ({
+                          ...prev,
+                          tailor_id: undefined,
+                        }))
+
+                        setTailorSearch("")
+                        setTailorDropdownOpen(false)
+                        setFocusedIndex(-1)
+                      } else if (e.key === "Escape") {
+                        setTailorDropdownOpen(false)
+                        setFocusedIndex(-1)
+                      }
+                    }}
+                    disabled={isLoadingTailors}
+                    autoComplete="off"
+                    className="h-10"
+                  />
 
                   {tailorDropdownOpen && (
                     <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border bg-white shadow-lg">
@@ -320,38 +414,69 @@ export default function AssignWorkPage() {
                             No tailor found
                           </div>
                         ) : (
-                          filteredTailors.map((t, index) => {
-                            const n = activeByTailor.get(t.id) ?? 0
-                            const atCap = n >= 50
-                            const isFocused = focusedIndex === index
-                          
-                            return (
-                              <button
-                                key={t.id}
-                                type="button"
-                                disabled={atCap}
-                                onMouseDown={() => {
-                                  if (atCap) return
-                                  setValues((prev) => ({ ...prev, tailor_id: t.id }))
-                                  setErrors((prev) => ({ ...prev, tailor_id: undefined }))
-                                  setTailorSearch("")
-                                  setTailorDropdownOpen(false)
-                                  setFocusedIndex(-1)
-                                }}
-                                onMouseEnter={() => setFocusedIndex(index)}
-                                className={`flex w-full items-center justify-between px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-50 transition-colors
-                                  ${isFocused ? "bg-indigo-50 text-indigo-700" : "hover:bg-slate-50"}
-                                `}
-                              >
-                                <span className="font-medium">{t.name}</span>
-                                <span className={`text-xs ${n >= 45 ? "text-amber-500" : "text-slate-400"}`}>
-                                  {n}/50
-                                </span>
-                              </button>
-                            )
-                          })
-                        )}
+                          filteredTailors.map(
+                            (
+                              t: TailorRow,
+                              index: number
+                            ) => {
+                              const n =
+                                activeByTailor.get(t.id) ?? 0
 
+                              const atCap = n >= 50
+
+                              const isFocused =
+                                focusedIndex === index
+
+                              return (
+                                <button
+                                  key={t.id}
+                                  type="button"
+                                  disabled={atCap}
+                                  onMouseDown={() => {
+                                    if (atCap) return
+
+                                    setValues((prev) => ({
+                                      ...prev,
+                                      tailor_id: t.id,
+                                    }))
+
+                                    setErrors((prev) => ({
+                                      ...prev,
+                                      tailor_id: undefined,
+                                    }))
+
+                                    setTailorSearch("")
+                                    setTailorDropdownOpen(false)
+                                    setFocusedIndex(-1)
+                                  }}
+                                  onMouseEnter={() =>
+                                    setFocusedIndex(index)
+                                  }
+                                  className={`flex w-full items-center justify-between px-3 py-2.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50
+                                  ${
+                                    isFocused
+                                      ? "bg-indigo-50 text-indigo-700"
+                                      : "hover:bg-slate-50"
+                                  }`}
+                                >
+                                  <span className="font-medium">
+                                    {t.name}
+                                  </span>
+
+                                  <span
+                                    className={`text-xs ${
+                                      n >= 45
+                                        ? "text-amber-500"
+                                        : "text-slate-400"
+                                    }`}
+                                  >
+                                    {n}/50
+                                  </span>
+                                </button>
+                              )
+                            }
+                          )
+                        )}
                       </div>
                     </div>
                   )}
@@ -415,47 +540,19 @@ export default function AssignWorkPage() {
                 )}
               </div>
 
-              {/* Due Date */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-700">
-                  Due Date
-                </Label>
-
-                <Input
-                  type="date"
-                  min={minDate}
-                  value={values.due_date}
-                  onChange={(e) =>
-                    setValues((prev) => ({
-                      ...prev,
-                      due_date: e.target.value,
-                    }))
-                  }
-                  className="h-10"
-                />
-
-                {errors.due_date && (
-                  <p className="text-xs text-red-500">
-                    {errors.due_date}
-                  </p>
-                )}
-              </div>
-
-              {/* Submit */}
               <Button
                 type="submit"
                 variant="default"
                 disabled={isLoadingTailors}
-                className="h-10 mt-12 w-full"
+                className="mt-12 h-10 w-full"
               >
                 <Plus className="mr-2 size-4" />
                 Add Order
               </Button>
-
             </form>
           </div>
 
-          {/* ── RIGHT: Order Window ─────────────────────────────────── */}
+          {/* RIGHT */}
           <div className="flex flex-col overflow-hidden rounded-xl border bg-white lg:col-span-3">
 
             {/* Header */}
@@ -488,8 +585,10 @@ export default function AssignWorkPage() {
             </div>
 
             {/* Content */}
-            <div className="overflow-y-auto p-5" style={{ height: "420px" }}>
-
+            <div
+              className="overflow-y-auto p-5"
+              style={{ height: "420px" }}
+            >
               {stagedOrders.length === 0 ? (
                 <div className="flex h-[200px] flex-col items-center justify-center text-center">
                   <ClipboardList className="mb-3 size-10 text-slate-300" />
@@ -505,6 +604,7 @@ export default function AssignWorkPage() {
               ) : (
                 <div className="overflow-hidden rounded-lg border">
                   <table className="w-full text-sm">
+
                     <thead className="bg-slate-50">
                       <tr className="border-b">
                         <th className="px-4 py-3 text-left font-medium text-slate-500">
@@ -517,10 +617,6 @@ export default function AssignWorkPage() {
 
                         <th className="px-4 py-3 text-left font-medium text-slate-500">
                           Qty
-                        </th>
-
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">
-                          Due Date
                         </th>
 
                         <th className="w-12" />
@@ -545,16 +641,14 @@ export default function AssignWorkPage() {
                             {order.quantity}
                           </td>
 
-                          <td className="px-4 py-3 text-slate-600">
-                            {formatDate(order.due_date)}
-                          </td>
-
                           <td className="px-4 py-3 text-right">
                             <Button
                               type="button"
                               variant="ghost"
                               size="icon"
-                              onClick={() => removeStaged(order.tempId)}
+                              onClick={() =>
+                                removeStaged(order.tempId)
+                              }
                               className="size-8 text-slate-400 hover:text-red-500"
                             >
                               <Trash2 className="size-4" />
@@ -563,22 +657,38 @@ export default function AssignWorkPage() {
                         </tr>
                       ))}
                     </tbody>
+
                   </table>
                 </div>
               )}
-
             </div>
 
             {/* Footer */}
             <div className="border-t bg-slate-50 px-5 py-4">
-
               {stagedOrders.length > 0 ? (
                 <div className="flex items-center justify-between gap-4">
 
-                  <p className="text-sm text-slate-500">
-                    {stagedOrders.length} order
-                    {stagedOrders.length > 1 ? "s" : ""} ready
-                  </p>
+<div className="flex items-center gap-6">
+  <div>
+    <p className="text-xs text-slate-400">
+      Orders
+    </p>
+
+    <p className="text-lg font-semibold text-slate-700">
+      {stagedOrders.length}
+    </p>
+  </div>
+
+  <div>
+    <p className="text-xs text-slate-400">
+      Total Quantity
+    </p>
+
+    <p className="text-lg font-semibold text-slate-900">
+      {totalQuantity}
+    </p>
+  </div>
+</div>
 
                   <Button
                     onClick={handleSubmitAll}
@@ -597,14 +707,12 @@ export default function AssignWorkPage() {
                       </>
                     )}
                   </Button>
-
                 </div>
               ) : (
                 <p className="text-sm text-slate-400">
                   No orders to submit
                 </p>
               )}
-
             </div>
           </div>
         </div>
