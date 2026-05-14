@@ -306,8 +306,7 @@ export default function AddTailorPage() {
 
               <Button
                 type="button"
-                variant="outline"
-                asChild
+                variant="outline"     
               >
                 <Link href="/dashboard">
                   Cancel
