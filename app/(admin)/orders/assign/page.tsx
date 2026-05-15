@@ -183,9 +183,12 @@ export default function AssignWorkPage() {
 
     setStagedOrders((prev) => [...prev, newOrder])
 
-    setValues(initialValues)
+    setValues((prev) => ({
+      ...prev,
+      customer_ref_id: "",
+      quantity: "1",
+    }))
     setErrors({})
-    setTailorSearch("")
   }
 
   // ── Remove Staged ──────────────────────────────────────────────────────────
@@ -237,6 +240,9 @@ export default function AssignWorkPage() {
       })
 
       setStagedOrders([])
+      setValues(initialValues)
+setTailorSearch("")
+
 
       await queryClient.invalidateQueries({
         queryKey: ["tailors"],
@@ -307,13 +313,25 @@ export default function AssignWorkPage() {
 
               {/* Tailor */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-700">
-                  Tailor
-                </Label>
+              <Label className="text-sm font-medium text-slate-700">
+  Tailor
+  {values.tailor_id && (
+    <span
+      onClick={() => {
+        setValues((prev) => ({ ...prev, tailor_id: "" }))
+        setTailorSearch("")
+      }}
+      className="ml-2 cursor-pointer text-xs font-normal text-indigo-500 hover:text-indigo-700"
+    >
+      (change)
+    </span>
+  )}
+</Label>
 
                 <div className="relative">
                   <Input
                     placeholder="Search tailor..."
+                    disabled={isLoadingTailors || !!values.tailor_id}
                     value={
                       tailorSearch ||
                       (values.tailor_id
@@ -395,9 +413,9 @@ export default function AssignWorkPage() {
                         setFocusedIndex(-1)
                       }
                     }}
-                    disabled={isLoadingTailors}
                     autoComplete="off"
-                    className="h-10"
+                    style={values.tailor_id ? { color: '#0f172a', fontWeight: '600', opacity: 1 } : {}}
+                    className={`h-10 ${values.tailor_id ? "bg-slate-100 cursor-not-allowed" : ""}`}
                   />
 
                   {tailorDropdownOpen && (

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Scissors, Package, CheckCircle } from "lucide-react"
+import { LayoutDashboard, Scissors, Package, CheckCircle, History } from "lucide-react"
 
 import {
   Sidebar,
@@ -71,9 +71,26 @@ function AppSidebar() {
     </SidebarGroup>
   </SidebarContent>
 
-  <SidebarFooter className="border-t border-slate-800 bg-black px-4 py-3">
-    <p className="text-xs text-slate-500">Tailor Management System</p>
-  </SidebarFooter>
+  <SidebarFooter className="border-t border-slate-800 bg-black px-3 py-3 space-y-3">
+  <SidebarMenu>
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        isActive={pathname === "/history"}
+        className={`h-9 w-full text-sm ${
+          pathname === "/history"
+            ? "bg-white/15 text-white"
+            : "text-slate-500 hover:bg-white/10 hover:text-slate-300"
+        }`}
+      >
+        <Link href="/history" className="flex w-full items-center gap-3 px-2">
+          <History className="size-4" />
+          <span>Order Records</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  </SidebarMenu>
+  {/* <p className="text-xs text-slate-600 px-1">Tailor Management System</p> */}
+</SidebarFooter>
 </Sidebar>
   )
 }

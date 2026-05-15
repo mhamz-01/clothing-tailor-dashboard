@@ -358,7 +358,7 @@ export default function DeliverWorkPage() {
             ) : (
               <div className="overflow-auto rounded-2xl border border-gray-200 bg-white h-[470px]">
                 <table className="w-full border-collapse">
-                  <thead className="bg-gray-50">
+                  <thead className="sticky top-0 z-10 bg-gray-50">
                     <tr className="border-b border-gray-200">
                       <th className="w-10 px-4 py-3" />
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">Customer</th>

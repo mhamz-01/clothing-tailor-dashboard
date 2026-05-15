@@ -76,3 +76,25 @@ export async function fetchDashboardStats() {
     deliveredMonthly: deliveredMonthly.count ?? 0,
   }
 }
+
+export async function fetchOrderHistory() {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from("orders")
+    .select(`
+      id,
+      customer_ref_id,
+      quantity,
+      status,
+      created_at,
+      delivered_at,
+      comment,
+      tailor:tailors(name)
+    `)
+    .order("created_at", { ascending: false })
+  if (error) throw new Error(error.message)
+  return (data ?? []).map((row: any) => ({
+    ...row,
+    tailor: Array.isArray(row.tailor) ? row.tailor[0] ?? null : row.tailor,
+  }))
+}
