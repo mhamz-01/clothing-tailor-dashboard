@@ -5,6 +5,7 @@ import { Calendar, CheckCircle, Clock, Package, type LucideIcon } from "lucide-r
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "@/components/ui/skeleton"
 import { fetchDashboardStats } from "@/lib/queries"
+import Footer from "@/components/footer"
 
 function StatCard({ title, value, icon: Icon }: { title: string; value: number; icon: LucideIcon }) {
   return (
@@ -87,6 +88,7 @@ export default function DashboardPage() {
         </section>
 
       </div>
+      <Footer />
     </div>
   )
 }

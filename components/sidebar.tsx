@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LayoutDashboard, Scissors, Package, CheckCircle, History } from "lucide-react"
+import Image from "next/image"
 
 import {
   Sidebar,
@@ -32,8 +33,8 @@ function AppSidebar() {
     <Sidebar className="bg-black text-white border-r border-slate-800">
   <SidebarHeader className="border-b bg-black border-slate-800  px-4 py-4">
     <div className="flex items-center gap-2">
-      <div className="flex size-8 items-center justify-center rounded-lg bg-white/10">
-        <Scissors className="size-4 text-white" />
+      <div className="flex size-8 items-center justify-center ">
+        <Image src="/paradise-tailor-logo-darkbackground.png" alt="Paradise Tailor" width={32} height={32} />
       </div>
       <div>
         <p className="text-lg font-bold text-white">Paradise Tailor</p>

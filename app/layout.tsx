@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Clothing Tailor Dashboard",
+  title: "Paradise Tailor Dashboard",
   description: "A dashboard for clothing tailors to manage their orders, customers, and history.",
 };
 
