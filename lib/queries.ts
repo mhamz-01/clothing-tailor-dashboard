@@ -98,3 +98,18 @@ export async function fetchOrderHistory() {
     tailor: Array.isArray(row.tailor) ? row.tailor[0] ?? null : row.tailor,
   }))
 }
+
+
+export async function fetchAssignedOrdersWithTailors() {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from("orders")
+    .select(`id, customer_ref_id, quantity, due_date, created_at, tailor_id, tailor:tailors(id, name)`)
+    .eq("status", "assigned")
+    .order("created_at", { ascending: false })
+  if (error) throw new Error(error.message)
+  return (data ?? []).map((row: any) => ({
+    ...row,
+    tailor: Array.isArray(row.tailor) ? row.tailor[0] ?? null : row.tailor,
+  }))
+}

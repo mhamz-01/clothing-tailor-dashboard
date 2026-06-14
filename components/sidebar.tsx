@@ -36,7 +36,7 @@ function AppSidebar() {
         <Scissors className="size-4 text-white" />
       </div>
       <div>
-        <p className="text-lg font-bold text-white">TailorPro</p>
+        <p className="text-lg font-bold text-white">Paradise Tailor</p>
       </div>
     </div>
   </SidebarHeader>
