@@ -98,15 +98,33 @@ function AppSidebar() {
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   return (
+   
+
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <AppSidebar />
+    
         <div className="flex flex-1 flex-col">
           {/* Mobile trigger */}
-          <header className="flex h-12 items-center border-b bg-white px-4 md:hidden">
-            <SidebarTrigger />
-            <p className="ml-3 text-sm font-semibold text-slate-800">TailorPro</p>
-          </header>
+          <header className="relative flex h-12 items-center border-b bg-white px-4 md:hidden">
+  <SidebarTrigger />
+
+  <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
+    <Image
+      src="/paradise-tailor-logo-lightbackground.png"
+      alt="Paradise Tailor"
+      width={28}
+      height={28}
+      className="h-7 w-7 object-contain"
+      priority
+    />
+
+    <p className="text-sm font-semibold text-slate-800">
+      Paradise Tailor
+    </p>
+  </div>
+</header>
+    
           <main className="flex-1 bg-gray-50 p-4 md:p-6">
             {children}
           </main>
