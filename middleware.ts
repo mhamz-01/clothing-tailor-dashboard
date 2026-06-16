@@ -1,12 +1,32 @@
-import { type NextRequest } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
+import { jwtVerify } from "jose"
+import { NextResponse, type NextRequest } from "next/server"
+
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET!)
 
 export async function middleware(request: NextRequest) {
-  return updateSession(request);
+  const token = request.cookies.get("auth_token")?.value
+  const isLoginPage = request.nextUrl.pathname === "/login"
+
+  if (isLoginPage) {
+    if (token) {
+      try {
+        await jwtVerify(token, SECRET)
+        return NextResponse.redirect(new URL("/dashboard", request.url))
+      } catch {}
+    }
+    return NextResponse.next()
+  }
+
+  if (!token) return NextResponse.redirect(new URL("/login", request.url))
+
+  try {
+    await jwtVerify(token, SECRET)
+    return NextResponse.next()
+  } catch {
+    return NextResponse.redirect(new URL("/login", request.url))
+  }
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
-};
+  matcher: ["/dashboard/:path*", "/tailors/:path*", "/orders/:path*", "/history/:path*", "/login"],
+}

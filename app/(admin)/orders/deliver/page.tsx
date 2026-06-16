@@ -166,12 +166,23 @@ export default function DeliverWorkPage() {
   //   [orders]
   // )
 
+  // const filteredOrders = useMemo(() => {
+  //   const q = search.toLowerCase().trim()
+  //   if (!q) return orders
+  //   return orders.filter(
+  //     (o: AssignedOrderRow) =>
+  //       o.customer_ref_id.toLowerCase().includes(q) ||
+  //       (o.tailor?.name ?? "").toLowerCase().includes(q)
+  //   )
+  // }, [orders, search])
+
+
   const filteredOrders = useMemo(() => {
     const q = search.toLowerCase().trim()
     if (!q) return orders
     return orders.filter(
       (o: AssignedOrderRow) =>
-        o.customer_ref_id.toLowerCase().includes(q) ||
+        o.customer_ref_id.toLowerCase() === q ||
         (o.tailor?.name ?? "").toLowerCase().includes(q)
     )
   }, [orders, search])

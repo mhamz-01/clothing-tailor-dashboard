@@ -71,7 +71,7 @@ function ManageAssignedTab({
     const q = search.toLowerCase().trim()
     if (!q) return orders
     return orders.filter((o: any) =>
-      o.customer_ref_id.toLowerCase().includes(q) ||
+      o.customer_ref_id.toLowerCase() === (q) ||
       (o.tailor?.name ?? "").toLowerCase().includes(q)
     )
   }, [orders, search])

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Scissors, Package, CheckCircle, History } from "lucide-react"
+import { LayoutDashboard, Scissors, Package, CheckCircle, History, LogOut } from "lucide-react"
 import Image from "next/image"
 
 import {
@@ -89,7 +89,29 @@ function AppSidebar() {
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
+
+
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        
+        onClick={async () => {
+          await fetch("/api/auth/logout", { method: "POST" })
+          window.location.href = "/login"
+        }}
+        className="text-xs text-slate-500 hover:bg-white/10 hover:text-slate-300 mt-2"
+      >
+        <Link href="/history" className="flex w-full items-center gap-3 px-2">
+          <LogOut className="size-4" />
+          <span>Logout</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+
   </SidebarMenu>
+
+
+
+
   {/* <p className="text-xs text-slate-600 px-1">Tailor Management System</p> */}
 </SidebarFooter>
 </Sidebar>

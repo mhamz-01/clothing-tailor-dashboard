@@ -28,7 +28,7 @@ export default function HistoryPage() {
     return orders.filter((o: any) => {
       const matchesSearch =
         !q ||
-        o.customer_ref_id.toLowerCase().includes(q) ||
+        o.customer_ref_id.toLowerCase() === q ||
         (o.tailor?.name ?? "").toLowerCase().includes(q) ||
         (o.comment ?? "").toLowerCase().includes(q)
       const matchesStatus =
