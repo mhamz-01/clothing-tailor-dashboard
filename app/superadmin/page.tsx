@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Loader2, ShieldCheck, UserX, UserCheck, RefreshCw } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
+import Image from "next/image"
 
 const queryClient = new QueryClient()
 
@@ -98,10 +99,16 @@ function SuperAdminContent() {
         <div className="w-full max-w-sm rounded-xl border bg-white p-8 shadow-sm space-y-5">
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-lg bg-slate-900">
-              <ShieldCheck className="size-4 text-white" />
+            <Image
+    src="/paradise-tailor-logo-lightbackground.png"
+    alt="Paradise Tailor"
+    fill
+    className="object-contain"
+    priority
+  />
             </div>
             <div>
-              <h1 className="text-base font-bold text-slate-900">Superadmin Access</h1>
+              <h1 className="text-base font-bold text-slate-900">Paradise Tailor Superadmin</h1>
               <p className="text-xs text-slate-400">Enter your credentials</p>
             </div>
           </div>
