@@ -98,15 +98,16 @@ function SuperAdminContent() {
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="w-full max-w-sm rounded-xl border bg-white p-8 shadow-sm space-y-5">
           <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-slate-900">
-            <Image
+          <div className="flex size-20 items-center justify-center">
+  <Image
     src="/paradise-tailor-logo-lightbackground.png"
     alt="Paradise Tailor"
-    fill
+    width={100}
+    height={100}
     className="object-contain"
     priority
   />
-            </div>
+</div>
             <div>
               <h1 className="text-base font-bold text-slate-900">Paradise Tailor Superadmin</h1>
               <p className="text-xs text-slate-400">Enter your credentials</p>
