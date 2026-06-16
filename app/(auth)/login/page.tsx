@@ -41,17 +41,15 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50">
       <div className="w-full max-w-sm rounded-xl border bg-white p-8 shadow-sm">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex size-20 items-center justify-center ">
-          <Image
-                src="/paradise-tailor-logo-lightbackground.png" // put your logo in public folder
-                alt="Paradise Tailor"
-                width={56}
-                height={56}
-                className="h-56 w-56 object-contain"
-                priority
-              />
-    
-          </div>
+        <div className="relative mx-auto mb-3 h-20 w-20">
+  <Image
+    src="/paradise-tailor-logo-lightbackground.png"
+    alt="Paradise Tailor"
+    fill
+    className="object-contain"
+    priority
+  />
+</div>
           <h1 className="text-xl font-bold text-slate-900">Paradise Tailor</h1>
           <p className="mt-1 text-sm text-slate-400">Sign in to continue</p>
         </div>
