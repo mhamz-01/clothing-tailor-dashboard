@@ -1,0 +1,1 @@
+export const MAX_ACTIVE_ORDERS_PER_TAILOR = 50

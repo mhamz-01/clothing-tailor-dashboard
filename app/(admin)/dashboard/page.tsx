@@ -3,39 +3,19 @@
 import Link from "next/link"
 import { Calendar, CheckCircle, Clock, Package, type LucideIcon } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
-import { Skeleton } from "@/components/ui/skeleton"
+import { StatCard } from "@/components/stats-card/stat-card"
+import { StatSkeleton } from "@/components/stats-card/stat-skeleton"
 import { fetchDashboardStats } from "@/lib/queries"
 import Footer from "@/components/footer"
+import { ActionButton } from "@/components/quick-action-button/action-button"
 
-function StatCard({ title, value, icon: Icon }: { title: string; value: number; icon: LucideIcon }) {
-  return (
-    <div className="rounded-xl border bg-white p-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground">{title}</p>
-          <h3 className="mt-2 text-3xl font-semibold tracking-tight">{value}</h3>
-        </div>
-        <div className="rounded-lg border bg-slate-50 p-2">
-          <Icon className="h-4 w-4 text-slate-600" />
-        </div>
-      </div>
-    </div>
-  )
-}
 
-function StatSkeleton() {
-  return <div className="rounded-xl border bg-white p-5"><Skeleton className="h-16 w-full" /></div>
-}
 
-function ActionButton({ href, label }: { href: string; label: string }) {
-  return (
-    <Link href={href} className="inline-flex h-10 items-center justify-center rounded-lg border bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
-      {label}
-    </Link>
-  )
-}
+
+
 
 export default function DashboardPage() {
+ 
   const today = new Intl.DateTimeFormat("en-GB", {
     weekday: "long", day: "numeric", month: "long", year: "numeric",
   }).format(new Date())

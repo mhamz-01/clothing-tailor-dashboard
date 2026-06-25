@@ -1,18 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-
-function StatCardSkeleton() {
-  return (
-    <Card className="border-none bg-slate-50 shadow-sm">
-      <CardHeader className="pb-2">
-        <Skeleton className="h-4 w-32" />
-      </CardHeader>
-      <CardContent>
-        <Skeleton className="h-10 w-20" />
-      </CardContent>
-    </Card>
-  )
-}
+import { StatSkeleton } from "@/components/stats-card/stat-skeleton"
 
 export default function DashboardLoading() {
   return (
@@ -23,17 +11,17 @@ export default function DashboardLoading() {
       </div>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <StatCardSkeleton />
-        <StatCardSkeleton />
+        <StatSkeleton />
+        <StatSkeleton />
       </section>
 
       <section>
-        <StatCardSkeleton />
+        <StatSkeleton />
       </section>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <StatCardSkeleton />
-        <StatCardSkeleton />
+        <StatSkeleton />
+        <StatSkeleton />
       </section>
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">

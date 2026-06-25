@@ -6,3 +6,12 @@ export type Tailor = {
   skills: string | null
   created_at: string
 }
+
+export interface AssignedOrder {
+  id: string
+  customer_ref_id: string
+  tailor_id: string | null
+  tailor: Tailor | null
+  quantity: number | null
+  due_date: string | null
+}

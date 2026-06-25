@@ -4,7 +4,9 @@ export type Order = {
   tailor_id: string | null
   due_date: string
   status: 'assigned' | 'delivered'
+  quantity: number | null
   created_at: string
+  comment: string | null
   delivered_at: string | null
   tailor?: {
     name: string
