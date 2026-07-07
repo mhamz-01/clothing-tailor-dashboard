@@ -1,96 +1,50 @@
 "use client"
 
-import { useState } from "react"
-import { useQuery, useMutation, useQueryClient, QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { createClient } from "@/lib/supabase/client"
+import { useState, type FormEvent } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Loader2, ShieldCheck, UserX, UserCheck, RefreshCw } from "lucide-react"
-import { toast } from "@/hooks/use-toast"
-import { Toaster } from "@/components/ui/toaster"
 import Image from "next/image"
+import {
+  useSuperAdminSession,
+  useSuperAdminLogin,
+  useSuperAdminAdmins,
+  useAddAdmin,
+  useToggleAdminActive,
+  useRenewAdminMembership,
+} from "@/hooks/superadmin/use-superadmin-admins"
+import { formatDate, formatTimeRemaining } from "@/lib/utils/date"
 
-const queryClient = new QueryClient()
-
-// ── All logic lives here, inside the provider ─────────────────────────────────
-function SuperAdminContent() {
-  const queryClient = useQueryClient()
-  const supabase = createClient()
+export default function SuperAdminPage() {
+  const { data: isAuthenticated, isLoading: isCheckingSession } = useSuperAdminSession()
 
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [superUsername, setSuperUsername] = useState("")
   const [superPassword, setSuperPassword] = useState("")
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [authError, setAuthError] = useState("")
 
-  function handleSuperAuth(e: React.FormEvent) {
+  const login = useSuperAdminLogin()
+  const { data: admins = [], isLoading: isLoadingAdmins } = useSuperAdminAdmins(!!isAuthenticated)
+  const addAdmin = useAddAdmin()
+  const toggleActive = useToggleAdminActive()
+  const renewMembership = useRenewAdminMembership()
+
+  function handleSuperAuth(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (
-      superUsername === process.env.NEXT_PUBLIC_SUPER_USERNAME &&
-      superPassword === process.env.NEXT_PUBLIC_SUPER_PASSWORD
-    ) {
-      setIsAuthenticated(true)
-    } else {
-      setAuthError("Wrong credentials.")
-    }
-  }
-
-  const { data: admins = [], isLoading } = useQuery({
-    queryKey: ["admins"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("admin_credentials")
-        .select("*")
-        .order("created_at", { ascending: false })
-      if (error) throw new Error(error.message)
-      return data ?? []
-    },
-    enabled: isAuthenticated,
-  })
-
-  const { mutate: addAdmin, isPending: isAdding } = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("admin_credentials").insert({
-        username: username.trim(),
-        password: password.trim(),
-        is_active: true,
-        expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toISOString(),
-      })
-      if (error) throw new Error(error.message)
-    },
-    onSuccess: () => {
-      toast({ title: "User added successfully." })
-      setUsername(""); setPassword("")
-      queryClient.invalidateQueries({ queryKey: ["admins"] })
-    },
-    onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
-  })
-
-  async function toggleActive(id: string, current: boolean) {
-    const { error } = await supabase.from("admin_credentials").update({ is_active: !current }).eq("id", id)
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return }
-    toast({ title: current ? "User blocked." : "User activated." })
-    queryClient.invalidateQueries({ queryKey: ["admins"] })
-  }
-
-  async function renewMembership(id: string) {
-    const { error } = await supabase.from("admin_credentials").update({
-      expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toISOString(),
-      is_active: true,
-    }).eq("id", id)
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return }
-    toast({ title: "Membership renewed for 1 year." })
-    queryClient.invalidateQueries({ queryKey: ["admins"] })
-  }
-
-  function formatDate(val: string) {
-    return new Date(val).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+    login.mutate({ username: superUsername, password: superPassword })
   }
 
   function isExpired(expiresAt: string) {
     return new Date(expiresAt) < new Date()
+  }
+
+  if (isCheckingSession) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <Loader2 className="size-6 animate-spin text-slate-400" />
+      </div>
+    )
   }
 
   if (!isAuthenticated) {
@@ -98,16 +52,16 @@ function SuperAdminContent() {
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="w-full max-w-sm rounded-xl border bg-white p-8 shadow-sm space-y-5">
           <div className="flex items-center gap-3">
-          <div className="flex size-20 items-center justify-center">
-  <Image
-    src="/paradise-tailor-logo-lightbackground.png"
-    alt="Paradise Tailor"
-    width={100}
-    height={100}
-    className="object-contain"
-    priority
-  />
-</div>
+            <div className="flex size-20 items-center justify-center">
+              <Image
+                src="/paradise-tailor-logo-lightbackground.png"
+                alt="Paradise Tailor"
+                width={100}
+                height={100}
+                className="object-contain"
+                priority
+              />
+            </div>
             <div>
               <h1 className="text-base font-bold text-slate-900">Paradise Tailor Superadmin</h1>
               <p className="text-xs text-slate-400">Enter your credentials</p>
@@ -121,9 +75,11 @@ function SuperAdminContent() {
             <div className="space-y-1.5">
               <Label>Password</Label>
               <Input type="password" value={superPassword} onChange={(e) => setSuperPassword(e.target.value)} placeholder="••••••••" className="h-10" />
-              {authError && <p className="text-xs text-red-500">{authError}</p>}
+              {login.isError && <p className="text-xs text-red-500">{login.error.message}</p>}
             </div>
-            <Button type="submit" className="h-10 w-full">Enter</Button>
+            <Button type="submit" disabled={login.isPending} className="h-10 w-full">
+              {login.isPending ? <Loader2 className="size-4 animate-spin" /> : "Enter"}
+            </Button>
           </form>
         </div>
       </div>
@@ -155,8 +111,17 @@ function SuperAdminContent() {
               <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="password" className="h-10" />
             </div>
           </div>
-          <Button onClick={() => addAdmin()} disabled={isAdding || !username || !password} className="h-10">
-            {isAdding ? <><Loader2 className="mr-2 size-4 animate-spin" />Adding...</> : "Add User"}
+          <Button
+            onClick={() =>
+              addAdmin.mutate(
+                { username, password },
+                { onSuccess: () => { setUsername(""); setPassword("") } }
+              )
+            }
+            disabled={addAdmin.isPending || !username || !password}
+            className="h-10"
+          >
+            {addAdmin.isPending ? <><Loader2 className="mr-2 size-4 animate-spin" />Adding...</> : "Add User"}
           </Button>
         </div>
 
@@ -164,7 +129,7 @@ function SuperAdminContent() {
           <div className="border-b px-5 py-4">
             <h2 className="text-sm font-semibold text-slate-800">Existing Users</h2>
           </div>
-          {isLoading ? (
+          {isLoadingAdmins ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="size-5 animate-spin text-slate-400" />
             </div>
@@ -178,11 +143,12 @@ function SuperAdminContent() {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500">Status</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500">Created</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500">Expires</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500">Session</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {admins.map((admin: any) => {
+                  {admins.map((admin) => {
                     const expired = isExpired(admin.expires_at)
                     return (
                       <tr key={admin.id} className="border-b hover:bg-slate-50 transition-colors">
@@ -201,15 +167,21 @@ function SuperAdminContent() {
                         <td className={`px-4 py-3 text-xs font-medium ${expired ? "text-red-500" : "text-slate-500"}`}>
                           {formatDate(admin.expires_at)}
                         </td>
+                        <td className="px-4 py-3 text-xs font-medium text-slate-500">
+                          {formatTimeRemaining(admin.session_expires_at)}
+                        </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => renewMembership(admin.id)}>
+                            <Button
+                              size="sm" variant="outline" className="h-7 px-2 text-xs"
+                              onClick={() => renewMembership.mutate(admin.id)}
+                            >
                               <RefreshCw className="mr-1 size-3" />Renew
                             </Button>
                             <Button
                               size="sm" variant="ghost"
                               className={`h-7 px-2 text-xs ${admin.is_active ? "text-red-500 hover:text-red-700" : "text-emerald-600 hover:text-emerald-800"}`}
-                              onClick={() => toggleActive(admin.id, admin.is_active)}
+                              onClick={() => toggleActive.mutate({ id: admin.id, isActive: !admin.is_active })}
                             >
                               {admin.is_active
                                 ? <><UserX className="mr-1 size-3" />Block</>
@@ -228,15 +200,5 @@ function SuperAdminContent() {
         </div>
       </div>
     </div>
-  )
-}
-
-// ── Outer wrapper provides the QueryClient ────────────────────────────────────
-export default function SuperAdminPage() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <SuperAdminContent />
-      <Toaster />
-    </QueryClientProvider>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
-import { toast } from "@/hooks/use-toast"
+import { toast } from "@/hooks/shared/use-toast"
 import { validateOrderForm } from "@/lib/validation/order-form"
 import { todayDateInputValue } from "@/lib/utils/date"
 import { MAX_ACTIVE_ORDERS_PER_TAILOR } from "@/lib/constants/orders"

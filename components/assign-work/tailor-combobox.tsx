@@ -3,8 +3,8 @@
 import { Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { useComboboxSearch } from "@/hooks/use-combobox-search"
-import { MAX_ACTIVE_ORDERS_PER_TAILOR } from "@/lib/constants/orders"
+import { useComboboxSearch } from "@/hooks/shared/use-combobox-search"
+import { MAX_ACTIVE_ORDERS_PER_TAILOR, TAILOR_LOAD_WARNING_THRESHOLD } from "@/lib/constants/orders"
 import type { TailorRow } from "@/types/assign-work"
 
 interface TailorComboboxProps {
@@ -81,7 +81,7 @@ export function TailorCombobox({
                     )}
                   >
                     <span className={size === "sm" ? "" : "font-medium"}>{t.name}</span>
-                    <span className={cn("text-xs", count >= 45 ? "text-amber-500" : "text-slate-400")}>
+                    <span className={cn("text-xs", count >= TAILOR_LOAD_WARNING_THRESHOLD ? "text-amber-500" : "text-slate-400")}>
                       {count}/{MAX_ACTIVE_ORDERS_PER_TAILOR}
                     </span>
                   </button>

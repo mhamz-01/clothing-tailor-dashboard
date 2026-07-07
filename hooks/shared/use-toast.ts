@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { TOAST_LIMIT, TOAST_AUTO_DISMISS_MS } from "@/lib/constants/ui"
 
 type Toast = {
   id: string
@@ -34,10 +35,10 @@ function addToast(input: ToastInput) {
   const toast: Toast = { id, ...input }
 
   emit({
-    toasts: [toast, ...memoryState.toasts].slice(0, 3),
+    toasts: [toast, ...memoryState.toasts].slice(0, TOAST_LIMIT),
   })
 
-  window.setTimeout(() => dismiss(id), 3500)
+  window.setTimeout(() => dismiss(id), TOAST_AUTO_DISMISS_MS)
 
   return {
     id,

@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react"
 import type { DeliverableOrder, StagedDelivery } from "@/types/deliver-work"
+
 export function useStagedDeliveries() {
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set())
   const [stagedDeliveries, setStagedDeliveries] = useState<StagedDelivery[]>([])
@@ -37,6 +38,36 @@ export function useStagedDeliveries() {
     })
   }, [])
 
+  const toggleAll = useCallback(
+    (orders: DeliverableOrder[], checked: boolean, comments: Record<string, string>) => {
+      setCheckedIds((prev) => {
+        const next = new Set(prev)
+        if (checked) orders.forEach((o) => next.add(o.id))
+        else orders.forEach((o) => next.delete(o.id))
+        return next
+      })
+
+      setStagedDeliveries((prev) => {
+        if (checked) {
+          const existingIds = new Set(prev.map((p) => p.id))
+          const additions = orders
+            .filter((o) => !existingIds.has(o.id))
+            .map((o) => ({
+              id: o.id,
+              customer_ref_id: o.customer_ref_id,
+              tailor_name: o.tailor?.name ?? "—",
+              quantity: o.quantity,
+              comment: comments[o.id] ?? "",
+            }))
+          return [...prev, ...additions]
+        }
+        const removeIds = new Set(orders.map((o) => o.id))
+        return prev.filter((p) => !removeIds.has(p.id))
+      })
+    },
+    []
+  )
+
   const removeFromStaged = useCallback((id: string) => {
     setCheckedIds((prev) => {
       const next = new Set(prev)
@@ -51,5 +82,5 @@ export function useStagedDeliveries() {
     setStagedDeliveries([])
   }, [])
 
-  return { checkedIds, stagedDeliveries, totalQuantity, toggleOrder, removeFromStaged, clearStaged }
+  return { checkedIds, stagedDeliveries, totalQuantity, toggleOrder, toggleAll, removeFromStaged, clearStaged }
 }

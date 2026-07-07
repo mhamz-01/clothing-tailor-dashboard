@@ -4,9 +4,10 @@ import { useCallback, useMemo, useState } from "react"
 import { ListChecks } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useDebouncedValue } from "@/hooks/use-debounced-values"
-import { useAssignedOrdersManage } from "@/hooks/use-assigned-orders-manage"
-import { useUpdateOrderTailor } from "@/hooks/use-order-mutations"
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useDebouncedValue } from "@/hooks/shared/use-debounced-value"
+import { useAssignedOrdersManage } from "@/hooks/assign-work/use-assigned-orders-manage"
+import { useUpdateOrderTailor } from "@/hooks/assign-work/use-order-mutations"
 import { ManageAssignedRow } from "./manage-assigned-rows"
 import type { TailorRow } from "@/types/assign-work"
 
@@ -61,17 +62,17 @@ export function ManageAssignedTab({ tailors, activeByTailor }: { tailors: Tailor
             <p className="text-sm font-medium text-slate-600">No assigned orders found</p>
           </div>
         ) : (
-          <table className="w-full text-sm border-collapse">
-            <thead className="sticky top-0 bg-slate-50 z-10">
-              <tr className="border-b">
-                <th className="px-4 py-3 text-left font-medium text-slate-500">Customer</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-500">Tailor</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-500">Qty</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-500">Due</th>
-                <th className="px-4 py-3 text-right font-medium text-slate-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="border-collapse">
+            <TableHeader className="sticky top-0 z-10 bg-slate-50">
+              <TableRow className="border-b hover:bg-slate-50">
+                <TableHead className="h-auto px-4 py-3 text-left font-medium whitespace-nowrap text-slate-500">Customer</TableHead>
+                <TableHead className="h-auto px-4 py-3 text-left font-medium whitespace-nowrap text-slate-500">Tailor</TableHead>
+                <TableHead className="h-auto px-4 py-3 text-left font-medium whitespace-nowrap text-slate-500">Qty</TableHead>
+                <TableHead className="h-auto px-4 py-3 text-left font-medium whitespace-nowrap text-slate-500">Due</TableHead>
+                <TableHead className="h-auto px-4 py-3 text-right font-medium whitespace-nowrap text-slate-500">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {filtered.map((order) => (
                 <ManageAssignedRow
                   key={order.id}
@@ -87,8 +88,8 @@ export function ManageAssignedTab({ tailors, activeByTailor }: { tailors: Tailor
                   onSave={handleSave}
                 />
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </div>
     </div>

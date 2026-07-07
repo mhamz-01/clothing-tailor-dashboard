@@ -1,0 +1,2 @@
+export const ADMIN_MEMBERSHIP_DURATION_MS = 1000 * 60 * 60 * 24 * 365
+export const ADMIN_SESSION_DURATION_MS = 1000 * 60 * 60 * 24

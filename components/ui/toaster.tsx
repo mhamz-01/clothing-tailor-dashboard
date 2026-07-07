@@ -3,7 +3,7 @@
 import { X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/shared/use-toast"
 import { cn } from "@/lib/utils"
 
 export function Toaster() {

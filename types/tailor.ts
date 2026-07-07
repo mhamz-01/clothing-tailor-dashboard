@@ -11,7 +11,7 @@ export interface AssignedOrder {
   id: string
   customer_ref_id: string
   tailor_id: string | null
-  tailor: Tailor | null
+  tailor: Pick<Tailor, "id" | "name"> | null
   quantity: number | null
   due_date: string | null
 }

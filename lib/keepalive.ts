@@ -2,8 +2,7 @@ import { createClient } from "@/lib/supabase/client"
 
 export async function pingDatabase() {
   const supabase = createClient()
-  
-  // Insert dummy row
+
   const { data, error } = await supabase
     .from("orders")
     .insert({
@@ -16,8 +15,10 @@ export async function pingDatabase() {
     .select("id")
     .single()
 
-  if (error || !data) return
+  if (error || !data) {
+    throw new Error(error?.message ?? "Keepalive ping insert returned no data.")
+  }
 
-  // Delete it immediately
-  await supabase.from("orders").delete().eq("id", data.id)
+  const { error: deleteError } = await supabase.from("orders").delete().eq("id", data.id)
+  if (deleteError) throw new Error(deleteError.message)
 }

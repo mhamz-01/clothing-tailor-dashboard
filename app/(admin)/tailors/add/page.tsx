@@ -1,76 +1,65 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { ArrowLeft, Loader2, Trash2 } from "lucide-react"
 import { useState } from "react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/hooks/use-toast"
-import { createClient } from "@/lib/supabase/client"
+import { TailorSelectCombobox } from "@/components/tailors/tailor-select-combobox"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { useAddTailor } from "@/hooks/tailors/use-add-tailor"
+import { useTailors } from "@/hooks/tailors/use-tailor"
+import { useDeleteTailor } from "@/hooks/tailors/use-delete-tailor"
+import { useActiveOrderCounts } from "@/hooks/assign-work/use-active-order-count"
+import { validateTailorForm, type TailorFormErrors } from "@/lib/validation/tailor-form"
+import type { InsertTailorInput } from "@/lib/queries/tailors"
 
-type FormValues = {
-  name: string
-  phone: string
-  skills: string
-}
-
-type FormErrors = Partial<Record<keyof FormValues, string>>
-
-const initialValues: FormValues = { name: "", phone: "", skills: "" }
-
-function validate(values: FormValues) {
-  const errors: FormErrors = {}
-  if (!values.name.trim()) errors.name = "Tailor name is required."
-  if (!values.phone.trim()) errors.phone = "Phone number is required."
-  return errors
-}
-
-async function addTailor(values: FormValues) {
-  const supabase = createClient()
- const tailor_ref_id = `T${Date.now().toString().slice(-6)}`
-  const { error } = await supabase.from("tailors").insert({
-    tailor_ref_id,
-    name: values.name.trim(),
-    phone: values.phone.trim(),
-    skills: values.skills.trim() || null,
-  })
-  if (error) throw new Error(error.message)
-}
+const initialValues: InsertTailorInput = { name: "", phone: "", skills: "" }
 
 export default function AddTailorPage() {
-  const [values, setValues] = useState<FormValues>(initialValues)
-  const [errors, setErrors] = useState<FormErrors>({})
-  const queryClient = useQueryClient()
+  const [values, setValues] = useState<InsertTailorInput>(initialValues)
+  const [errors, setErrors] = useState<TailorFormErrors>({})
 
-  function set(key: keyof FormValues) {
+  const { mutate, isPending } = useAddTailor()
+
+  const { data: tailors = [] } = useTailors()
+  const { data: activeByTailor } = useActiveOrderCounts()
+  const [tailorToDelete, setTailorToDelete] = useState("")
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const deleteTailor = useDeleteTailor()
+  const activeOrderCount = activeByTailor?.get(tailorToDelete) ?? 0
+
+  function set(key: keyof InsertTailorInput) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setValues((prev) => ({ ...prev, [key]: e.target.value }))
   }
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: addTailor,
-    onSuccess: () => {
-      toast({ title: "Success", description: "Tailor added successfully." })
-      setValues(initialValues)
-      setErrors({})
-      queryClient.invalidateQueries({ queryKey: ["tailors"] })
-    },
-    onError: (err: Error) => {
-      toast({ title: "Error", description: err.message, variant: "destructive" })
-    },
-  })
-
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const validationErrors = validate(values)
+    const validationErrors = validateTailorForm(values)
     setErrors(validationErrors)
     if (Object.keys(validationErrors).length > 0) return
-    mutate(values)
+    mutate(values, {
+      onSuccess: () => {
+        setValues(initialValues)
+        setErrors({})
+      },
+    })
   }
 
   return (
@@ -123,6 +112,71 @@ export default function AddTailorPage() {
           </form>
         </CardContent>
       </Card>
+
+      <details className="group rounded-lg border border-dashed px-4 py-3">
+        <summary className="cursor-pointer text-xs font-medium text-muted-foreground select-none">
+          Remove an existing tailor
+        </summary>
+
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="w-full sm:max-w-xs">
+            <TailorSelectCombobox
+              tailors={tailors}
+              selectedTailorId={tailorToDelete}
+              onSelect={(id) => { setTailorToDelete(id); setDeleteError(null) }}
+              placeholder="Search tailor to delete..."
+            />
+          </div>
+
+          <AlertDialog
+            open={deleteDialogOpen}
+            onOpenChange={(open) => {
+              setDeleteDialogOpen(open)
+              if (open) setDeleteError(null)
+            }}
+          >
+            <AlertDialogTrigger asChild>
+              <Button type="button" variant="outline" size="sm" disabled={!tailorToDelete} className="text-red-600 hover:text-red-700">
+                <Trash2 className="mr-2 size-3.5" />
+                Delete tailor
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this tailor?</AlertDialogTitle>
+                {activeOrderCount > 0 ? (
+                  <AlertDialogDescription>
+                    This tailor has {activeOrderCount} active order{activeOrderCount === 1 ? "" : "s"} assigned.
+                    Deliver or reassign {activeOrderCount === 1 ? "it" : "them"} before deleting.
+                  </AlertDialogDescription>
+                ) : (
+                  <AlertDialogDescription>This can&apos;t be undone.</AlertDialogDescription>
+                )}
+                {deleteError && <p className="text-sm text-red-600">{deleteError}</p>}
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{activeOrderCount > 0 ? "Close" : "Cancel"}</AlertDialogCancel>
+                {activeOrderCount === 0 && (
+                  <AlertDialogAction
+                    disabled={deleteTailor.isPending}
+                    onClick={() =>
+                      deleteTailor.mutate(tailorToDelete, {
+                        onSuccess: () => {
+                          setTailorToDelete("")
+                          setDeleteDialogOpen(false)
+                        },
+                        onError: (err) => setDeleteError(err.message),
+                      })
+                    }
+                  >
+                    {deleteTailor.isPending ? <><Loader2 className="mr-2 size-4 animate-spin" />Deleting...</> : "Delete"}
+                  </AlertDialogAction>
+                )}
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </details>
     </div>
   )
 }

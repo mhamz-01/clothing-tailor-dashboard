@@ -1,6 +1,7 @@
 import { SignJWT } from "jose"
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { ADMIN_SESSION_DURATION_MS } from "@/lib/constants/admin"
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET!)
 
@@ -33,16 +34,23 @@ export async function POST(req: Request) {
     }
     
 
+  const sessionExpiresAt = new Date(Date.now() + ADMIN_SESSION_DURATION_MS)
+
   const token = await new SignJWT({ username })
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("30d")
+    .setExpirationTime(sessionExpiresAt)
     .sign(SECRET)
+
+  await supabase
+    .from("admin_credentials")
+    .update({ session_expires_at: sessionExpiresAt.toISOString() })
+    .eq("id", data.id)
 
   const res = NextResponse.json({ ok: true })
   res.cookies.set("auth_token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: ADMIN_SESSION_DURATION_MS / 1000,
     path: "/",
   })
   return res

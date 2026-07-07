@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import type { StatusFilter } from "@/hooks/use-order-history-filters"
+import type { StatusFilter } from "@/types"
 const STATUS_OPTIONS: StatusFilter[] = ["all", "assigned", "delivered"]
 
 interface StatusFilterTabsProps {

@@ -3,7 +3,7 @@
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { StatusFilterTabs } from "./status-filter-tabs"
-import type { StatusFilter } from "@/hooks/use-order-history-filters"
+import type { StatusFilter } from "@/types"
 
 interface HistoryFiltersProps {
   search: string

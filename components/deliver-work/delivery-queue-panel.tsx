@@ -1,5 +1,6 @@
 import { PackageCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DeliveryQueueRow } from "./delivery-queue-row"
 import type { StagedDelivery } from "@/types/deliver-work"
 interface DeliveryQueuePanelProps {
@@ -42,22 +43,22 @@ export function DeliveryQueuePanel({ deliveries, totalQuantity, onRemove, onClea
             <p className="mt-1 text-xs text-gray-400">Select orders from the table</p>
           </div>
         ) : (
-          <table className="w-full border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="border border-gray-200 px-2 py-2 text-left font-semibold text-gray-500">Tailor</th>
-                <th className="border border-gray-200 px-2 py-2 text-left font-semibold text-gray-500">Customer</th>
-                <th className="border border-gray-200 px-2 py-2 text-left font-semibold text-gray-500">Qty</th>
-                <th className="border border-gray-200 px-2 py-2 text-left font-semibold text-gray-500">Comment</th>
-                <th className="border border-gray-200 px-2 py-2 w-6" />
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="border-collapse text-xs">
+            <TableHeader>
+              <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-50">
+                <TableHead className="h-auto border border-gray-200 px-2 py-2 text-left font-semibold whitespace-nowrap text-gray-500">Tailor</TableHead>
+                <TableHead className="h-auto border border-gray-200 px-2 py-2 text-left font-semibold whitespace-nowrap text-gray-500">Customer</TableHead>
+                <TableHead className="h-auto border border-gray-200 px-2 py-2 text-left font-semibold whitespace-nowrap text-gray-500">Qty</TableHead>
+                <TableHead className="h-auto border border-gray-200 px-2 py-2 text-left font-semibold whitespace-nowrap text-gray-500">Comment</TableHead>
+                <TableHead className="h-auto border border-gray-200 px-2 py-2 w-6" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {deliveries.map((delivery) => (
                 <DeliveryQueueRow key={delivery.id} delivery={delivery} onRemove={onRemove} />
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </div>
 

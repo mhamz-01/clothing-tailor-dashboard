@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState, type KeyboardEvent } from "react"
+import { COMBOBOX_CLOSE_DELAY_MS } from "@/lib/constants/ui"
 
 interface UseComboboxSearchOptions<T> {
   items: T[]
@@ -25,7 +26,7 @@ export function useComboboxSearch<T>({ items, getLabel, isDisabled, onSelect }: 
   }
 
   function closeWithDelay() {
-    setTimeout(() => setIsOpen(false), 150)
+    setTimeout(() => setIsOpen(false), COMBOBOX_CLOSE_DELAY_MS)
   }
 
   function selectItem(item: T) {

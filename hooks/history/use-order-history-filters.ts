@@ -1,14 +1,13 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { useDebouncedValue } from "./use-debounced-values"
-import type { Order } from "@/types"
-export type StatusFilter = "all" | "assigned" | "delivered"
+import { useDebouncedValue } from "@/hooks/shared/use-debounced-value"
+import type { Order, StatusFilter } from "@/types"
 
 export function useOrderHistoryFilters(orders: Order[]) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
-  const debouncedSearch = useDebouncedValue(search, 200)
+  const debouncedSearch = useDebouncedValue(search)
 
   const filtered = useMemo(() => {
     const q = debouncedSearch.toLowerCase().trim()

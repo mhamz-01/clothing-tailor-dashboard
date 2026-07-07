@@ -1,11 +1,11 @@
 "use client"
 
-import { useOrderHistory } from "@/hooks/use-order-history"
-import { useOrderHistoryFilters } from "@/hooks/use-order-history-filters"
+import { useOrderHistory } from "@/hooks/history/use-order-history"
+import { useOrderHistoryFilters } from "@/hooks/history/use-order-history-filters"
 import { HistoryHeader } from "@/components/history/history-header"
 import { HistoryFilters } from "@/components/history/history-filters"
 import { OrderHistoryTable } from "@/components/history/order-history-table"
-import { HistoryTableSkeleton } from "@/components/history/table-skeleton"
+import { TableSkeleton } from "@/components/ui/table-skeleton"
 import { HistoryEmptyState } from "@/components/history/empty-state"
 export default function HistoryPage() {
   const { data: orders = [], isLoading } = useOrderHistory()
@@ -25,7 +25,7 @@ export default function HistoryPage() {
       />
 
       {isLoading ? (
-        <HistoryTableSkeleton />
+        <TableSkeleton columns={8} rows={6} />
       ) : filtered.length === 0 ? (
         <HistoryEmptyState />
       ) : (

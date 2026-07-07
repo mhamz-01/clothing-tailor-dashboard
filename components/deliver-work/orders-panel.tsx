@@ -1,5 +1,7 @@
+import { useEffect, useRef } from "react"
 import { CheckCircle2 } from "lucide-react"
 import { TableSkeleton } from "../ui/table-skeleton"
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { OrderRow } from "./order-row"
 import type { DeliverableOrder } from "@/types/deliver-work"
 interface OrdersPanelProps {
@@ -10,12 +12,21 @@ interface OrdersPanelProps {
   selectedCount: number
   totalQuantity: number
   onToggleOrder: (order: DeliverableOrder, checked: boolean, comment: string) => void
+  onToggleAll: (checked: boolean) => void
   onCommentChange: (orderId: string, value: string) => void
 }
 
 export function OrdersPanel({
-  orders, isLoading, comments, checkedIds, selectedCount, totalQuantity, onToggleOrder, onCommentChange,
+  orders, isLoading, comments, checkedIds, selectedCount, totalQuantity, onToggleOrder, onToggleAll, onCommentChange,
 }: OrdersPanelProps) {
+  const allChecked = orders.length > 0 && orders.every((o) => checkedIds.has(o.id))
+  const someChecked = !allChecked && orders.some((o) => checkedIds.has(o.id))
+  const selectAllRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (selectAllRef.current) selectAllRef.current.indeterminate = someChecked
+  }, [someChecked])
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-4">
@@ -46,17 +57,26 @@ export function OrdersPanel({
         </div>
       ) : (
         <div className="overflow-auto rounded-2xl border border-gray-200 bg-white h-[470px]">
-          <table className="w-full border-collapse">
-            <thead className="sticky top-0 z-10 bg-gray-50">
-              <tr className="border-b border-gray-200">
-                <th className="w-10 px-4 py-3" />
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">Customer</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">Tailor</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">Qty</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">Comment</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="border-collapse">
+            <TableHeader className="sticky top-0 z-10 bg-gray-50">
+              <TableRow className="border-b border-gray-200 hover:bg-transparent">
+                <TableHead className="w-10 px-4 py-3">
+                  <input
+                    ref={selectAllRef}
+                    type="checkbox"
+                    checked={allChecked}
+                    onChange={(e) => onToggleAll(e.target.checked)}
+                    className="size-4 cursor-pointer rounded border-gray-300 accent-indigo-600"
+                    aria-label="Select all orders"
+                  />
+                </TableHead>
+                <TableHead className="h-auto px-4 py-3 text-left text-xs font-semibold whitespace-nowrap text-gray-500">Customer</TableHead>
+                <TableHead className="h-auto px-4 py-3 text-left text-xs font-semibold whitespace-nowrap text-gray-500">Tailor</TableHead>
+                <TableHead className="h-auto px-4 py-3 text-left text-xs font-semibold whitespace-nowrap text-gray-500">Qty</TableHead>
+                <TableHead className="h-auto px-4 py-3 text-left text-xs font-semibold whitespace-nowrap text-gray-500">Comment</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {orders.map((order) => (
                 <OrderRow
                   key={order.id}
@@ -67,8 +87,8 @@ export function OrdersPanel({
                   onCommentChange={onCommentChange}
                 />
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

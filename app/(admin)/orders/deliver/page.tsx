@@ -1,10 +1,10 @@
 "use client"
 
 import { useCallback, useMemo, useState } from "react"
-import { useAssignedOrders } from "@/hooks/use-assigned-orders"
-import { useStagedDeliveries } from "@/hooks/use-staged-deliveries"
-import { useDeliverOrdersMutation } from "@/hooks/use-deliver-order-mutations"
-import { useDebouncedValue } from "@/hooks/use-debounced-values"
+import { useAssignedOrders } from "@/hooks/deliver-work/use-assigned-orders"
+import { useStagedDeliveries } from "@/hooks/deliver-work/use-staged-deliveries"
+import { useDeliverOrdersMutation } from "@/hooks/deliver-work/use-deliver-order-mutations"
+import { useDebouncedValue } from "@/hooks/shared/use-debounced-value"
 import { DeliverWorkHeader } from "@/components/deliver-work/deliver-work-header"
 import { OrderSearchInput } from "@/components/deliver-work/order-search-input"
 import { OrdersPanel } from "@/components/deliver-work/orders-panel"
@@ -19,7 +19,7 @@ export default function DeliverWorkPage() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const debouncedSearch = useDebouncedValue(search, 200)
 
-  const { checkedIds, stagedDeliveries, totalQuantity, toggleOrder, removeFromStaged, clearStaged } = useStagedDeliveries()
+  const { checkedIds, stagedDeliveries, totalQuantity, toggleOrder, toggleAll, removeFromStaged, clearStaged } = useStagedDeliveries()
   const deliverOrders = useDeliverOrdersMutation()
 
   const filteredOrders = useMemo(() => {
@@ -38,6 +38,13 @@ export default function DeliverWorkPage() {
   const handleCommentChange = useCallback((orderId: string, value: string) => {
     setComments((prev) => ({ ...prev, [orderId]: value }))
   }, [])
+
+  const handleToggleAll = useCallback(
+    (checked: boolean) => {
+      toggleAll(filteredOrders, checked, comments)
+    },
+    [toggleAll, filteredOrders, comments]
+  )
 
   function handleConfirmDelivery() {
     deliverOrders.mutate(stagedDeliveries, {
@@ -62,6 +69,7 @@ export default function DeliverWorkPage() {
           selectedCount={checkedIds.size}
           totalQuantity={totalPendingQuantity}
           onToggleOrder={toggleOrder}
+          onToggleAll={handleToggleAll}
           onCommentChange={handleCommentChange}
         />
 

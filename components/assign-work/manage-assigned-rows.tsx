@@ -1,6 +1,7 @@
 import { memo } from "react"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { TableCell, TableRow } from "@/components/ui/table"
 import { TailorCombobox } from "./tailor-combobox"
 import { formatDueDate } from "@/lib/utils/date"
 import type { AssignedOrder } from "@/types"
@@ -24,18 +25,18 @@ function ManageAssignedRowComponent({
   onStartEdit, onCancelEdit, onEditTailorSelect, onSave,
 }: ManageAssignedRowProps) {
   return (
-    <tr className="border-b hover:bg-slate-50 transition-colors">
-      <td className="px-4 py-3 font-medium text-slate-800">{order.customer_ref_id}</td>
-      <td className="px-4 py-3 text-slate-600">
+    <TableRow className="border-b hover:bg-slate-50">
+      <TableCell className="px-4 py-3 font-medium text-slate-800">{order.customer_ref_id}</TableCell>
+      <TableCell className="px-4 py-3 text-slate-600">
         {isEditing ? (
           <TailorCombobox tailors={tailors} activeByTailor={activeByTailor} selectedTailorId={editTailorId} onSelect={onEditTailorSelect} size="sm" />
         ) : (
           <span>{order.tailor?.name ?? "—"}</span>
         )}
-      </td>
-      <td className="px-4 py-3 text-slate-600">{order.quantity ?? "—"}</td>
-      <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{formatDueDate(order.due_date)}</td>
-      <td className="px-4 py-3 text-right">
+      </TableCell>
+      <TableCell className="px-4 py-3 text-slate-600">{order.quantity ?? "—"}</TableCell>
+      <TableCell className="px-4 py-3 text-slate-600 whitespace-nowrap">{formatDueDate(order.due_date)}</TableCell>
+      <TableCell className="px-4 py-3 text-right">
         <div className="flex items-center justify-end gap-2">
           {isEditing ? (
             <>
@@ -50,8 +51,8 @@ function ManageAssignedRowComponent({
             </Button>
           )}
         </div>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   )
 }
 

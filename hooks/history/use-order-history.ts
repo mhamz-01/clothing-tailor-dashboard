@@ -2,10 +2,12 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { fetchOrderHistory } from "@/lib/queries"
+import { queryKeys } from "@/lib/queries/keys"
 import type { Order } from "@/types"
+
 export function useOrderHistory() {
   return useQuery<Order[]>({
-    queryKey: ["orderHistory"],
+    queryKey: queryKeys.orderHistory,
     queryFn: fetchOrderHistory,
   })
 }
