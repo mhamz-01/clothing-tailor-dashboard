@@ -21,7 +21,7 @@ history, backed by Supabase (Postgres + Auth-less custom JWT sessions).
 Browser
   │
   ▼
-middleware.ts ──(no/invalid auth_token cookie)──▶ redirect to /login
+proxy.ts ──(no/invalid auth_token cookie)──▶ redirect to /login
   │ (valid cookie)
   ▼
 app/(admin)/**/page.tsx  ("use client")
@@ -41,13 +41,13 @@ Two independent things are protected by two independent JWTs:
 - **Admin session** (`auth_token` cookie) — logs into the day-to-day dashboard
   (`/dashboard`, `/orders/*`, `/tailors/*`, `/history`). Credentials live in the
   `admin_credentials` table, checked in `app/api/auth/login/route.ts`.
-  Enforced by `middleware.ts` for the routes listed in its `matcher`.
+  Enforced by `proxy.ts` for the routes listed in its `matcher`.
 - **Superadmin session** (`superadmin_token` cookie) — manages the
   `admin_credentials` table itself (`/superadmin`). Credentials are a single
   username/password pair in server-only env vars (`SUPER_USERNAME` /
   `SUPER_PASSWORD`), checked in `app/api/auth/superadmin-login/route.ts`.
   Enforced per-request inside the `/api/superadmin/*` route handlers via
-  `lib/auth/superadmin.ts`, not by `middleware.ts`.
+  `lib/auth/superadmin.ts`, not by `proxy.ts`.
 
 These two systems are intentionally separate — a compromised admin account
 should never grant superadmin capability, and vice versa.
@@ -65,7 +65,7 @@ should never grant superadmin capability, and vice versa.
   - `tailors/add/` — register a new tailor
   - `history/` — searchable/filterable order history table
 - **`(auth)/login/`** — the admin login page (public, redirected to by
-  `middleware.ts` when `auth_token` is missing/invalid)
+  `proxy.ts` when `auth_token` is missing/invalid)
 - **`superadmin/`** — standalone route (its own `layout.tsx` +
   `QueryClientProvider`, outside the `(admin)` group since it uses a different
   session/cookie entirely)
@@ -117,7 +117,7 @@ come from `lib/queries/keys.ts` (`queryKeys.*`), not inline string literals.
 - **`supabase/`** — client factories: `client.ts` (browser), `server.ts`
   (server components, cookie-aware), `service.ts` (service-role, server-only),
   `env.ts` (shared env-var validation), `middleware.ts` (Supabase session
-  refresh helper — currently unused by `middleware.ts`'s own JWT check, kept
+  refresh helper — currently unused by `proxy.ts`'s own JWT check, kept
   for future use if Supabase Auth is ever adopted)
 - **`auth/superadmin.ts`** — superadmin JWT sign/verify + cookie name constant
 - **`constants/`** — shared magic numbers: `orders.ts`
@@ -135,7 +135,7 @@ come from `lib/queries/keys.ts` (`queryKeys.*`), not inline string literals.
 `admin.ts`, all re-exported through `index.ts`. Prefer importing from `@/types`
 over a deep path unless you have a specific reason not to.
 
-### `middleware.ts`
+### `proxy.ts`
 
 Guards `/dashboard`, `/tailors/*`, `/orders/*`, `/history`, `/login` by
 verifying the `auth_token` JWT (admin session only — superadmin auth is
@@ -145,6 +145,38 @@ enforced separately, see above).
 
 Raw SQL migrations applied to the Supabase project directly (not run through
 this app at build/deploy time).
+
+## `app/tailor/` — customer-facing "tailor" module (standalone)
+
+A separate, simple, Urdu/English bilingual module for shop customers,
+independent of the admin dashboard described above — different route
+namespace, different auth system, different session cookie. Nothing in
+`app/(admin)/`, `app/superadmin/`, or `proxy.ts`'s admin branch links to
+it, and vice versa.
+
+- **`app/tailor/(auth)/login/`** — public login page at `/tailor/login`.
+  Posts to `app/api/auth/tailor-login/route.ts`, which checks credentials
+  against the `tailor_credentials` table (bcrypt-hashed `password_hash`, via
+  `lib/queries/tailor-auth.ts` + the service-role client) and issues a
+  `tailor_token` JWT cookie signed with `TAILOR_JWT_SECRET` (see
+  `lib/auth/tailor.ts` — completely separate secret/cookie from the admin
+  `auth_token`/`JWT_SECRET` and superadmin `superadmin_token`).
+- **`app/tailor/(portal)/categories/`** — the post-login screen at
+  `/tailor/categories`: centered logo, "Categories / اقسام" heading, and 5
+  static bilingual category cards (Shalwar Kameez, Waistcoat, Pant, Shirt,
+  Coat). Not yet wired to any data — static display only.
+- **`app/tailor/layout.tsx`** — loads `Noto_Nastaliq_Urdu` via `next/font`,
+  scoped to this subtree only (not the root layout), exposed as the
+  `--font-urdu` CSS variable.
+- **`proxy.ts`** — routes starting with `/tailor/` are dispatched to a
+  separate `handleTailorAuth` branch (distinct from the admin branch) that
+  checks the `tailor_token` cookie against `TAILOR_JWT_SECRET`; unauthenticated
+  requests redirect to `/tailor/login`. (Note the trailing slash in the
+  `startsWith` check — needed so `/tailors/*`, the existing admin "manage
+  tailors" feature, doesn't get caught by this branch.)
+- **No signup flow.** `tailor_credentials` rows are inserted manually via the
+  Supabase table editor. Run `npm run hash-password -- <plaintext>` to get a
+  bcrypt hash for the `password_hash` column.
 
 ## Known gaps (intentionally out of scope so far)
 
