@@ -7,12 +7,12 @@ interface ButtonTypePanelProps {
 export function ButtonTypePanel({ options }: ButtonTypePanelProps) {
   return (
     <div>
-      <div className="mb-1.5 rounded-md bg-slate-100 px-2.5 py-1.5 text-xs font-bold tracking-wide text-black uppercase">
+      <div className="mb-1 rounded-md bg-white px-2 py-1 text-[11px] font-bold tracking-wide text-black uppercase">
         Button Type
       </div>
-      <div className="grid grid-cols-2 gap-x-3.5 gap-y-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+      <div className="grid grid-cols-1 gap-y-0.5 rounded-lg border border-slate-200 bg-white px-2 py-1.5">
         {options.map((option) => (
-          <label key={option.value} className="flex cursor-pointer items-center gap-1.5 text-[13px] font-bold whitespace-nowrap text-black">
+          <label key={option.value} className="flex cursor-pointer items-center gap-1.5 text-[11px] font-bold whitespace-nowrap text-black">
             <input
               type="radio"
               name="buttonType"

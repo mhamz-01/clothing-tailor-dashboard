@@ -15,9 +15,9 @@ interface NumberedQuickPickProps {
 // one level up keeps it inline with them instead.
 export function NumberedQuickPick({ value, onChange }: NumberedQuickPickProps) {
   return (
-    <div className="w-16 shrink-0">
+    <div className="w-12 shrink-0">
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-7 border-slate-300 bg-slate-100 text-[13px] font-medium text-slate-700">
+        <SelectTrigger className="h-7 border-slate-200 bg-white text-xs font-medium text-slate-700">
           <SelectValue placeholder="#" />
         </SelectTrigger>
         <SelectContent>

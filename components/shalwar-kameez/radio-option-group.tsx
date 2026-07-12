@@ -14,11 +14,11 @@ interface RadioOptionGroupProps {
 // collar, daman, button type) — each maps to a `*_type_id` FK in the schema.
 export function RadioOptionGroup({ title, name, options, trailingSlot }: RadioOptionGroupProps) {
   return (
-    <div>
-      <div className="mb-1.5 text-[11.5px] font-bold tracking-wide text-black uppercase">{title}</div>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+    <div className="min-w-0">
+      <div className="mb-1 truncate text-[11.5px] font-bold tracking-wide text-black uppercase">{title}</div>
+      <div className="flex min-w-0 flex-nowrap items-center gap-x-1.5 overflow-x-auto">
         {options.map((option) => (
-          <label key={option.value} className="flex cursor-pointer items-center gap-1.5 text-[13.5px] font-bold whitespace-nowrap text-black">
+          <label key={option.value} className="flex shrink-0 cursor-pointer items-center gap-1 text-[12px] font-bold whitespace-nowrap text-black">
             <input
               type="radio"
               name={name}

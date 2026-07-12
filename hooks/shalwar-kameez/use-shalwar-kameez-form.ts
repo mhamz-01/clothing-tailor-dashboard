@@ -32,6 +32,8 @@ function createInitialState(): ShalwarKameezFormState {
     phoneNo: "",
     pBal: "0",
     measurements: { lambai: "", chaati: "", bazu: "", teera: "", collarM: "", kamar: "", daman: "", shalwarLambai: "", pancha: "" },
+    extraNo1: "",
+    extraNo2: "",
     note: "",
     basicChecks: { isNokderTera: false, isChalkAsten: false, isKufDblKaj: false, isLargeButtons: false, shalwarZip: false },
     styleFlags: { kafDboty: false, btnDboty: false, noLbl: false, kajPatti: false, fiveBtn: false, twoJeb: false, noJeb: false },

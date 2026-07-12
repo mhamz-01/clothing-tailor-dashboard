@@ -66,6 +66,9 @@ export interface ShalwarKameezFormState {
   phoneNo: string
   pBal: string
   measurements: Record<MeasurementKey, string>
+  // Two unlabeled quick-entry boxes below Pancha — purpose not decided yet.
+  extraNo1: string
+  extraNo2: string
   note: string
   basicChecks: Record<BasicCheckKey, boolean>
   styleFlags: Record<StyleFlagKey, boolean>

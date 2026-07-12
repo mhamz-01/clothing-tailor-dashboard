@@ -9,7 +9,7 @@ interface CheckboxGroupProps {
 // checkboxes — same look, different data source (see use-shalwar-kameez-form).
 export function CheckboxGroup({ items, columns = 3 }: CheckboxGroupProps) {
   return (
-    <div className={columns === 2 ? "grid grid-cols-2 gap-x-4 gap-y-1.5" : "grid grid-cols-3 gap-x-4 gap-y-1.5"}>
+    <div className={columns === 2 ? "grid grid-cols-2 gap-x-4 gap-y-1" : "grid grid-cols-3 gap-x-4 gap-y-1"}>
       {items.map((item) => (
         <label key={item.key} className="flex cursor-pointer items-center gap-1.5 text-[13.5px] font-bold text-black">
           <input

@@ -7,9 +7,9 @@ import type {
   StyleFlagKey,
 } from "@/types/shalwar-kameez"
 
-// Shared field styling for this form — the default Input/Select border color is
-// too close in lightness to the page background to read clearly at a glance.
-export const FIELD_CLASS = "border-slate-300 bg-white"
+// Shared field styling for this form — light borders on a white field, read
+// against the page's darker slate-100 background (see page.tsx).
+export const FIELD_CLASS = "border-slate-200 bg-white"
 
 export const MEASUREMENTS: MeasurementDefinition[] = [
   { key: "lambai", ur: "لمبائی" },

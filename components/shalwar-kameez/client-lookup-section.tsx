@@ -49,13 +49,13 @@ export function ClientLookupSection({
   const [isAddClientOpen, setIsAddClientOpen] = useState(false)
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 gap-3.5 md:grid-cols-4">
+    <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <div>
           <Label className="mb-1 block text-[12.5px] font-bold text-black">Client No.</Label>
           <div className="flex gap-1.5">
-            <Input value={clientNo} onChange={(e) => onClientNoChange(e.target.value)} placeholder="—" className={cn(FIELD_CLASS, "h-9")} />
-            <Button type="button" variant="outline" onClick={() => setIsAddClientOpen(true)} className="h-9 shrink-0 px-3 text-xs font-bold">
+            <Input value={clientNo} onChange={(e) => onClientNoChange(e.target.value)} placeholder="—" className={cn(FIELD_CLASS, "h-8")} />
+            <Button type="button" variant="outline" onClick={() => setIsAddClientOpen(true)} className="h-8 shrink-0 px-3 text-xs font-bold">
               <Plus /> Add
             </Button>
           </div>
@@ -63,20 +63,20 @@ export function ClientLookupSection({
 
         <div>
           <Label className="mb-1 block text-[12.5px] font-bold text-black">Book Date</Label>
-          <Input type="date" value={bookDate} onChange={(e) => onBookDateChange(e.target.value)} className={cn(FIELD_CLASS, "h-9")} />
+          <Input type="date" value={bookDate} onChange={(e) => onBookDateChange(e.target.value)} className={cn(FIELD_CLASS, "h-8")} />
         </div>
 
         <div>
           <Label className="mb-1 block text-[12.5px] font-bold text-black">Record No.</Label>
           <div className="flex gap-1.5">
-            <Input value={recordNo} onChange={(e) => onRecordNoChange(e.target.value)} className={cn(FIELD_CLASS, "h-9 bg-slate-50")} />
+            <Input value={recordNo} onChange={(e) => onRecordNoChange(e.target.value)} className={cn(FIELD_CLASS, "h-8 bg-slate-50")} />
             <Button
               type="button"
               variant="outline"
               size="icon"
               onClick={onSearchRecord}
               aria-label="Search record"
-              className="h-9 w-9 shrink-0"
+              className="h-8 w-8 shrink-0"
             >
               <Search />
             </Button>
@@ -85,11 +85,11 @@ export function ClientLookupSection({
 
         <div>
           <Label className="mb-1 block text-[12.5px] font-bold text-black">P-Bal</Label>
-          <Input type="number" value={pBal} onChange={(e) => onPBalChange(e.target.value)} className={cn(FIELD_CLASS, "h-9")} />
+          <Input type="number" value={pBal} onChange={(e) => onPBalChange(e.target.value)} className={cn(FIELD_CLASS, "h-8")} />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <div>
           <Label className="mb-1 block text-[12.5px] font-bold text-black">Client Name</Label>
           <div className="flex gap-1.5">
@@ -97,7 +97,7 @@ export function ClientLookupSection({
               value={clientName}
               onChange={(e) => onClientNameChange(e.target.value)}
               placeholder="Enter client name"
-              className={cn(FIELD_CLASS, "h-9 font-medium")}
+              className={cn(FIELD_CLASS, "h-8 font-medium")}
             />
             <Button
               type="button"
@@ -105,7 +105,7 @@ export function ClientLookupSection({
               size="icon"
               onClick={onSearchClientName}
               aria-label="Search client name"
-              className="h-9 w-9 shrink-0"
+              className="h-8 w-8 shrink-0"
             >
               <Search />
             </Button>
@@ -120,7 +120,7 @@ export function ClientLookupSection({
               value={phoneNo}
               onChange={(e) => onPhoneNoChange(e.target.value)}
               placeholder="03XXXXXXXXX"
-              className={cn(FIELD_CLASS, "h-9")}
+              className={cn(FIELD_CLASS, "h-8")}
             />
             <Button
               type="button"
@@ -128,7 +128,7 @@ export function ClientLookupSection({
               size="icon"
               onClick={onSearchPhone}
               aria-label="Search phone"
-              className="h-9 w-9 shrink-0"
+              className="h-8 w-8 shrink-0"
             >
               <Search />
             </Button>
