@@ -36,7 +36,7 @@ export function MeasurementsPanel({
       </div>
 
       {rows.map((row) => (
-        <div key={row.key} className="grid grid-cols-[1fr_66px] items-center gap-2">
+        <div key={row.key} className="grid grid-cols-[1fr_66px] items-center gap-2  ">
           <Input
             type="number"
             value={row.value}

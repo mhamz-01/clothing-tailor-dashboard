@@ -82,8 +82,6 @@ export function ShalwarKameezForm() {
             onSearchRecord={() => form.updateField("statusMsg", "Searching by record no…")}
             onSearchClientName={() => form.updateField("statusMsg", "Searching by client name…")}
             onSearchPhone={() => form.updateField("statusMsg", "Searching by phone no…")}
-            largeButtonsItem={form.largeButtonsItem}
-            lookupCheckItems={form.lookupCheckItems}
           />
 
           <div className="grid min-h-0 flex-1 grid-cols-[228px_1fr_420px] gap-2">
@@ -99,6 +97,7 @@ export function ShalwarKameezForm() {
 
             <StyleOptionsPanel
               styleFlagItems={form.styleFlagItems}
+              largeButtonsItem={form.largeButtonsItem}
               pocketOptions={form.pocketOptions}
               bainOptions={form.bainOptions}
               collarOptions={form.collarOptions}

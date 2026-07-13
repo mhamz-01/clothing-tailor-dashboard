@@ -18,9 +18,9 @@ export interface MeasurementDefinition {
   ur: string
 }
 
-export type BasicCheckKey = "isNokderTera" | "isChalkAsten" | "isKufDblKaj" | "isLargeButtons" | "shalwarZip"
+export type BasicCheckKey = "isLargeButtons" | "shalwarZip"
 
-export type StyleFlagKey = "kafDboty" | "btnDboty" | "noLbl" | "kajPatti" | "fiveBtn" | "twoJeb" | "noJeb"
+export type StyleFlagKey = "kafDboty" | "btnDboty" | "noLbl" | "kajPatti" | "twoJeb" | "noJeb"
 
 export interface CheckDefinition<K extends string> {
   key: K

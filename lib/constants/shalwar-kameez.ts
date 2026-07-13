@@ -27,9 +27,6 @@ export const MEASUREMENTS: MeasurementDefinition[] = [
 ]
 
 export const BASIC_CHECKS: CheckDefinition<BasicCheckKey>[] = [
-  { key: "isNokderTera", label: "Nokdar Tera" },
-  { key: "isChalkAsten", label: "Chalk Asten" },
-  { key: "isKufDblKaj", label: "Kuf Dbl Kaj" },
   { key: "isLargeButtons", label: "Large Buttons" },
   { key: "shalwarZip", label: "Shalwar Zip" },
 ]
@@ -40,7 +37,6 @@ export const STYLE_FLAGS: CheckDefinition<StyleFlagKey>[] = [
   { key: "kafDboty", label: "Kaf Dboty" },
   { key: "kajPatti", label: "Kaj Patti" },
   { key: "btnDboty", label: "Btn Dboty" },
-  { key: "fiveBtn", label: "5 Btn" },
   { key: "noLbl", label: "No Lbl" },
   { key: "twoJeb", label: "2 Jeb" },
   { key: "noJeb", label: "No Jeb" },

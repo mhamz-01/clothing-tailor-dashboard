@@ -20,7 +20,7 @@ export function CheckboxGroup({ items, columns }: CheckboxGroupProps) {
   return (
     <div className={columns ? COLUMNS_CLASS[columns] : "flex flex-wrap items-center gap-x-4 gap-y-2"}>
       {items.map((item) => (
-        <label key={item.key} className="flex cursor-pointer items-center gap-1.5 text-[13px] font-semibold text-[#222226]">
+        <label key={item.key} className="flex cursor-pointer items-center gap-1.5 text-[14px] font-semibold text-[#222226]">
           <input
             type="checkbox"
             checked={item.checked}

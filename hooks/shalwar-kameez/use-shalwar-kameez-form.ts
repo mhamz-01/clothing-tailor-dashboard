@@ -35,8 +35,8 @@ function createInitialState(): ShalwarKameezFormState {
     extraNo1: "",
     extraNo2: "",
     note: "",
-    basicChecks: { isNokderTera: false, isChalkAsten: false, isKufDblKaj: false, isLargeButtons: false, shalwarZip: false },
-    styleFlags: { kafDboty: false, btnDboty: false, noLbl: false, kajPatti: false, fiveBtn: false, twoJeb: false, noJeb: false },
+    basicChecks: { isLargeButtons: false, shalwarZip: false },
+    styleFlags: { kafDboty: false, btnDboty: false, noLbl: false, kajPatti: false, twoJeb: false, noJeb: false },
     partDesigns: PART_DESIGNS.map((definition) => ({ ...definition, size1: "", size2: "", designNo: "" })),
     radios: { pocket: "", bain: "", collar: "", daman: "", button: "" },
     bainStyleNo: "",
@@ -143,10 +143,8 @@ export function useShalwarKameezForm() {
     onChange: (value: string) => updateMeasurement(measurement.key, value),
   }))
 
-  // Nokdar Tera / Chalk Asten / Kuf Dbl Kaj moved into the client-lookup section
-  // (client request) — the rest stay in Style Options.
-  const LOOKUP_BASIC_CHECK_KEYS: BasicCheckKey[] = ["isNokderTera", "isChalkAsten", "isKufDblKaj"]
-
+  // Large Buttons sits in the client-strip identity grid; Shalwar Zip sits as a
+  // trailing checkbox on the Daman radio row — each rendered on its own.
   const allBasicCheckItems = BASIC_CHECKS.map((check) => ({
     key: check.key,
     label: check.label,
@@ -154,10 +152,6 @@ export function useShalwarKameezForm() {
     onChange: () => toggleBasicCheck(check.key),
   }))
 
-  const lookupCheckItems = allBasicCheckItems.filter((item) => LOOKUP_BASIC_CHECK_KEYS.includes(item.key as BasicCheckKey))
-  // Large Buttons sits in the client-strip identity grid; Shalwar Zip sits as a
-  // trailing checkbox on the Daman radio row — each rendered on its own, not as
-  // part of a shared checkbox-group like the other basic checks.
   const largeButtonsItem = allBasicCheckItems.find((item) => item.key === "isLargeButtons")!
   const shalwarZipItem = allBasicCheckItems.find((item) => item.key === "shalwarZip")!
 
@@ -184,7 +178,6 @@ export function useShalwarKameezForm() {
     measurementRows,
     largeButtonsItem,
     shalwarZipItem,
-    lookupCheckItems,
     styleFlagItems,
     pocketOptions: mapRadioOptions(POCKET_OPTIONS, "pocket"),
     bainOptions: mapRadioOptions(BAIN_GALA_OPTIONS, "bain"),

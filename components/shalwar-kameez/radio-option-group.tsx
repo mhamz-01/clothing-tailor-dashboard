@@ -15,11 +15,11 @@ interface RadioOptionGroupProps {
 // Design spec (Shalwar Kameez Dashboard.dc.html) pixel-for-pixel.
 export function RadioOptionGroup({ title, name, options, trailingSlot }: RadioOptionGroupProps) {
   return (
-    <div className="flex items-center gap-2.5 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] px-3 py-[11px]">
-      <span className="w-16 shrink-0 text-[10px] font-bold tracking-[0.06em] text-[#8a8a92] uppercase">{title}</span>
+    <div className="flex items-center gap-3.5 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] px-3 py-[15px]">
+      <span className="w-16 shrink-0 text-[12px] font-bold tracking-[0.06em] text-[#8a8a92] uppercase">{title}</span>
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
         {options.map((option) => (
-          <label key={option.value} className="flex shrink-0 cursor-pointer items-center gap-1.5 text-[13px] font-semibold whitespace-nowrap text-[#222226]">
+          <label key={option.value} className="flex shrink-0 cursor-pointer items-center gap-1.5 text-[14px] font-semibold whitespace-nowrap text-[#222226]">
             <input
               type="radio"
               name={name}
