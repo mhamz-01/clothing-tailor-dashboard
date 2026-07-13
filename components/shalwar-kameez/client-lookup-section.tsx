@@ -38,7 +38,7 @@ function SearchIcon() {
   )
 }
 
-const rowLabel = "text-[12px] font-bold whitespace-nowrap text-[#333338]"
+const rowLabel = "text-[14px] font-bold whitespace-nowrap text-[#333338]"
 const field = cn(FIELD_CLASS, "h-6 w-full")
 
 // "Client strip" — the identity grid a tailor fills or searches by, plus a
@@ -76,7 +76,7 @@ export function ClientLookupSection({
           <button
             type="button"
             onClick={() => setIsAddClientOpen(true)}
-            className="h-6 shrink-0 rounded-[3px] border border-black bg-white px-2.5 text-[12px] font-bold whitespace-nowrap hover:bg-black hover:text-white"
+            className="h-6 shrink-0 rounded-[3px] border border-black bg-white px-2.5 text-[14px] font-bold whitespace-nowrap hover:bg-black hover:text-white"
           >
             Add
           </button>
@@ -136,7 +136,7 @@ export function ClientLookupSection({
             <SearchIcon />
           </button>
         </div>
-        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-bold whitespace-nowrap text-[#333338]">
+        <label className="flex cursor-pointer items-center gap-1.5 text-[14px] font-bold whitespace-nowrap text-[#333338]">
           <input
             type="checkbox"
             checked={largeButtonsItem.checked}

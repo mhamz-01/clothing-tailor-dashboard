@@ -10,8 +10,8 @@ import { PartDesignTable } from "@/components/shalwar-kameez/part-design-table"
 import { StyleOptionsPanel } from "@/components/shalwar-kameez/style-options-panel"
 import { useShalwarKameezForm } from "@/hooks/shalwar-kameez/use-shalwar-kameez-form"
 
-const BOARD_WIDTH = 1360
-const BOARD_HEIGHT = 764
+const BOARD_WIDTH = 1610
+const BOARD_HEIGHT = 770
 
 // The design spec calls for Noto Naskh Arabic specifically (not the
 // Noto Nastaliq Urdu used by the rest of the tailor module) — scoped to
@@ -19,7 +19,7 @@ const BOARD_HEIGHT = 764
 const notoNaskhArabic = Noto_Naskh_Arabic({
   variable: "--font-naskh",
   subsets: ["arabic"],
-  weight: ["400", "500", "700"],
+  weight: ["600", "500", "700"],
 })
 
 // Order-entry form for the Shalwar Kameez category, rebuilt to match the
@@ -38,7 +38,7 @@ export function ShalwarKameezForm() {
     function fit() {
       const el = boardRef.current
       if (!el) return
-      const scale = Math.min(window.innerWidth / BOARD_WIDTH, window.innerHeight / BOARD_HEIGHT, 1.15)
+      const scale = Math.min(window.innerWidth / BOARD_WIDTH, window.innerHeight / BOARD_HEIGHT)
       el.style.transform = `scale(${scale})`
     }
     fit()

@@ -44,7 +44,7 @@ export function MeasurementsPanel({
             placeholder="—"
             className={cn(FIELD_CLASS, "h-[23px]")}
           />
-          <label className="font-[family-name:var(--font-naskh)] text-right text-[16px] font-bold text-[#111116]" dir="rtl">
+          <label className="font-[family-name:var(--font-naskh)] text-right text-[22px] font-bold text-[#111116]" dir="rtl">
             {row.ur}
           </label>
         </div>

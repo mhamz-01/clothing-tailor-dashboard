@@ -13,7 +13,7 @@ interface OrderSummaryPanelProps {
   buttonOptions: RadioItem[]
 }
 
-const labelClass = "text-[12px] font-bold text-[#333338]"
+const labelClass = "text-[16px] font-bold text-[#333338]"
 const fieldClass = cn(FIELD_CLASS, "h-[22px] text-right tabular-nums")
 
 // Bottom half of the right column: amounts on the left, Button Type list on

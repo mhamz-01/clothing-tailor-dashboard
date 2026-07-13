@@ -11,7 +11,7 @@ interface ActionBarProps {
 }
 
 const outlinedBtn =
-  "h-8 shrink-0 rounded-[4px] border border-[#c2c2ca] bg-white px-3 text-[13px] font-bold whitespace-nowrap text-[#222226] hover:border-black hover:bg-[#f4f4f6]"
+  "h-8 shrink-0 rounded-[4px] border border-[#c2c2ca] bg-white px-3 text-[16px] font-bold whitespace-nowrap text-[#222226] hover:border-black hover:bg-[#f4f4f6]"
 
 // Full-width single-row bar below the 3-column body. Print Receipt sits on
 // the left (outlined, icon+text); Save + the rest of the actions are
