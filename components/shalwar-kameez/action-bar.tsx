@@ -8,43 +8,40 @@ interface ActionBarProps {
   onPrev: () => void
   onNext: () => void
   onPrint: () => void
-  onPrintReceipt: () => void
   onDelete: () => void
   onExit: () => void
 }
 
-// 4-column button grid (2 rows instead of 4), full labels (no abbreviating/
-// icon-only) — lives in the Order Summary column rather than a full-width
-// bar, so the whole form fits a single viewport without scrolling.
-export function ActionBar({ statusMsg, onSave, onClear, onPrev, onNext, onPrint, onPrintReceipt, onDelete, onExit }: ActionBarProps) {
+// Full-width single-row bar below the 3-column layout — these actions apply
+// to the whole form, not just Order Summary, so they don't live inside any
+// one column (client request). Negative margin pulls it up closer to the
+// grid above; status message only takes space when it actually has text.
+export function ActionBar({ statusMsg, onSave, onClear, onPrev, onNext, onPrint, onDelete, onExit }: ActionBarProps) {
   return (
-    <div className="flex flex-col gap-1.5 border-t border-slate-200 pt-2">
-      <p className="min-h-[14px] text-[11px] font-semibold text-slate-500">{statusMsg}</p>
+    <div className="-mt-9 flex flex-col gap-0.5">
+      {statusMsg && <p className="text-xs font-semibold text-slate-500">{statusMsg}</p>}
 
-      <div className="grid grid-cols-4 gap-1">
-        <Button type="button" onClick={onSave} className="h-7 px-1 text-[11px]">
+      <div className="flex flex-row flex-nowrap justify-center gap-2">
+        <Button type="button" onClick={onSave} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap">
           Save
         </Button>
-        <Button type="button" variant="outline" onClick={onClear} className="h-7 px-1 text-[11px]">
+        <Button type="button" variant="outline" onClick={onClear} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap">
           Clear
         </Button>
-        <Button type="button" variant="outline" onClick={onPrev} className="h-7 px-1 text-[11px]">
+        <Button type="button" variant="outline" onClick={onPrev} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap">
           Prev
         </Button>
-        <Button type="button" variant="outline" onClick={onNext} className="h-7 px-1 text-[11px]">
+        <Button type="button" variant="outline" onClick={onNext} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap">
           Next
         </Button>
-        <Button type="button" variant="outline" onClick={onPrint} className="h-7 px-1 text-[11px] text-slate-700">
+        <Button type="button" variant="outline" onClick={onPrint} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap text-slate-700">
           Print
         </Button>
-        <Button type="button" variant="outline" onClick={onPrintReceipt} className="h-7 px-0.5 text-[11px]">
-          Print Receipt
-        </Button>
-        <Button type="button" variant="destructive" onClick={onDelete} className="h-7 px-1 text-[11px]">
+        <Button type="button" variant="destructive" onClick={onDelete} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap">
           Delete
         </Button>
-        <Button type="button" variant="secondary" onClick={onExit} className="h-7 border border-slate-300 px-1 text-[11px]">
-          <LogOut className="size-3.5" />
+        <Button type="button" variant="secondary" onClick={onExit} className="h-9 shrink-0 border border-slate-300 px-4 text-sm whitespace-nowrap">
+          <LogOut className="size-4" />
           Exit
         </Button>
       </div>

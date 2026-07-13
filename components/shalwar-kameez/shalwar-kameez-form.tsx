@@ -10,14 +10,17 @@ import { useShalwarKameezForm } from "@/hooks/shalwar-kameez/use-shalwar-kameez-
 // Order-entry form for the Shalwar Kameez category. All state lives in
 // use-shalwar-kameez-form; this component only lays the panels out.
 //
-// Actions live in the Order Summary column (not a full-width bottom bar) so the
-// whole form fits a single viewport without scrolling.
+// Actions apply to the whole form (not just Order Summary), so they run as
+// a full-width bar below the 3-column layout rather than living inside one
+// column — except Note and Print Receipt, which live in the Measurements
+// column instead (client request). Kept tight against the grid (no gap-1.5
+// parent spacing beyond the border) so it doesn't overflow the page.
 export function ShalwarKameezForm() {
   const form = useShalwarKameezForm()
   const { state } = form
 
   return (
-    <div className="flex w-full flex-col gap-2">
+    <div className="flex w-full flex-col gap-1.5">
       <ClientLookupSection
         clientNo={state.clientNo}
         bookDate={state.bookDate}
@@ -34,11 +37,16 @@ export function ShalwarKameezForm() {
         onSearchRecord={() => form.updateField("statusMsg", "Searching by record no…")}
         onSearchClientName={() => form.updateField("statusMsg", "Searching by client name…")}
         onSearchPhone={() => form.updateField("statusMsg", "Searching by phone no…")}
+        partDesignRows={state.partDesigns}
+        onPartDesignChange={form.updatePartDesign}
+        onPartDesignLabelClick={(row) => form.updateField("statusMsg", `${row.label} selected`)}
+        lookupCheckItems={form.lookupCheckItems}
+        belowPartDesignCheckItems={form.basicCheckItems}
       />
 
       <div className="h-px bg-slate-200" />
 
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-[200px_1fr_360px]">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-[280px_1fr_460px]">
         <MeasurementsPanel
           rows={form.measurementRows}
           note={state.note}
@@ -47,15 +55,11 @@ export function ShalwarKameezForm() {
           onExtraNo1Change={(value) => form.updateField("extraNo1", value)}
           extraNo2={state.extraNo2}
           onExtraNo2Change={(value) => form.updateField("extraNo2", value)}
+          onPrintReceipt={form.handlePrintReceipt}
         />
 
         <StyleOptionsPanel
-          basicCheckItems={form.basicCheckItems}
           styleFlagItems={form.styleFlagItems}
-          partDesignRows={state.partDesigns}
-          onPartDesignChange={form.updatePartDesign}
-          onPartDesignLabelClick={(row) => form.updateField("statusMsg", `${row.label} selected`)}
-          buttonOptions={form.buttonOptions}
           pocketOptions={form.pocketOptions}
           bainOptions={form.bainOptions}
           collarOptions={form.collarOptions}
@@ -66,26 +70,25 @@ export function ShalwarKameezForm() {
           onCollarStyleNoChange={(value) => form.updateField("collarStyleNo", value)}
         />
 
-        <div className="flex flex-col gap-2">
-          <OrderSummaryPanel
-            order={state.order}
-            onOrderFieldChange={form.updateOrderField}
-            total={form.total}
-            balance={form.balance}
-          />
-          <ActionBar
-            statusMsg={state.statusMsg}
-            onSave={form.handleSave}
-            onClear={form.clearForm}
-            onPrev={form.handlePrev}
-            onNext={form.handleNext}
-            onPrint={form.handlePrint}
-            onPrintReceipt={form.handlePrintReceipt}
-            onDelete={form.handleDelete}
-            onExit={form.handleExit}
-          />
-        </div>
+        <OrderSummaryPanel
+          order={state.order}
+          onOrderFieldChange={form.updateOrderField}
+          total={form.total}
+          balance={form.balance}
+          buttonOptions={form.buttonOptions}
+        />
       </div>
+
+      <ActionBar
+        statusMsg={state.statusMsg}
+        onSave={form.handleSave}
+        onClear={form.clearForm}
+        onPrev={form.handlePrev}
+        onNext={form.handleNext}
+        onPrint={form.handlePrint}
+        onDelete={form.handleDelete}
+        onExit={form.handleExit}
+      />
     </div>
   )
 }

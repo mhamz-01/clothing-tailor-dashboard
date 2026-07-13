@@ -143,12 +143,19 @@ export function useShalwarKameezForm() {
     onChange: (value: string) => updateMeasurement(measurement.key, value),
   }))
 
-  const basicCheckItems = BASIC_CHECKS.map((check) => ({
+  // Nokdar Tera / Chalk Asten / Kuf Dbl Kaj moved into the client-lookup section
+  // (client request) — the rest stay in Style Options.
+  const LOOKUP_BASIC_CHECK_KEYS: BasicCheckKey[] = ["isNokderTera", "isChalkAsten", "isKufDblKaj"]
+
+  const allBasicCheckItems = BASIC_CHECKS.map((check) => ({
     key: check.key,
     label: check.label,
     checked: state.basicChecks[check.key],
     onChange: () => toggleBasicCheck(check.key),
   }))
+
+  const lookupCheckItems = allBasicCheckItems.filter((item) => LOOKUP_BASIC_CHECK_KEYS.includes(item.key as BasicCheckKey))
+  const basicCheckItems = allBasicCheckItems.filter((item) => !LOOKUP_BASIC_CHECK_KEYS.includes(item.key as BasicCheckKey))
 
   const styleFlagItems = STYLE_FLAGS.map((flag) => ({
     key: flag.key,
@@ -172,6 +179,7 @@ export function useShalwarKameezForm() {
     handleExit,
     measurementRows,
     basicCheckItems,
+    lookupCheckItems,
     styleFlagItems,
     pocketOptions: mapRadioOptions(POCKET_OPTIONS, "pocket"),
     bainOptions: mapRadioOptions(BAIN_GALA_OPTIONS, "bain"),

@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -13,6 +14,7 @@ interface MeasurementsPanelProps {
   onExtraNo1Change: (value: string) => void
   extraNo2: string
   onExtraNo2Change: (value: string) => void
+  onPrintReceipt: () => void
 }
 
 export function MeasurementsPanel({
@@ -23,16 +25,17 @@ export function MeasurementsPanel({
   onExtraNo1Change,
   extraNo2,
   onExtraNo2Change,
+  onPrintReceipt,
 }: MeasurementsPanelProps) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="-mt-12 flex flex-col gap-0.5">
       <div className="rounded-md bg-white px-2.5 py-1 text-xs font-bold tracking-wide text-black uppercase">
         Measurements
       </div>
 
       {rows.map((row) => (
         <div key={row.key} className="flex items-center gap-2">
-          <span className="w-16 shrink-0 font-[family-name:var(--font-urdu)] text-[17px] font-bold text-black" dir="rtl">
+          <span className="w-16 shrink-0 font-[family-name:var(--font-urdu)] text-[15px] font-bold text-black" dir="rtl">
             {row.ur}
           </span>
           <Input type="number" value={row.value} onChange={(e) => row.onChange(e.target.value)} className={cn(FIELD_CLASS, "h-7")} />
@@ -49,15 +52,25 @@ export function MeasurementsPanel({
         </div>
       </div>
 
-      <div className="mt-0.5">
-        <Label className="mb-0.5 block text-[12.5px] font-bold text-black">Note</Label>
-        <Textarea
-          value={note}
-          onChange={(e) => onNoteChange(e.target.value)}
-          rows={1}
-          placeholder="Additional notes…"
-          className={cn(FIELD_CLASS, "min-h-0 resize-y text-[13px]")}
-        />
+      <div className="mt-0.5 flex items-start gap-2">
+        <span className="w-16 shrink-0" />
+        <div className="flex-1">
+          <Label className="mb-0.5 block text-[12.5px] font-bold text-black">Note</Label>
+          <Textarea
+            value={note}
+            onChange={(e) => onNoteChange(e.target.value)}
+            rows={2}
+            placeholder="Additional notes…"
+            className={cn(FIELD_CLASS, "h-12 min-h-0 w-full resize-none px-2.5 py-1 text-[13px]")}
+          />
+        </div>
+      </div>
+
+      <div className="mt-1 flex items-center gap-2">
+        <span className="w-16 shrink-0" />
+        <Button type="button" variant="outline" onClick={onPrintReceipt} className="h-9 flex-1 text-sm whitespace-nowrap">
+          Print Receipt
+        </Button>
       </div>
     </div>
   )
