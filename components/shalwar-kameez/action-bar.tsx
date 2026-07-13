@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 
 interface ActionBarProps {
   statusMsg: string
+  onPrintReceipt: () => void
   onSave: () => void
   onClear: () => void
   onPrev: () => void
@@ -16,12 +17,18 @@ interface ActionBarProps {
 // to the whole form, not just Order Summary, so they don't live inside any
 // one column (client request). Negative margin pulls it up closer to the
 // grid above; status message only takes space when it actually has text.
-export function ActionBar({ statusMsg, onSave, onClear, onPrev, onNext, onPrint, onDelete, onExit }: ActionBarProps) {
+// Print Receipt sits on the left, immediately followed by the rest of the
+// actions — the whole row is centered together so the gap next to Print
+// Receipt stays the same small size as the gaps between the other buttons.
+export function ActionBar({ statusMsg, onPrintReceipt, onSave, onClear, onPrev, onNext, onPrint, onDelete, onExit }: ActionBarProps) {
   return (
-    <div className="-mt-9 flex flex-col gap-0.5">
+    <div className="-mt-14 flex flex-col gap-0.5">
       {statusMsg && <p className="text-xs font-semibold text-slate-500">{statusMsg}</p>}
 
       <div className="flex flex-row flex-nowrap justify-center gap-2">
+        <Button type="button" variant="outline" onClick={onPrintReceipt} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap">
+          Print Receipt
+        </Button>
         <Button type="button" onClick={onSave} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap">
           Save
         </Button>

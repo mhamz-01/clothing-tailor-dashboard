@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -14,7 +13,6 @@ interface MeasurementsPanelProps {
   onExtraNo1Change: (value: string) => void
   extraNo2: string
   onExtraNo2Change: (value: string) => void
-  onPrintReceipt: () => void
 }
 
 export function MeasurementsPanel({
@@ -25,7 +23,6 @@ export function MeasurementsPanel({
   onExtraNo1Change,
   extraNo2,
   onExtraNo2Change,
-  onPrintReceipt,
 }: MeasurementsPanelProps) {
   return (
     <div className="-mt-12 flex flex-col gap-0.5">
@@ -64,13 +61,6 @@ export function MeasurementsPanel({
             className={cn(FIELD_CLASS, "h-12 min-h-0 w-full resize-none px-2.5 py-1 text-[13px]")}
           />
         </div>
-      </div>
-
-      <div className="mt-1 flex items-center gap-2">
-        <span className="w-16 shrink-0" />
-        <Button type="button" variant="outline" onClick={onPrintReceipt} className="h-9 flex-1 text-sm whitespace-nowrap">
-          Print Receipt
-        </Button>
       </div>
     </div>
   )

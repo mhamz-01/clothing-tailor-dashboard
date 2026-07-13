@@ -15,10 +15,10 @@ interface RadioOptionGroupProps {
 export function RadioOptionGroup({ title, name, options, trailingSlot }: RadioOptionGroupProps) {
   return (
     <div className="min-w-0">
-      <div className="mb-1 truncate text-[16.5px] font-bold tracking-wide text-black uppercase">{title}</div>
+      <div className="mb-1 truncate text-[16px] font-bold tracking-wide text-black ">{title}</div>
       <div className="flex min-w-0 flex-nowrap items-center gap-x-1.5 overflow-x-auto">
         {options.map((option) => (
-          <label key={option.value} className="flex shrink-0 cursor-pointer items-center gap-1 text-[16px]  whitespace-nowrap text-black">
+          <label key={option.value} className="flex shrink-0 cursor-pointer items-center gap-1 text-[14px]  whitespace-nowrap text-black">
             <input
               type="radio"
               name={name}

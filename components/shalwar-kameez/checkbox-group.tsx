@@ -17,7 +17,7 @@ export function CheckboxGroup({ items, columns = 3 }: CheckboxGroupProps) {
   return (
     <div className={COLUMNS_CLASS[columns]}>
       {items.map((item) => (
-        <label key={item.key} className="flex cursor-pointer items-center gap-1.5 text-[16.5px] text-black">
+        <label key={item.key} className="flex cursor-pointer items-center gap-1.5 text-[14.5px] text-black">
           <input
             type="checkbox"
             checked={item.checked}

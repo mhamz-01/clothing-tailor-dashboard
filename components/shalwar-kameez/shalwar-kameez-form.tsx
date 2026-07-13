@@ -12,9 +12,8 @@ import { useShalwarKameezForm } from "@/hooks/shalwar-kameez/use-shalwar-kameez-
 //
 // Actions apply to the whole form (not just Order Summary), so they run as
 // a full-width bar below the 3-column layout rather than living inside one
-// column — except Note and Print Receipt, which live in the Measurements
-// column instead (client request). Kept tight against the grid (no gap-1.5
-// parent spacing beyond the border) so it doesn't overflow the page.
+// column. Print Receipt lives in this same bar now (client request), on the
+// left, separate from Note which stays in the Measurements column.
 export function ShalwarKameezForm() {
   const form = useShalwarKameezForm()
   const { state } = form
@@ -55,7 +54,6 @@ export function ShalwarKameezForm() {
           onExtraNo1Change={(value) => form.updateField("extraNo1", value)}
           extraNo2={state.extraNo2}
           onExtraNo2Change={(value) => form.updateField("extraNo2", value)}
-          onPrintReceipt={form.handlePrintReceipt}
         />
 
         <StyleOptionsPanel
@@ -81,6 +79,7 @@ export function ShalwarKameezForm() {
 
       <ActionBar
         statusMsg={state.statusMsg}
+        onPrintReceipt={form.handlePrintReceipt}
         onSave={form.handleSave}
         onClear={form.clearForm}
         onPrev={form.handlePrev}
