@@ -110,7 +110,7 @@ export function ShalwarKameezForm() {
             />
 
             <div className="flex min-h-0 flex-col gap-2">
-              <PartDesignTable rows={state.partDesigns} onSizeChange={form.updatePartDesign} onLabelClick={(row) => form.updateField("statusMsg", `${row.label} selected`)} />
+              <PartDesignTable rows={state.partDesigns} onSizeChange={form.updatePartDesign} />
               <OrderSummaryPanel
                 order={state.order}
                 onOrderFieldChange={form.updateOrderField}

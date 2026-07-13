@@ -1,4 +1,5 @@
-import { Fragment } from "react"
+import { Fragment, useState } from "react"
+import { PartDesignPickerModal } from "@/components/shalwar-kameez/part-design-picker-modal"
 import { Input } from "@/components/ui/input"
 import { FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
@@ -7,15 +8,19 @@ import type { PartDesignRowState } from "@/types/shalwar-kameez"
 interface PartDesignTableProps {
   rows: PartDesignRowState[]
   onSizeChange: (index: number, field: "size1" | "size2" | "designNo", value: string) => void
-  onLabelClick: (row: PartDesignRowState) => void
 }
 
 // One row per garment part (bazu / kuf / button patti / jaib) — feeds
 // `order_part_designs` (part_type + size1/size2 + design_no) once wired up.
 // Mirrors the Claude Design spec (Shalwar Kameez Dashboard.dc.html)
 // pixel-for-pixel: flexible 1fr columns (not fixed px) and a plain text
-// input for Design # instead of a dropdown.
-export function PartDesignTable({ rows, onSizeChange, onLabelClick }: PartDesignTableProps) {
+// input for Design # instead of a dropdown. Clicking the Urdu label button
+// opens PartDesignPickerModal, which writes back into the same three fields
+// as the row's manual inputs below.
+export function PartDesignTable({ rows, onSizeChange }: PartDesignTableProps) {
+  const [modalIndex, setModalIndex] = useState<number | null>(null)
+  const modalRow = modalIndex !== null ? rows[modalIndex] : null
+
   return (
     <div className="rounded-[5px] border border-[#dcdce1] bg-[#fafafb] p-[9px]">
       <div className="grid grid-cols-[1fr_1fr_1fr_54px] items-center gap-x-1.5 gap-y-[5px]">
@@ -48,7 +53,7 @@ export function PartDesignTable({ rows, onSizeChange, onLabelClick }: PartDesign
             />
             <button
               type="button"
-              onClick={() => onLabelClick(row)}
+              onClick={() => setModalIndex(index)}
               dir="rtl"
               className="flex h-[29px] items-center justify-center rounded-[3px] border border-black bg-white font-[family-name:var(--font-naskh)] text-[18px] font-bold text-black"
             >
@@ -57,6 +62,20 @@ export function PartDesignTable({ rows, onSizeChange, onLabelClick }: PartDesign
           </Fragment>
         ))}
       </div>
+
+      <PartDesignPickerModal
+        open={modalIndex !== null}
+        row={modalRow}
+        onOpenChange={(open) => {
+          if (!open) setModalIndex(null)
+        }}
+        onApply={(designNo, size1, size2) => {
+          if (modalIndex === null) return
+          onSizeChange(modalIndex, "designNo", designNo)
+          onSizeChange(modalIndex, "size1", size1)
+          onSizeChange(modalIndex, "size2", size2)
+        }}
+      />
     </div>
   )
 }

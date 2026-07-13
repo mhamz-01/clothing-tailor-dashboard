@@ -41,6 +41,13 @@ export interface PartDesignRowState extends PartDesignDefinition {
   designNo: string
 }
 
+// One selectable thumbnail in the part-design picker modal — `value` is the
+// design number stored to `order_part_designs.design_no` once wired up.
+export interface PartDesignImageOption {
+  value: string
+  src: string
+}
+
 export type RadioGroupName = "pocket" | "bain" | "collar" | "daman" | "button"
 
 export interface RadioOptionDefinition {

@@ -3,6 +3,8 @@ import type {
   CheckDefinition,
   MeasurementDefinition,
   PartDesignDefinition,
+  PartDesignImageOption,
+  PartDesignKey,
   RadioOptionDefinition,
   StyleFlagKey,
 } from "@/types/shalwar-kameez"
@@ -49,6 +51,63 @@ export const PART_DESIGNS: PartDesignDefinition[] = [
   { key: "jaib", label: "Jaib", ur: "جیب" },
 ]
 
+// Each part-design row opens a picker modal (see PartDesignPickerModal) sourced from
+// its own numbered image folder under public/kameez-shalwar-assets. Folder/prefix
+// don't always match the part key 1:1 (kuf's files are named "kaf", jaib maps to the
+// "pockets" folder) because the asset folders were handed over already named this way.
+const PART_DESIGN_IMAGE_FOLDERS: Record<PartDesignKey, { dir: string; prefix: string; count: number }> = {
+  bazu: { dir: "arm", prefix: "arm", count: 6 },
+  kuf: { dir: "kuf", prefix: "kaf", count: 4 },
+  buttonPatti: { dir: "bpatti", prefix: "bpatti", count: 7 },
+  jaib: { dir: "pockets", prefix: "pocket", count: 11 },
+}
+
+export const PART_DESIGN_IMAGES: Record<PartDesignKey, PartDesignImageOption[]> = Object.fromEntries(
+  Object.entries(PART_DESIGN_IMAGE_FOLDERS).map(([key, { dir, prefix, count }]) => [
+    key,
+    Array.from({ length: count }, (_, i) => {
+      const n = String(i + 1)
+      return { value: n, src: `/kameez-shalwar-assets/${dir}/${prefix}${n}.jpg` }
+    }),
+  ])
+) as Record<PartDesignKey, PartDesignImageOption[]>
+
+// Visible (non-dropdown) size scroll-lists shown in the part-design picker modal —
+// same two lists for every part per client confirmation. Row 1 pairs of inches,
+// row 2 single inch values.
+export const PART_DESIGN_SIZE1_OPTIONS: string[] = [
+  "4x4 1/2",
+  "4x4 3/4",
+  "4 1/2 x 5",
+  "4 3/4 x 5 1/4",
+  "5 x 5 1/4",
+  "5 x 5 1/2",
+  "5 x 5 3/4",
+  "5 1/4 x 5 3/4",
+  "5 1/4 x 6",
+  "5 1/2 x 6",
+]
+
+export const PART_DESIGN_SIZE2_OPTIONS: string[] = [
+  "6",
+  "6 1/4",
+  "6 1/2",
+  "6 3/4",
+  "7",
+  "7 1/4",
+  "7 1/2",
+  "7 3/4",
+  "8",
+  "8 1/4",
+  "8 1/2",
+  "8 3/4",
+  "9",
+  "9 1/4",
+  "9 1/2",
+  "9 3/4",
+  "10",
+]
+
 // Plain numbered options (1-12), shared by every part of the form that just needs a
 // design/style number rather than a named option — the part-design "Design #" select
 // and the Bain/Gala + Collar quick-pick dropdowns. Maps loosely to `design_catalog
@@ -79,6 +138,7 @@ export const COLLAR_OPTIONS: RadioOptionDefinition[] = [
   { value: "american_cut", label: "American Cut" },
   { value: "english_cut", label: "English Cut" },
   { value: "french_cut", label: "French Cut" },
+  { value: "collar", label: "Collar" },
   { value: "none", label: "None" },
 ]
 
