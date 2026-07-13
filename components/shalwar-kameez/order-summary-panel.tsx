@@ -13,22 +13,19 @@ interface OrderSummaryPanelProps {
   buttonOptions: RadioItem[]
 }
 
-const labelClass = "text-[13px] font-bold text-black"
-const fieldClass = cn(FIELD_CLASS, "h-7")
-const readonlyClass = "rounded-md border border-slate-200 bg-white px-2.5 py-1 text-sm font-bold text-slate-800"
+const labelClass = "text-[12px] font-bold text-[#333338]"
+const fieldClass = cn(FIELD_CLASS, "h-[22px] text-right tabular-nums")
 
-// Button Type sits to the right of the order fields, inside the Order
-// Summary umbrella (client request — previously lived in the middle Style
-// Options column).
+// Bottom half of the right column: amounts on the left, Button Type list on
+// the right, in one bordered box. Mirrors the Claude Design spec (Shalwar
+// Kameez Dashboard.dc.html) pixel-for-pixel, including its field labels
+// ("Suit Qty", "Cloth Amount", "Shiling Amt").
 export function OrderSummaryPanel({ order, onOrderFieldChange, total, balance, buttonOptions }: OrderSummaryPanelProps) {
   return (
-    <div>
-      <div className="mb-1 rounded-md bg-white px-2.5 py-1 text-xs font-bold tracking-wide text-black uppercase">
-        Order Summary
-      </div>
-      <div className="flex gap-3">
-        <div className="grid min-w-0 flex-1 grid-cols-2 items-center gap-x-2.5 gap-y-0.5">
-          <Label className={labelClass}>Quantity</Label>
+    <div className="flex min-h-0 flex-1 gap-3 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] p-[9px]">
+      <div className="flex flex-1 flex-col gap-1.5">
+        <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1.5">
+          <Label className={labelClass}>Suit Qty</Label>
           <Input type="number" value={order.quantity} onChange={(e) => onOrderFieldChange("quantity", e.target.value)} className={fieldClass} />
 
           <Label className={labelClass}>Delivery Date</Label>
@@ -42,28 +39,33 @@ export function OrderSummaryPanel({ order, onOrderFieldChange, total, balance, b
             className={fieldClass}
           />
 
-          <Label className={labelClass}>Cloth Amt</Label>
+          <Label className={labelClass}>Cloth Amount</Label>
           <Input type="number" value={order.clothAmount} onChange={(e) => onOrderFieldChange("clothAmount", e.target.value)} className={fieldClass} />
 
-          <Label className={labelClass}>Shilling Amt</Label>
+          <Label className={labelClass}>Shiling Amt</Label>
           <Input type="number" value={order.shillingAmt} onChange={(e) => onOrderFieldChange("shillingAmt", e.target.value)} className={fieldClass} />
 
           <Label className={labelClass}>Others Amt</Label>
           <Input type="number" value={order.othersAmt} onChange={(e) => onOrderFieldChange("othersAmt", e.target.value)} className={fieldClass} />
+        </div>
 
-          <Label className={labelClass}>Total</Label>
-          <div className={readonlyClass}>Rs {total.toFixed(2)}</div>
+        <div className="mt-0.5 grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1.5 border-t border-[#e4e4e9] pt-1.5">
+          <Label className="text-[13px] font-bold text-black">Total</Label>
+          <div className="flex h-6 items-center justify-end rounded-[3px] border border-black bg-white px-1.5 text-[14px] font-bold tabular-nums text-black">
+            Rs {total.toFixed(2)}
+          </div>
 
           <Label className={labelClass}>Advance</Label>
           <Input type="number" value={order.advance} onChange={(e) => onOrderFieldChange("advance", e.target.value)} className={fieldClass} />
 
-          <Label className={labelClass}>Balance</Label>
-          <div className={readonlyClass}>Rs {balance.toFixed(2)}</div>
-        </div>
-        <div className="w-[130px] shrink-0">
-          <ButtonTypePanel options={buttonOptions} />
+          <Label className="text-[13px] font-bold text-black">Balance</Label>
+          <div className="flex h-6 items-center justify-end rounded-[3px] border border-black bg-black px-1.5 text-[14px] font-bold tabular-nums text-white">
+            Rs {balance.toFixed(2)}
+          </div>
         </div>
       </div>
+
+      <ButtonTypePanel options={buttonOptions} />
     </div>
   )
 }

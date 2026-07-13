@@ -1,16 +1,13 @@
 "use client"
 
-import { Plus, Search } from "lucide-react"
 import { useState } from "react"
 import { AddClientModal } from "@/components/shalwar-kameez/add-client-modal"
 import { CheckboxGroup } from "@/components/shalwar-kameez/checkbox-group"
-import { PartDesignTable } from "@/components/shalwar-kameez/part-design-table"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
-import type { CheckboxItem, PartDesignRowState } from "@/types/shalwar-kameez"
+import type { CheckboxItem } from "@/types/shalwar-kameez"
 
 interface ClientLookupSectionProps {
   clientNo: string
@@ -28,24 +25,27 @@ interface ClientLookupSectionProps {
   onSearchRecord: () => void
   onSearchClientName: () => void
   onSearchPhone: () => void
-  partDesignRows: PartDesignRowState[]
-  onPartDesignChange: (index: number, field: "size1" | "size2" | "designNo", value: string) => void
-  onPartDesignLabelClick: (row: PartDesignRowState) => void
+  largeButtonsItem: CheckboxItem
   lookupCheckItems: CheckboxItem[]
-  belowPartDesignCheckItems: CheckboxItem[]
 }
 
-// Client/record lookup row — the fields a tailor fills or searches by before
-// touching any measurement data.
-//
-// Row 1 is Client No. / Book Date / Record No. Row 2's first column has
-// Client Name and Phone No. side by side, with P-Bal on its own line below
-// them. Everything else is pushed as one flush block to the far right: the
-// Nokdar Tera / Chalk Asten / Kuf Dbl Kaj checkboxes sit immediately adjacent
-// to the part-design table (Bazu/Kuf/Button Patti/Jaib), with Large Buttons /
-// Shalwar Zip stacked below the table — all moved here from Style Options per
-// client request. Deliberately two columns (not three) so there's no dead
-// middle column creating empty space between the checkboxes and the table.
+function SearchIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#333" strokeWidth="1.4">
+      <circle cx="5" cy="5" r="3.3" />
+      <line x1="7.6" y1="7.6" x2="10.5" y2="10.5" />
+    </svg>
+  )
+}
+
+const rowLabel = "text-[12px] font-bold whitespace-nowrap text-[#333338]"
+const field = cn(FIELD_CLASS, "h-6 w-full")
+
+// "Client strip" — the identity grid a tailor fills or searches by, plus a
+// Shirt Options column on the right. Mirrors the Claude Design spec
+// (Shalwar Kameez Dashboard.dc.html) pixel-for-pixel: a 6-track
+// auto/1fr/auto/1fr/auto/1fr grid, with Client Name's and Phone No.'s input
+// wrappers spanning 3 tracks so they get the room a name/phone number needs.
 export function ClientLookupSection({
   clientNo,
   bookDate,
@@ -62,113 +62,94 @@ export function ClientLookupSection({
   onSearchRecord,
   onSearchClientName,
   onSearchPhone,
-  partDesignRows,
-  onPartDesignChange,
-  onPartDesignLabelClick,
+  largeButtonsItem,
   lookupCheckItems,
-  belowPartDesignCheckItems,
 }: ClientLookupSectionProps) {
   const [isAddClientOpen, setIsAddClientOpen] = useState(false)
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-        <div>
-          <Label className="mb-1 block text-[12.5px] font-bold text-black">Client No.</Label>
-          <div className="flex gap-1.5">
-            <Input value={clientNo} onChange={(e) => onClientNoChange(e.target.value)} placeholder="—" className={cn(FIELD_CLASS, "h-8")} />
-            <Button type="button" variant="outline" onClick={() => setIsAddClientOpen(true)} className="h-8 shrink-0 px-3 text-xs font-bold">
-              <Plus /> Add
-            </Button>
-          </div>
+    <div className="grid shrink-0 grid-cols-[1.55fr_1fr] gap-x-[18px] gap-y-2.5 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] px-2.5 py-2">
+      <div className="grid grid-cols-[auto_1fr_auto_1fr_auto_1fr] items-center gap-x-2.5 gap-y-1.5">
+        <Label className={rowLabel}>Client No.</Label>
+        <div className="flex gap-1">
+          <Input value={clientNo} onChange={(e) => onClientNoChange(e.target.value)} placeholder="—" className={field} />
+          <button
+            type="button"
+            onClick={() => setIsAddClientOpen(true)}
+            className="h-6 shrink-0 rounded-[3px] border border-black bg-white px-2.5 text-[12px] font-bold whitespace-nowrap hover:bg-black hover:text-white"
+          >
+            Add
+          </button>
         </div>
 
-        <div>
-          <Label className="mb-1 block text-[12.5px] font-bold text-black">Book Date</Label>
-          <Input type="date" value={bookDate} onChange={(e) => onBookDateChange(e.target.value)} className={cn(FIELD_CLASS, "h-8")} />
+        <Label className={rowLabel}>Book Date</Label>
+        <Input type="date" value={bookDate} onChange={(e) => onBookDateChange(e.target.value)} className={cn(field, "tabular-nums")} />
+
+        <Label className={rowLabel}>Record No.</Label>
+        <div className="flex gap-1">
+          <Input value={recordNo} onChange={(e) => onRecordNoChange(e.target.value)} className={cn(field, "tabular-nums")} />
+          <button
+            type="button"
+            onClick={onSearchRecord}
+            aria-label="Search record"
+            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#c7c7cf] bg-white hover:border-black"
+          >
+            <SearchIcon />
+          </button>
         </div>
 
-        <div>
-          <Label className="mb-1 block text-[12.5px] font-bold text-black">Record No.</Label>
-          <div className="flex gap-1.5">
-            <Input value={recordNo} onChange={(e) => onRecordNoChange(e.target.value)} className={cn(FIELD_CLASS, "h-8 bg-slate-50")} />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={onSearchRecord}
-              aria-label="Search record"
-              className="h-8 w-8 shrink-0"
-            >
-              <Search />
-            </Button>
-          </div>
+        <Label className={rowLabel}>Client Name</Label>
+        <div className="col-span-3 flex gap-1">
+          <Input
+            value={clientName}
+            onChange={(e) => onClientNameChange(e.target.value)}
+            placeholder="Enter client name"
+            className={field}
+          />
+          <button
+            type="button"
+            onClick={onSearchClientName}
+            aria-label="Search client name"
+            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#c7c7cf] bg-white hover:border-black"
+          >
+            <SearchIcon />
+          </button>
         </div>
+        <Label className={rowLabel}>P-Bal</Label>
+        <Input type="number" value={pBal} onChange={(e) => onPBalChange(e.target.value)} className={cn(field, "text-right tabular-nums")} />
+
+        <Label className={rowLabel}>Phone No.</Label>
+        <div className="col-span-3 flex gap-1">
+          <Input
+            type="tel"
+            value={phoneNo}
+            onChange={(e) => onPhoneNoChange(e.target.value)}
+            placeholder="03XXXXXXXXX"
+            className={cn(field, "tabular-nums")}
+          />
+          <button
+            type="button"
+            onClick={onSearchPhone}
+            aria-label="Search phone"
+            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#c7c7cf] bg-white hover:border-black"
+          >
+            <SearchIcon />
+          </button>
+        </div>
+        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-bold whitespace-nowrap text-[#333338]">
+          <input
+            type="checkbox"
+            checked={largeButtonsItem.checked}
+            onChange={largeButtonsItem.onChange}
+            className="size-4 cursor-pointer accent-[#111116]"
+          />
+          Large Buttons
+        </label>
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-2 md:grid-cols-[520px_1fr]">
-        <div className="flex flex-col gap-1.5">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label className="mb-1 block text-[12.5px] font-bold text-black">Client Name</Label>
-              <div className="flex gap-1.5">
-                <Input
-                  value={clientName}
-                  onChange={(e) => onClientNameChange(e.target.value)}
-                  placeholder="Enter client name"
-                  className={cn(FIELD_CLASS, "h-8 font-medium")}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={onSearchClientName}
-                  aria-label="Search client name"
-                  className="h-8 w-8 shrink-0"
-                >
-                  <Search />
-                </Button>
-              </div>
-            </div>
-
-            <div>
-              <Label className="mb-1 block text-[12.5px] font-bold text-black">Phone No.</Label>
-              <div className="flex gap-1.5">
-                <Input
-                  type="tel"
-                  value={phoneNo}
-                  onChange={(e) => onPhoneNoChange(e.target.value)}
-                  placeholder="03XXXXXXXXX"
-                  className={cn(FIELD_CLASS, "h-8")}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={onSearchPhone}
-                  aria-label="Search phone"
-                  className="h-8 w-8 shrink-0"
-                >
-                  <Search />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <Label className="mb-1 block text-[12.5px] font-bold text-black">P-Bal</Label>
-            <Input type="number" value={pBal} onChange={(e) => onPBalChange(e.target.value)} className={cn(FIELD_CLASS, "h-8")} />
-          </div>
-        </div>
-
-        <div className="ml-auto flex items-center gap-3">
-          <CheckboxGroup items={lookupCheckItems} columns={3} />
-
-          <div className="flex flex-col gap-1.5">
-            <PartDesignTable rows={partDesignRows} onSizeChange={onPartDesignChange} onLabelClick={onPartDesignLabelClick} />
-            <CheckboxGroup items={belowPartDesignCheckItems} columns={2} />
-          </div>
-        </div>
+      <div className="flex flex-col justify-center gap-2 border-l border-[#e4e4e9] pl-4">
+        <div className="text-[10px] font-bold tracking-[0.09em] text-[#8a8a92] uppercase">Shirt Options</div>
+        <CheckboxGroup items={lookupCheckItems} />
       </div>
 
       <AddClientModal open={isAddClientOpen} onOpenChange={setIsAddClientOpen} />

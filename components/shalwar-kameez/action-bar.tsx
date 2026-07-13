@@ -1,6 +1,3 @@
-import { LogOut } from "lucide-react"
-import { Button } from "@/components/ui/button"
-
 interface ActionBarProps {
   statusMsg: string
   onPrintReceipt: () => void
@@ -13,44 +10,53 @@ interface ActionBarProps {
   onExit: () => void
 }
 
-// Full-width single-row bar below the 3-column layout — these actions apply
-// to the whole form, not just Order Summary, so they don't live inside any
-// one column (client request). Negative margin pulls it up closer to the
-// grid above; status message only takes space when it actually has text.
-// Print Receipt sits on the left, immediately followed by the rest of the
-// actions — the whole row is centered together so the gap next to Print
-// Receipt stays the same small size as the gaps between the other buttons.
+const outlinedBtn =
+  "h-8 shrink-0 rounded-[4px] border border-[#c2c2ca] bg-white px-3 text-[13px] font-bold whitespace-nowrap text-[#222226] hover:border-black hover:bg-[#f4f4f6]"
+
+// Full-width single-row bar below the 3-column body. Print Receipt sits on
+// the left (outlined, icon+text); Save + the rest of the actions are
+// centered together; a matching-width spacer on the right keeps that
+// centered group visually balanced. Mirrors the Claude Design spec (Shalwar
+// Kameez Dashboard.dc.html) pixel-for-pixel.
 export function ActionBar({ statusMsg, onPrintReceipt, onSave, onClear, onPrev, onNext, onPrint, onDelete, onExit }: ActionBarProps) {
   return (
-    <div className="-mt-14 flex flex-col gap-0.5">
-      {statusMsg && <p className="text-xs font-semibold text-slate-500">{statusMsg}</p>}
+    <div className="flex shrink-0 flex-col gap-1">
+      {statusMsg && <p className="text-[12px] font-bold text-[#8a8a92]">{statusMsg}</p>}
 
-      <div className="flex flex-row flex-nowrap justify-center gap-2">
-        <Button type="button" variant="outline" onClick={onPrintReceipt} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap">
+      <div className="flex items-center gap-2">
+        <button type="button" onClick={onPrintReceipt} className="flex h-8 shrink-0 items-center gap-1.5 rounded-[4px] border border-black bg-white px-4 text-[13px] font-bold whitespace-nowrap text-black hover:bg-[#f0f0f2]">
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="black" strokeWidth="1.4">
+            <rect x="3" y="8" width="8" height="4" />
+            <path d="M4 8V3h6v5M4 3h6" />
+          </svg>
           Print Receipt
-        </Button>
-        <Button type="button" onClick={onSave} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap">
-          Save
-        </Button>
-        <Button type="button" variant="outline" onClick={onClear} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap">
-          Clear
-        </Button>
-        <Button type="button" variant="outline" onClick={onPrev} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap">
-          Prev
-        </Button>
-        <Button type="button" variant="outline" onClick={onNext} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap">
-          Next
-        </Button>
-        <Button type="button" variant="outline" onClick={onPrint} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap text-slate-700">
-          Print
-        </Button>
-        <Button type="button" variant="destructive" onClick={onDelete} className="h-9 shrink-0 px-4 text-sm whitespace-nowrap">
-          Delete
-        </Button>
-        <Button type="button" variant="secondary" onClick={onExit} className="h-9 shrink-0 border border-slate-300 px-4 text-sm whitespace-nowrap">
-          <LogOut className="size-4" />
-          Exit
-        </Button>
+        </button>
+
+        <div className="flex flex-1 items-center justify-center gap-1.5">
+          <button type="button" onClick={onSave} className="h-8 min-w-[74px] shrink-0 rounded-[4px] border border-black bg-black px-3.5 text-[13px] font-bold whitespace-nowrap text-white hover:bg-[#333]">
+            Save
+          </button>
+          <button type="button" onClick={onClear} className={outlinedBtn}>
+            Clear
+          </button>
+          <button type="button" onClick={onPrev} className={outlinedBtn}>
+            Prev
+          </button>
+          <button type="button" onClick={onNext} className={outlinedBtn}>
+            Next
+          </button>
+          <button type="button" onClick={onPrint} className={outlinedBtn}>
+            Print
+          </button>
+          <button type="button" onClick={onDelete} className={outlinedBtn}>
+            Delete
+          </button>
+          <button type="button" onClick={onExit} className={outlinedBtn}>
+            Exit
+          </button>
+        </div>
+
+        <div className="w-[120px] shrink-0" />
       </div>
     </div>
   )

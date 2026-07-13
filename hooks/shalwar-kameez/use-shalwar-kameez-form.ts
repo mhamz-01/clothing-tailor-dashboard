@@ -155,7 +155,11 @@ export function useShalwarKameezForm() {
   }))
 
   const lookupCheckItems = allBasicCheckItems.filter((item) => LOOKUP_BASIC_CHECK_KEYS.includes(item.key as BasicCheckKey))
-  const basicCheckItems = allBasicCheckItems.filter((item) => !LOOKUP_BASIC_CHECK_KEYS.includes(item.key as BasicCheckKey))
+  // Large Buttons sits in the client-strip identity grid; Shalwar Zip sits as a
+  // trailing checkbox on the Daman radio row — each rendered on its own, not as
+  // part of a shared checkbox-group like the other basic checks.
+  const largeButtonsItem = allBasicCheckItems.find((item) => item.key === "isLargeButtons")!
+  const shalwarZipItem = allBasicCheckItems.find((item) => item.key === "shalwarZip")!
 
   const styleFlagItems = STYLE_FLAGS.map((flag) => ({
     key: flag.key,
@@ -178,7 +182,8 @@ export function useShalwarKameezForm() {
     handleDelete,
     handleExit,
     measurementRows,
-    basicCheckItems,
+    largeButtonsItem,
+    shalwarZipItem,
     lookupCheckItems,
     styleFlagItems,
     pocketOptions: mapRadioOptions(POCKET_OPTIONS, "pocket"),

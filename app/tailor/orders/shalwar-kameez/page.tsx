@@ -1,9 +1,7 @@
 import { ShalwarKameezForm } from "@/components/shalwar-kameez/shalwar-kameez-form"
 
 export default function ShalwarKameezOrderPage() {
-  return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-slate-200 px-4 py-2 md:px-6">
-      <ShalwarKameezForm />
-    </div>
-  )
+  // ShalwarKameezForm owns its own full-viewport backdrop and centers a
+  // fixed-size board scaled to fit — no wrapper padding/background needed here.
+  return <ShalwarKameezForm />
 }

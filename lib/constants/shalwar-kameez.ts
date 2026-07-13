@@ -7,9 +7,12 @@ import type {
   StyleFlagKey,
 } from "@/types/shalwar-kameez"
 
-// Shared field styling for this form — light borders on a white field, read
-// against the page's darker slate-100 background (see page.tsx).
-export const FIELD_CLASS = "border-slate-200 bg-white"
+// Shared field styling for this form — based on the Claude Design spec
+// (Shalwar Kameez Dashboard.dc.html): #c7c7cf borders, 3px radius, black
+// focus ring. Text bumped up from the spec's 12px/normal to 13px/medium
+// (client request) for readability, since older users read this form.
+export const FIELD_CLASS =
+  "rounded-[3px] border-[#c7c7cf] bg-white px-[6px] py-0 text-[13px] font-medium text-[#111116] placeholder:text-[#b5b5bd] focus-visible:border-black focus-visible:ring-[3px] focus-visible:ring-black/[0.14]"
 
 export const MEASUREMENTS: MeasurementDefinition[] = [
   { key: "lambai", ur: "لمبائی" },
@@ -35,10 +38,10 @@ export const BASIC_CHECKS: CheckDefinition<BasicCheckKey>[] = [
 // so each row maps directly onto an `order_style_flags` junction row later.
 export const STYLE_FLAGS: CheckDefinition<StyleFlagKey>[] = [
   { key: "kafDboty", label: "Kaf Dboty" },
-  { key: "btnDboty", label: "Btn Dboty" },
-  { key: "noLbl", label: "No Lbl" },
   { key: "kajPatti", label: "Kaj Patti" },
+  { key: "btnDboty", label: "Btn Dboty" },
   { key: "fiveBtn", label: "5 Btn" },
+  { key: "noLbl", label: "No Lbl" },
   { key: "twoJeb", label: "2 Jeb" },
   { key: "noJeb", label: "No Jeb" },
 ]
@@ -86,6 +89,7 @@ export const COLLAR_OPTIONS: RadioOptionDefinition[] = [
 export const DAMAN_OPTIONS: RadioOptionDefinition[] = [
   { value: "qurta", label: "Qurta" },
   { value: "sida_daman", label: "Sida Daman" },
+  { value: "none", label: "None" },
 ]
 
 export const BUTTON_TYPE_OPTIONS: RadioOptionDefinition[] = [

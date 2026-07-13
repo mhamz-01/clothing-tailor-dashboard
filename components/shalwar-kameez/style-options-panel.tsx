@@ -13,20 +13,14 @@ interface StyleOptionsPanelProps {
   onBainStyleNoChange: (value: string) => void
   collarStyleNo: string
   onCollarStyleNoChange: (value: string) => void
+  shalwarZipItem: CheckboxItem
 }
 
-// The middle column of the form: independent style flags, and the four
-// single-select option groups. Bain/Gala and Collar Type each get a numbered
-// quick-pick dropdown to the right of their radio options, in addition to
-// (not instead of) the radios.
-//
-// Pocket and Daman (few options, no dropdown) are paired into one row; Collar
-// and Bain/Gala (more options + a dropdown) each get a full-width row of their
-// own — halving their width caused their options to overflow on smaller screens.
-//
-// Button Type, the part-design table (Bazu/Kuf/Button Patti/Jaib), and the
-// basic checks (Nokdar Tera/Chalk Asten/Kuf Dbl Kaj/Large Buttons/Shalwar
-// Zip) all live in the client-lookup section now (client request), not here.
+// The middle column of the form: independent style flags, then the four
+// single-select option groups, each its own bordered row. Bain/Gala and
+// Collar/Cut get a numbered quick-pick dropdown at the far right; Daman gets
+// the Shalwar Zip checkbox there instead. Mirrors the Claude Design spec
+// (Shalwar Kameez Dashboard.dc.html) pixel-for-pixel.
 export function StyleOptionsPanel({
   styleFlagItems,
   pocketOptions,
@@ -37,30 +31,47 @@ export function StyleOptionsPanel({
   onBainStyleNoChange,
   collarStyleNo,
   onCollarStyleNoChange,
+  shalwarZipItem,
 }: StyleOptionsPanelProps) {
   return (
-    <div className="-mt-12 flex min-w-0 flex-col gap-1.5">
-      <CheckboxGroup items={styleFlagItems} />
+    <div className="flex min-h-0 min-w-0 flex-col gap-2">
+      <div className="rounded-[5px] border border-[#dcdce1] bg-[#fafafb] px-2.5 py-[9px]">
+        <CheckboxGroup items={styleFlagItems} columns={4} />
+      </div>
 
-      <div className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-1">
-        <RadioOptionGroup title="Pocket Type" name="pocket" options={pocketOptions} />
-        <RadioOptionGroup title="Daman Type" name="daman" options={damanOptions} />
-        <div className="col-span-2">
-          <RadioOptionGroup
-            title="Collar Type"
-            name="collar"
-            options={collarOptions}
-            trailingSlot={<NumberedQuickPick value={collarStyleNo} onChange={onCollarStyleNoChange} />}
-          />
-        </div>
-        <div className="col-span-2">
-          <RadioOptionGroup
-            title="Bain / Gala Type"
-            name="bain"
-            options={bainOptions}
-            trailingSlot={<NumberedQuickPick value={bainStyleNo} onChange={onBainStyleNoChange} />}
-          />
-        </div>
+      <div className="flex min-h-0 flex-1 flex-col justify-between gap-2">
+        <RadioOptionGroup title="Pockets" name="pocket" options={pocketOptions} />
+
+        <RadioOptionGroup
+          title="Bain / Gala"
+          name="bain"
+          options={bainOptions}
+          trailingSlot={<NumberedQuickPick value={bainStyleNo} onChange={onBainStyleNoChange} />}
+        />
+
+        <RadioOptionGroup
+          title="Collar / Cut"
+          name="collar"
+          options={collarOptions}
+          trailingSlot={<NumberedQuickPick value={collarStyleNo} onChange={onCollarStyleNoChange} />}
+        />
+
+        <RadioOptionGroup
+          title="Daman"
+          name="daman"
+          options={damanOptions}
+          trailingSlot={
+            <label className="ml-auto flex shrink-0 cursor-pointer items-center gap-1.5 text-[13px] font-semibold text-[#222226]">
+              <input
+                type="checkbox"
+                checked={shalwarZipItem.checked}
+                onChange={shalwarZipItem.onChange}
+                className="size-4 cursor-pointer accent-[#111116]"
+              />
+              Shalwar Zip
+            </label>
+          }
+        />
       </div>
     </div>
   )

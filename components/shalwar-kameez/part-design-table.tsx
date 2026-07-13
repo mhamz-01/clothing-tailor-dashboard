@@ -1,7 +1,6 @@
 import { Fragment } from "react"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FIELD_CLASS, NUMBERED_OPTIONS } from "@/lib/constants/shalwar-kameez"
+import { FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
 import type { PartDesignRowState } from "@/types/shalwar-kameez"
 
@@ -13,48 +12,45 @@ interface PartDesignTableProps {
 
 // One row per garment part (bazu / kuf / button patti / jaib) — feeds
 // `order_part_designs` (part_type + size1/size2 + design_no) once wired up.
-// Fixed-width columns, widened (client request) since Client Name/Phone No.
-// narrowed to make room on this side.
+// Mirrors the Claude Design spec (Shalwar Kameez Dashboard.dc.html)
+// pixel-for-pixel: flexible 1fr columns (not fixed px) and a plain text
+// input for Design # instead of a dropdown.
 export function PartDesignTable({ rows, onSizeChange, onLabelClick }: PartDesignTableProps) {
   return (
-    <div className="border-t border-slate-200 pt-1">
-      <div className="grid grid-cols-[124px_112px_112px_96px] items-center gap-2.5">
-        <div className="text-[9.5px] font-bold tracking-wide text-black uppercase">Design #</div>
-        <div className="text-[9.5px] font-bold tracking-wide text-black uppercase">Size 1</div>
-        <div className="text-[9.5px] font-bold tracking-wide text-black uppercase">Size 2</div>
+    <div className="rounded-[5px] border border-[#dcdce1] bg-[#fafafb] p-[9px]">
+      <div className="grid grid-cols-[1fr_1fr_1fr_54px] items-center gap-x-1.5 gap-y-[5px]">
+        <div className="text-center text-[10px] font-bold tracking-[0.05em] text-[#8a8a92] uppercase">Design #</div>
+        <div className="text-center text-[10px] font-bold tracking-[0.05em] text-[#8a8a92] uppercase">Size 1</div>
+        <div className="text-center text-[10px] font-bold tracking-[0.05em] text-[#8a8a92] uppercase">Size 2</div>
         <div />
 
         {rows.map((row, index) => (
           <Fragment key={row.key}>
-            <Select value={row.designNo} onValueChange={(value) => onSizeChange(index, "designNo", value)}>
-              <SelectTrigger className={cn(FIELD_CLASS, "h-6 w-28 text-xs")}>
-                <SelectValue placeholder="#" />
-              </SelectTrigger>
-              <SelectContent>
-                {NUMBERED_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              value={row.designNo}
+              onChange={(e) => onSizeChange(index, "designNo", e.target.value)}
+              placeholder="—"
+              className={cn(FIELD_CLASS, "h-[23px] text-center")}
+            />
             <Input
               type="number"
               value={row.size1}
               onChange={(e) => onSizeChange(index, "size1", e.target.value)}
-              className={cn(FIELD_CLASS, "h-6")}
+              placeholder="—"
+              className={cn(FIELD_CLASS, "h-[23px] text-center")}
             />
             <Input
               type="number"
               value={row.size2}
               onChange={(e) => onSizeChange(index, "size2", e.target.value)}
-              className={cn(FIELD_CLASS, "h-6")}
+              placeholder="—"
+              className={cn(FIELD_CLASS, "h-[23px] text-center")}
             />
             <button
               type="button"
               onClick={() => onLabelClick(row)}
               dir="rtl"
-              className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-center font-[family-name:var(--font-urdu)] text-sm font-bold whitespace-nowrap text-black shadow-sm"
+              className="flex h-[23px] items-center justify-center rounded-[3px] border border-black bg-white font-[family-name:var(--font-naskh)] text-[15px] font-bold text-black"
             >
               {row.ur}
             </button>
