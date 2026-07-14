@@ -11,24 +11,31 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { PART_DESIGN_IMAGES, PART_DESIGN_SIZE1_OPTIONS, PART_DESIGN_SIZE2_OPTIONS } from "@/lib/constants/shalwar-kameez"
+import { PART_DESIGN_IMAGES, PART_DESIGN_SIZE_CONFIG } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
-import type { PartDesignRowState } from "@/types/shalwar-kameez"
+import { formatSizeLabel } from "@/lib/utils/format-size"
+import type { CheckboxItem, PartDesignKey, PartDesignRowState } from "@/types/shalwar-kameez"
 
-const IMAGE_COLUMNS = 4
+const DEFAULT_IMAGE_COLUMNS = 4
+// Kuf only has 4 images -- at the default 4 columns they'd all sit in one
+// cramped row, so it gets its own 2-column layout (2 rows of 2) instead.
+const IMAGE_COLUMNS_BY_PART: Partial<Record<PartDesignKey, number>> = {
+  kuf: 2,
+}
 
 interface PartDesignPickerModalProps {
   open: boolean
   row: PartDesignRowState | null
   onOpenChange: (open: boolean) => void
   onApply: (designNo: string, size1: string, size2: string) => void
+  fiveButtonsItem: CheckboxItem
 }
 
 // Opened from the Urdu label button on each part-design row (bazu / kuf /
 // button patti / jaib). Images are laid out left-to-right, wrapping at
 // IMAGE_COLUMNS per row; the 5th grid column holds the two size scroll-lists,
 // stacked and equally split across the full height of the image grid.
-export function PartDesignPickerModal({ open, row, onOpenChange, onApply }: PartDesignPickerModalProps) {
+export function PartDesignPickerModal({ open, row, onOpenChange, onApply, fiveButtonsItem }: PartDesignPickerModalProps) {
   const [designNo, setDesignNo] = useState("")
   const [size1, setSize1] = useState("")
   const [size2, setSize2] = useState("")
@@ -44,7 +51,9 @@ export function PartDesignPickerModal({ open, row, onOpenChange, onApply }: Part
   if (!row) return null
 
   const images = PART_DESIGN_IMAGES[row.key]
-  const rowCount = Math.ceil(images.length / IMAGE_COLUMNS)
+  const imageColumns = IMAGE_COLUMNS_BY_PART[row.key] ?? DEFAULT_IMAGE_COLUMNS
+  const rowCount = Math.ceil(images.length / imageColumns)
+  const sizeConfig = PART_DESIGN_SIZE_CONFIG[row.key]
 
   function handleSave() {
     onApply(designNo, size1, size2)
@@ -65,7 +74,7 @@ export function PartDesignPickerModal({ open, row, onOpenChange, onApply }: Part
 
         <div
           className="grid gap-3"
-          style={{ gridTemplateColumns: `repeat(${IMAGE_COLUMNS}, 1fr) 170px`, gridAutoRows: "150px" }}
+          style={{ gridTemplateColumns: `repeat(${imageColumns}, 1fr) 170px`, gridAutoRows: "150px" }}
         >
           {images.map((image, i) => {
             const selected = designNo === image.value
@@ -74,7 +83,7 @@ export function PartDesignPickerModal({ open, row, onOpenChange, onApply }: Part
                 key={image.value}
                 type="button"
                 onClick={() => setDesignNo(image.value)}
-                style={{ gridColumn: (i % IMAGE_COLUMNS) + 1, gridRow: Math.floor(i / IMAGE_COLUMNS) + 1 }}
+                style={{ gridColumn: (i % imageColumns) + 1, gridRow: Math.floor(i / imageColumns) + 1 }}
                 className={cn(
                   "relative overflow-hidden rounded-[6px] border-2 bg-[#fafafb] p-2",
                   selected ? "border-black" : "border-[#dcdce1] hover:border-[#b5b5bd]"
@@ -97,13 +106,24 @@ export function PartDesignPickerModal({ open, row, onOpenChange, onApply }: Part
             )
           })}
 
-          <div className="flex flex-col gap-2" style={{ gridColumn: IMAGE_COLUMNS + 1, gridRow: `1 / span ${rowCount}` }}>
-            <SizeOptionList label="Size 1" options={PART_DESIGN_SIZE1_OPTIONS} value={size1} onChange={setSize1} />
-            <SizeOptionList label="Size 2" options={PART_DESIGN_SIZE2_OPTIONS} value={size2} onChange={setSize2} />
+          <div className="flex flex-col gap-2" style={{ gridColumn: imageColumns + 1, gridRow: `1 / span ${rowCount}` }}>
+            <SizeOptionList label={sizeConfig.size1Label} options={sizeConfig.size1Options} value={size1} onChange={setSize1} />
+            <SizeOptionList label={sizeConfig.size2Label} options={sizeConfig.size2Options} value={size2} onChange={setSize2} />
           </div>
         </div>
 
-        <AlertDialogFooter className="gap-2">
+        <AlertDialogFooter className="items-center gap-2">
+          {row.key === "buttonPatti" && (
+            <label className="mr-auto flex cursor-pointer items-center gap-1.5 text-[13px] font-semibold text-[#222226]">
+              <input
+                type="checkbox"
+                checked={fiveButtonsItem.checked}
+                onChange={fiveButtonsItem.onChange}
+                className="size-4 cursor-pointer accent-[#111116]"
+              />
+              {fiveButtonsItem.label}
+            </label>
+          )}
           <Button type="button" variant="outline" className="h-9" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
@@ -138,11 +158,11 @@ function SizeOptionList({ label, options, value, onChange }: SizeOptionListProps
             type="button"
             onClick={() => onChange(option)}
             className={cn(
-              "block w-full rounded-[3px] px-2 py-[3px] text-center text-[11px] font-semibold whitespace-nowrap",
+              "block w-full rounded-[3px] px-2 py-[7px] text-center text-[18px] font-semibold whitespace-nowrap",
               value === option ? "bg-black text-white" : "text-[#222226] hover:bg-[#f0f0f2]"
             )}
           >
-            {option}
+            {formatSizeLabel(option)}
           </button>
         ))}
       </div>

@@ -10,7 +10,9 @@ This file is the implementation spec for the database layer of the tailor shop p
 
 - **`orders`** is garment-agnostic (client, quantity, delivery date, amounts). **`shalwar_kameez_details`** holds only shalwar-kameez-specific measurements/styles, 1:1 with an order via `order_id`. This lets future garment types (waistcoat, coat) reuse `orders` without duplicating quantity/delivery/amount columns.
 - **Single-select checkbox groups** (pocket type, bain/gala, collar type, daman type, button type) → one FK column on `shalwar_kameez_details` pointing at a lookup table.
-- **Independent/multi-select checkbox group** (kaf dboty, btn dboty, no lbl, kaj patti, 5 btn, 2 jeb, no jeb) → junction table `order_style_flags`.
+- **Independent/multi-select checkbox group** (kaf dboty, btn dboty, no lbl, kaj patti, 5 btn, 2 jeb, no jeb, shalwar zip, large buttons) → junction table `order_style_flags`. `shalwar_zip` and `large_buttons` were previously plain booleans with no image; now that both have images, they were folded into this same flags pattern instead of getting one-off image columns.
+- **`is_nokder_tera`, `is_chalk_asten`, `is_kuf_dbl_kaj`** have been removed — no longer part of the schema.
+- **Measurement note** is now two optional fields, `note1` and `note2`, instead of a single `note`.
 - **Every checkbox/option group has an image.** Images are stored once per option in a catalog table (not once per order) — see section 4.
 - **Images live in Supabase Storage**, not as raw blobs in Postgres. Catalog tables store the **storage path**, not a URL, so the app can generate signed/public URLs at request time. See section 5.
 
@@ -29,7 +31,7 @@ create type bain_gala_type_code   as enum ('gool_bain','sida_bain','half_bain','
 create type collar_type_code      as enum ('american_cut','english_cut','french_cut','none');
 create type daman_type_code       as enum ('qurta','sida_daman');
 create type button_type_code      as enum ('metal_btn','STDS','ST3S','DTSS','DT3S','DTDS','RTSS','RTDS','EMD');
-create type style_flag_code       as enum ('kaf_dboty','btn_dboty','no_lbl','kaj_patti','5_btn','2_jeb','no_jeb');
+create type style_flag_code       as enum ('kaf_dboty','btn_dboty','no_lbl','kaj_patti','5_btn','2_jeb','no_jeb','shalwar_zip','large_buttons');
 ```
 
 ---
@@ -151,14 +153,8 @@ create table shalwar_kameez_details (
   daman                 numeric(5,2),
   shalwar_lambai        numeric(5,2),
   pancha                numeric(5,2),
-  note                  text,
-
-  -- Plain boolean checkboxes (no images)
-  is_nokder_tera        boolean not null default false,
-  is_chalk_asten        boolean not null default false,
-  is_kuf_dbl_kaj         boolean not null default false,
-  is_large_buttons      boolean not null default false,
-  shalwar_zip           boolean not null default false,
+  note1                 text,          -- optional
+  note2                 text,          -- optional
 
   -- Single-select groups
   pocket_type_id        smallint references pocket_types(id),

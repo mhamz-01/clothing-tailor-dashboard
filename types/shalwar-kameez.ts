@@ -20,7 +20,7 @@ export interface MeasurementDefinition {
 
 export type BasicCheckKey = "isLargeButtons" | "shalwarZip"
 
-export type StyleFlagKey = "kafDboty" | "btnDboty" | "noLbl" | "kajPatti" | "twoJeb" | "noJeb"
+export type StyleFlagKey = "kafDboty" | "btnDboty" | "noLbl" | "kajPatti" | "twoJeb" | "noJeb" | "fiveBtn"
 
 export interface CheckDefinition<K extends string> {
   key: K
@@ -33,6 +33,15 @@ export interface PartDesignDefinition {
   key: PartDesignKey
   label: string
   ur: string
+}
+
+// Each part has its own size vocabulary/labels (bazu: Size/Turn, kuf: Size 1/
+// Size 2, button patti: Length/Width) instead of one shared list.
+export interface PartDesignSizeConfig {
+  size1Label: string
+  size1Options: string[]
+  size2Label: string
+  size2Options: string[]
 }
 
 export interface PartDesignRowState extends PartDesignDefinition {
@@ -87,7 +96,10 @@ export interface ShalwarKameezFormState {
   collarStyleNo: string
   order: OrderAmounts
   statusMsg: string
+  statusKind: StatusKind
 }
+
+export type StatusKind = "idle" | "info" | "success" | "error"
 
 // View-model rows handed to presentational components — each item already carries
 // its own change handler so the components stay generic and stateless.

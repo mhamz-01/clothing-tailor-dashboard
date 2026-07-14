@@ -5,9 +5,11 @@ import type {
   PartDesignDefinition,
   PartDesignImageOption,
   PartDesignKey,
+  PartDesignSizeConfig,
   RadioOptionDefinition,
   StyleFlagKey,
 } from "@/types/shalwar-kameez"
+import type { PartType } from "@/types/garment-order"
 
 // Shared field styling for this form — based on the Claude Design spec
 // (Shalwar Kameez Dashboard.dc.html): #c7c7cf borders, 3px radius, black
@@ -33,6 +35,10 @@ export const BASIC_CHECKS: CheckDefinition<BasicCheckKey>[] = [
   { key: "shalwarZip", label: "Shalwar Zip" },
 ]
 
+// Rendered inside the Button Patti design picker modal (not the main Style
+// Options panel) — maps to the same style_flag_code enum's "5_btn" value.
+export const FIVE_BUTTONS_CHECK: CheckDefinition<"fiveBtn"> = { key: "fiveBtn", label: "5 Buttons" }
+
 // Keys match the `style_flag_code` Postgres enum (see tailor-schema-supabase.md §2)
 // so each row maps directly onto an `order_style_flags` junction row later.
 export const STYLE_FLAGS: CheckDefinition<StyleFlagKey>[] = [
@@ -50,6 +56,40 @@ export const PART_DESIGNS: PartDesignDefinition[] = [
   { key: "buttonPatti", label: "Button Patti", ur: "بٹن پٹی" },
   { key: "jaib", label: "Jaib", ur: "جیب" },
 ]
+
+// Maps the form's part-design keys to the DB's part_type_enum values
+// (supabase/migrations/20260714000000_fix_garment_orders_keys_and_access.sql).
+export const PART_TYPE_DB_CODES: Record<PartDesignKey, PartType> = {
+  bazu: "bazu",
+  kuf: "kuf",
+  buttonPatti: "button_patti",
+  jaib: "jaib",
+}
+
+// Maps every checkbox key (both BASIC_CHECKS and STYLE_FLAGS) to its
+// style_flag_code DB value — the two arrays stay visually separate in the UI
+// (Large Buttons/Shalwar Zip render in different panel locations) but all
+// save into the same order_style_flags junction table.
+export const STYLE_FLAG_DB_CODES: Record<BasicCheckKey | StyleFlagKey, string> = {
+  kafDboty: "kaf_dboty",
+  btnDboty: "btn_dboty",
+  noLbl: "no_lbl",
+  kajPatti: "kaj_patti",
+  twoJeb: "2_jeb",
+  noJeb: "no_jeb",
+  fiveBtn: "5_btn",
+  isLargeButtons: "large_buttons",
+  shalwarZip: "shalwar_zip",
+}
+
+// Client No is a fixed alphabet-number format (e.g. "A-1", "B-23") — the
+// tailor picks the letter and number, but the shape itself is not editable.
+export const CLIENT_NO_PATTERN = /^[A-Za-z]-\d+$/
+
+// collar_type_code — confirmed via real images (public/kameez-shalwar-assets/collar)
+// that "collar" is a genuine 5th style, not a stray UI option (see
+// 20260714010000_add_collar_option_and_seed_images.sql).
+export const VALID_COLLAR_TYPE_CODES: string[] = ["american_cut", "english_cut", "french_cut", "collar", "none"]
 
 // Each part-design row opens a picker modal (see PartDesignPickerModal) sourced from
 // its own numbered image folder under public/kameez-shalwar-assets. Folder/prefix
@@ -72,10 +112,34 @@ export const PART_DESIGN_IMAGES: Record<PartDesignKey, PartDesignImageOption[]> 
   ])
 ) as Record<PartDesignKey, PartDesignImageOption[]>
 
-// Visible (non-dropdown) size scroll-lists shown in the part-design picker modal —
-// same two lists for every part per client confirmation. Row 1 pairs of inches,
-// row 2 single inch values.
-export const PART_DESIGN_SIZE1_OPTIONS: string[] = [
+// Visible (non-dropdown) size scroll-lists shown in the part-design picker
+// modal — each part has its own vocabulary/range, not one shared list.
+// quarterRange/integerRange generate the fixed-step ranges per client spec
+// (e.g. bazu "Size": 5 1/2 to 10 in quarter-inch steps).
+function formatQuarterValue(value: number): string {
+  const whole = Math.floor(value + 1e-9)
+  const quarters = Math.round((value - whole) * 4)
+  const fraction = quarters === 1 ? " 1/4" : quarters === 2 ? " 1/2" : quarters === 3 ? " 3/4" : ""
+  return `${whole}${fraction}`
+}
+
+function quarterRange(start: number, end: number): string[] {
+  const values: string[] = []
+  for (let v = start; v <= end + 1e-9; v += 0.25) {
+    values.push(formatQuarterValue(v))
+  }
+  return values
+}
+
+function integerRange(start: number, end: number): string[] {
+  const values: string[] = []
+  for (let v = start; v <= end; v++) values.push(String(v))
+  return values
+}
+
+// Jaib kept its original paired-dimension lists (e.g. "4x4 1/2") — the other
+// three parts got their own dedicated ranges/labels per client spec below.
+const JAIB_SIZE1_OPTIONS: string[] = [
   "4x4 1/2",
   "4x4 3/4",
   "4 1/2 x 5",
@@ -88,7 +152,7 @@ export const PART_DESIGN_SIZE1_OPTIONS: string[] = [
   "5 1/2 x 6",
 ]
 
-export const PART_DESIGN_SIZE2_OPTIONS: string[] = [
+const JAIB_SIZE2_OPTIONS: string[] = [
   "6",
   "6 1/4",
   "6 1/2",
@@ -107,6 +171,33 @@ export const PART_DESIGN_SIZE2_OPTIONS: string[] = [
   "9 3/4",
   "10",
 ]
+
+export const PART_DESIGN_SIZE_CONFIG: Record<PartDesignKey, PartDesignSizeConfig> = {
+  bazu: {
+    size1Label: "Size",
+    size1Options: quarterRange(5.5, 10),
+    size2Label: "Turn",
+    size2Options: quarterRange(1, 3.5),
+  },
+  kuf: {
+    size1Label: "Size 1",
+    size1Options: quarterRange(8, 12),
+    size2Label: "Size 2",
+    size2Options: quarterRange(2, 4),
+  },
+  buttonPatti: {
+    size1Label: "Length",
+    size1Options: integerRange(5, 20),
+    size2Label: "Width",
+    size2Options: quarterRange(1.25, 3),
+  },
+  jaib: {
+    size1Label: "Size 1",
+    size1Options: JAIB_SIZE1_OPTIONS,
+    size2Label: "Size 2",
+    size2Options: JAIB_SIZE2_OPTIONS,
+  },
+}
 
 // Plain numbered options (1-12), shared by every part of the form that just needs a
 // design/style number rather than a named option — the part-design "Design #" select

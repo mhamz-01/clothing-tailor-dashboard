@@ -20,7 +20,10 @@ create type bain_gala_type_code as enum ('gool_bain','sida_bain','half_bain','go
 create type collar_type_code    as enum ('american_cut','english_cut','french_cut','none');
 create type daman_type_code     as enum ('qurta','sida_daman');
 create type button_type_code    as enum ('metal_btn','STDS','ST3S','DTSS','DT3S','DTDS','RTSS','RTDS','EMD');
-create type style_flag_code     as enum ('kaf_dboty','btn_dboty','no_lbl','kaj_patti','5_btn','2_jeb','no_jeb');
+-- shalwar_zip and large_buttons were plain booleans with no image; now that both have
+-- images, they're folded into this same independent multi-select flags pattern instead
+-- of getting one-off image columns (tailor-schema-supabase.md §2).
+create type style_flag_code     as enum ('kaf_dboty','btn_dboty','no_lbl','kaj_patti','5_btn','2_jeb','no_jeb','shalwar_zip','large_buttons');
 
 -- =========================
 -- CLIENTS
@@ -129,14 +132,8 @@ create table shalwar_kameez_details (
   daman                 numeric(5,2),
   shalwar_lambai        numeric(5,2),
   pancha                numeric(5,2),
-  note                  text,
-
-  -- Plain boolean checkboxes (no images)
-  is_nokder_tera        boolean not null default false,
-  is_chalk_asten        boolean not null default false,
-  is_kuf_dbl_kaj         boolean not null default false,
-  is_large_buttons      boolean not null default false,
-  shalwar_zip           boolean not null default false,
+  note1                 text,
+  note2                 text,
 
   -- Single-select groups
   pocket_type_id        smallint references pocket_types(id),

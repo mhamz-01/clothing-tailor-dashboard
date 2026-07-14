@@ -68,6 +68,7 @@ export function ShalwarKameezForm() {
         <div className="flex min-h-0 flex-1 flex-col gap-2 p-2.5">
           <ClientLookupSection
             clientNo={state.clientNo}
+            clientNoValidation={form.clientNoValidation}
             bookDate={state.bookDate}
             recordNo={state.recordNo}
             pBal={state.pBal}
@@ -75,13 +76,12 @@ export function ShalwarKameezForm() {
             phoneNo={state.phoneNo}
             onClientNoChange={(value) => form.updateField("clientNo", value)}
             onBookDateChange={(value) => form.updateField("bookDate", value)}
-            onRecordNoChange={(value) => form.updateField("recordNo", value)}
             onPBalChange={(value) => form.updateField("pBal", value)}
             onClientNameChange={(value) => form.updateField("clientName", value)}
             onPhoneNoChange={(value) => form.updateField("phoneNo", value)}
-            onSearchRecord={() => form.updateField("statusMsg", "Searching by record no…")}
-            onSearchClientName={() => form.updateField("statusMsg", "Searching by client name…")}
-            onSearchPhone={() => form.updateField("statusMsg", "Searching by phone no…")}
+            onSearchRecord={form.handleSearchRecord}
+            onSearchClientName={form.handleSearchClientName}
+            onSearchPhone={form.handleSearchPhone}
           />
 
           <div className="grid min-h-0 flex-1 grid-cols-[228px_1fr_420px] gap-2">
@@ -110,7 +110,7 @@ export function ShalwarKameezForm() {
             />
 
             <div className="flex min-h-0 flex-col gap-2">
-              <PartDesignTable rows={state.partDesigns} onSizeChange={form.updatePartDesign} />
+              <PartDesignTable rows={state.partDesigns} onSizeChange={form.updatePartDesign} fiveButtonsItem={form.fiveButtonsItem} />
               <OrderSummaryPanel
                 order={state.order}
                 onOrderFieldChange={form.updateOrderField}
@@ -123,6 +123,7 @@ export function ShalwarKameezForm() {
 
           <ActionBar
             statusMsg={state.statusMsg}
+            statusKind={state.statusKind}
             onPrintReceipt={form.handlePrintReceipt}
             onSave={form.handleSave}
             onClear={form.clearForm}

@@ -2,13 +2,20 @@
 
 import { useState } from "react"
 import { AddClientModal } from "@/components/shalwar-kameez/add-client-modal"
+import { ClientNoInput } from "@/components/shalwar-kameez/client-no-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
 
+interface ClientNoValidation {
+  status: "idle" | "checking" | "ok" | "invalid_format" | "duplicate"
+  message: string
+}
+
 interface ClientLookupSectionProps {
   clientNo: string
+  clientNoValidation: ClientNoValidation
   bookDate: string
   recordNo: string
   pBal: string
@@ -16,7 +23,6 @@ interface ClientLookupSectionProps {
   phoneNo: string
   onClientNoChange: (value: string) => void
   onBookDateChange: (value: string) => void
-  onRecordNoChange: (value: string) => void
   onPBalChange: (value: string) => void
   onClientNameChange: (value: string) => void
   onPhoneNoChange: (value: string) => void
@@ -34,8 +40,8 @@ function SearchIcon() {
   )
 }
 
-const rowLabel = "text-[15px] font-bold whitespace-nowrap text-[#333338]"
-const field = cn(FIELD_CLASS, "h-6 w-full")
+const rowLabel = "text-[18px] font-bold whitespace-nowrap text-[#333338]"
+const field = cn(FIELD_CLASS, "h-9 w-full text-[18px]")
 
 // "Client strip" — the identity grid a tailor fills or searches by. Mirrors
 // the Claude Design spec (Shalwar Kameez Dashboard.dc.html): a 6-track
@@ -43,8 +49,17 @@ const field = cn(FIELD_CLASS, "h-6 w-full")
 // wrappers spanning 3 tracks so they get the room a name/phone number needs.
 // The Shirt Options column (Nokdar Tera / Chalk Asten / Kuf Dbl Kaj) from the
 // spec was dropped per client request.
+const VALIDATION_TONE: Record<ClientNoValidation["status"], string> = {
+  idle: "",
+  checking: "text-[#8a8a92]",
+  ok: "text-[#1a7f37]",
+  invalid_format: "text-[#c0392b]",
+  duplicate: "text-[#c0392b]",
+}
+
 export function ClientLookupSection({
   clientNo,
+  clientNoValidation,
   bookDate,
   recordNo,
   pBal,
@@ -52,7 +67,6 @@ export function ClientLookupSection({
   phoneNo,
   onClientNoChange,
   onBookDateChange,
-  onRecordNoChange,
   onPBalChange,
   onClientNameChange,
   onPhoneNoChange,
@@ -66,15 +80,28 @@ export function ClientLookupSection({
     <div className="shrink-0 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] px-2.5 py-2">
       <div className="grid grid-cols-[auto_1fr_auto_1fr_auto_1fr] items-center gap-x-2.5 gap-y-1.5">
         <Label className={rowLabel}>Client No.</Label>
-        <div className="flex gap-1">
-          <Input value={clientNo} onChange={(e) => onClientNoChange(e.target.value)} placeholder="—" className={field} />
-          <button
-            type="button"
-            onClick={() => setIsAddClientOpen(true)}
-            className="h-6 shrink-0 rounded-[3px] border border-black bg-white px-2.5 text-[14px] font-bold whitespace-nowrap hover:bg-black hover:text-white"
-          >
-            Add
-          </button>
+        <div className="flex flex-col gap-0.5">
+          <div className="flex gap-1">
+            <ClientNoInput
+              value={clientNo}
+              onChange={onClientNoChange}
+              invalid={clientNoValidation.status === "invalid_format" || clientNoValidation.status === "duplicate"}
+              className="h-8"
+              inputClassName="text-[16px]"
+            />
+            <button
+              type="button"
+              onClick={() => setIsAddClientOpen(true)}
+              className="h-8 shrink-0 rounded-[3px] border border-black bg-white px-2.5 text-[16px] font-bold whitespace-nowrap hover:bg-black hover:text-white"
+            >
+              Add
+            </button>
+          </div>
+          {clientNoValidation.message && (
+            <span className={cn("text-[11px] font-semibold", VALIDATION_TONE[clientNoValidation.status])}>
+              {clientNoValidation.message}
+            </span>
+          )}
         </div>
 
         <Label className={rowLabel}>Book Date</Label>
@@ -82,7 +109,12 @@ export function ClientLookupSection({
 
         <Label className={rowLabel}>Record No.</Label>
         <div className="flex gap-1">
-          <Input value={recordNo} onChange={(e) => onRecordNoChange(e.target.value)} className={cn(field, "tabular-nums")} />
+          <Input
+            value={recordNo}
+            readOnly
+            title="System-tracked — increments automatically on save"
+            className={cn(field, "tabular-nums bg-[#f0f0f2] text-[#55555c]")}
+          />
           <button
             type="button"
             onClick={onSearchRecord}
@@ -94,7 +126,8 @@ export function ClientLookupSection({
         </div>
 
         <Label className={rowLabel}>Client Name</Label>
-        <div className="col-span-3 flex gap-1">
+        <div className="col-span-3
+         flex gap-1">
           <Input
             value={clientName}
             onChange={(e) => onClientNameChange(e.target.value)}

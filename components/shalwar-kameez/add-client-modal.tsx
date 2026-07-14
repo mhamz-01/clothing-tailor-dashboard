@@ -10,9 +10,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { ClientNoInput } from "@/components/shalwar-kameez/client-no-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
+import { CLIENT_NO_PATTERN, FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
 
 interface AddClientModalProps {
@@ -47,10 +48,10 @@ export function AddClientModal({ open, onOpenChange }: AddClientModalProps) {
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-sm rounded-2xl border-2 border-slate-300 bg-white shadow-xl">
+      <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-lg font-bold text-black">Add Client</AlertDialogTitle>
-          <AlertDialogDescription className="text-sm text-slate-600">
+          <AlertDialogTitle className="text-[14px] font-bold text-black">Add Client</AlertDialogTitle>
+          <AlertDialogDescription className="text-[12px] text-[#8a8a92]">
             Enter the client&apos;s details below.
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -58,11 +59,11 @@ export function AddClientModal({ open, onOpenChange }: AddClientModalProps) {
         <div className="flex flex-col gap-3">
           <div>
             <Label className="mb-1 block text-[12.5px] font-bold text-black">Client ID</Label>
-            <Input
+            <ClientNoInput
               value={fields.clientId}
-              onChange={(e) => updateField("clientId", e.target.value)}
-              placeholder="—"
-              className={cn(FIELD_CLASS, "h-9")}
+              onChange={(value) => updateField("clientId", value)}
+              invalid={fields.clientId.trim() !== "" && !CLIENT_NO_PATTERN.test(fields.clientId.trim())}
+              className="h-9"
             />
           </div>
 

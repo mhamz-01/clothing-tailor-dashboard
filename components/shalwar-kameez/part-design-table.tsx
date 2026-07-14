@@ -3,11 +3,13 @@ import { PartDesignPickerModal } from "@/components/shalwar-kameez/part-design-p
 import { Input } from "@/components/ui/input"
 import { FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
-import type { PartDesignRowState } from "@/types/shalwar-kameez"
+import { formatSizeLabel } from "@/lib/utils/format-size"
+import type { CheckboxItem, PartDesignRowState } from "@/types/shalwar-kameez"
 
 interface PartDesignTableProps {
   rows: PartDesignRowState[]
   onSizeChange: (index: number, field: "size1" | "size2" | "designNo", value: string) => void
+  fiveButtonsItem: CheckboxItem
 }
 
 // One row per garment part (bazu / kuf / button patti / jaib) — feeds
@@ -17,7 +19,7 @@ interface PartDesignTableProps {
 // input for Design # instead of a dropdown. Clicking the Urdu label button
 // opens PartDesignPickerModal, which writes back into the same three fields
 // as the row's manual inputs below.
-export function PartDesignTable({ rows, onSizeChange }: PartDesignTableProps) {
+export function PartDesignTable({ rows, onSizeChange, fiveButtonsItem }: PartDesignTableProps) {
   const [modalIndex, setModalIndex] = useState<number | null>(null)
   const modalRow = modalIndex !== null ? rows[modalIndex] : null
 
@@ -38,15 +40,15 @@ export function PartDesignTable({ rows, onSizeChange }: PartDesignTableProps) {
               className={cn(FIELD_CLASS, "h-[23px] text-center")}
             />
             <Input
-              type="number"
-              value={row.size1}
+              type="text"
+              value={formatSizeLabel(row.size1)}
               onChange={(e) => onSizeChange(index, "size1", e.target.value)}
               placeholder="—"
               className={cn(FIELD_CLASS, "h-[23px] text-center")}
             />
             <Input
-              type="number"
-              value={row.size2}
+              type="text"
+              value={formatSizeLabel(row.size2)}
               onChange={(e) => onSizeChange(index, "size2", e.target.value)}
               placeholder="—"
               className={cn(FIELD_CLASS, "h-[23px] text-center")}
@@ -75,6 +77,7 @@ export function PartDesignTable({ rows, onSizeChange }: PartDesignTableProps) {
           onSizeChange(modalIndex, "size1", size1)
           onSizeChange(modalIndex, "size2", size2)
         }}
+        fiveButtonsItem={fiveButtonsItem}
       />
     </div>
   )
