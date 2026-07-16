@@ -15,8 +15,10 @@ interface MeasurementsPanelProps {
 }
 
 // Left column of the form. Mirrors the Claude Design spec (Shalwar Kameez
-// Dashboard.dc.html) pixel-for-pixel: input first, Urdu label second (66px),
-// note textarea fills the remaining column height.
+// Dashboard.dc.html) pixel-for-pixel: input first, Urdu label second (84px --
+// wide enough for the longest label, "شلوار لمبائی", which is two words and
+// wrapped inside the original 66px), note textarea fills the remaining
+// column height.
 export function MeasurementsPanel({
   rows,
   note,
@@ -36,7 +38,7 @@ export function MeasurementsPanel({
       </div>
 
       {rows.map((row) => (
-        <div key={row.key} className="grid grid-cols-[1fr_66px] items-center gap-2  ">
+        <div key={row.key} className="grid grid-cols-[1fr_104px] items-center gap-2  ">
           <Input
             type="number"
             value={row.value}
@@ -44,7 +46,10 @@ export function MeasurementsPanel({
             placeholder="—"
             className={cn(FIELD_CLASS, NO_SPINNER_CLASS, "h-[23px]")}
           />
-          <label className="font-[family-name:var(--font-naskh)] text-right text-[22px] font-bold text-[#111116]" dir="rtl">
+          <label
+            className="font-[family-name:var(--font-naskh)] text-right text-[20px] font-bold whitespace-nowrap text-[#111116]"
+            dir="rtl"
+          >
             {row.ur}
           </label>
         </div>

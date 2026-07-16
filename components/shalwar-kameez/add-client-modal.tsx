@@ -33,13 +33,20 @@ interface AddClientModalProps {
   // -- unlike onAdd, this loads that client's full previous order (not just
   // the three identity fields) into the main sheet.
   onSelectExisting: (client: ClientRow) => void
+  // Fired once a delete is actually confirmed by the DB (see confirmDelete
+  // below) -- lets the main sheet drop its own cached lookups for this
+  // client and clear itself if this was the client currently loaded there.
+  onClientDeleted?: (clientNo: string) => void
 }
 
 const emptyFields = { clientId: "", clientName: "", clientMobile: "" }
 
-export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: AddClientModalProps) {
+export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, onClientDeleted }: AddClientModalProps) {
   const [fields, setFields] = useState(emptyFields)
   const [error, setError] = useState("")
+  // Confirms a delete actually went through -- cleared the instant the
+  // tailor touches a field again, same lifetime as `error`.
+  const [successMsg, setSuccessMsg] = useState("")
   const [matches, setMatches] = useState<ClientRow[]>([])
   const [isSearching, setIsSearching] = useState(false)
   // Distinguishes "haven't checked yet" from "checked, nobody matches" -- the
@@ -69,6 +76,7 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: 
     setMatches([])
     setHasSearched(false)
     setError("")
+    setSuccessMsg("")
   }
 
   // Checks the DB once a field is "complete" -- blurred or confirmed with
@@ -136,6 +144,7 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: 
     setHasSearched(false)
     setSelectedForDelete(null)
     setError("")
+    setSuccessMsg("")
   }
 
   // Re-checks Client No and Phone No against the DB right before handing
@@ -202,6 +211,7 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: 
     setIsSearching(false)
     setHasSearched(false)
     setError("")
+    setSuccessMsg("")
     onOpenChange(false)
   }
 
@@ -233,9 +243,13 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: 
       setMatches((prev) => prev.filter((row) => row.clientId !== client.clientId))
       setSelectedForDelete(null)
       setPendingDelete(null)
+      setError("")
+      setSuccessMsg(`${client.clientNo} — ${client.clientName} deleted.`)
+      onClientDeleted?.(client.clientNo)
     } catch (err) {
       const message = err instanceof Error ? err.message : ""
       setError(message || "Could not delete client.")
+      setSuccessMsg("")
       setPendingDelete(null)
     }
   }
@@ -243,34 +257,35 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: 
   return (
     <>
       <AlertDialog open={open} onOpenChange={onOpenChange}>
-        <AlertDialogContent className="w-full max-w-2xl gap-4 rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
+        <AlertDialogContent className="w-full max-w-4xl gap-5 rounded-[10px] border border-[#dcdce1] bg-white p-6 shadow-xl">
           <AlertDialogHeader>
-            <div className="mb-1 flex size-8 items-center justify-center rounded-[6px] border border-[#dcdce1] bg-[#f5f5f7]">
-              <UserPlus className="size-4 text-[#333338]" strokeWidth={2} />
+            <div className="mb-1 flex size-10 items-center justify-center rounded-[6px] border border-[#dcdce1] bg-[#f5f5f7]">
+              <UserPlus className="size-5 text-[#333338]" strokeWidth={2} />
             </div>
-            <AlertDialogTitle className="text-[14px] font-bold text-black">Add Client</AlertDialogTitle>
-            <AlertDialogDescription className="text-[12px] text-[#8a8a92]">
+            <AlertDialogTitle className="text-[17px] font-bold text-black">Add Client</AlertDialogTitle>
+            <AlertDialogDescription className="text-[13px] text-[#8a8a92]">
               Enter the client&apos;s details below. Finish a field to check if they&apos;re already on file.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <div className="flex flex-col gap-3 sm:w-64 sm:shrink-0">
+          <div className="flex flex-col gap-5 sm:flex-row">
+            <div className="flex flex-col gap-3.5 sm:w-72 sm:shrink-0">
               <div>
-                <Label className="mb-1 block text-[12.5px] font-bold text-black">Client ID</Label>
+                <Label className="mb-1 block text-[13px] font-bold text-black">Client ID</Label>
                 <ClientNoInput
                   value={fields.clientId}
                   onChange={(value) => updateField("clientId", value)}
                   onEnter={() => clientNameRef.current?.focus()}
                   onBlur={handleFieldComplete}
                   invalid={fields.clientId.trim() !== "" && !CLIENT_NO_PATTERN.test(fields.clientId.trim())}
-                  className="h-9"
+                  className="h-11"
+                  inputClassName="text-[14px]"
                   suggestNextNumber={suggestNextClientNumber}
                 />
               </div>
 
               <div>
-                <Label className="mb-1 block text-[12.5px] font-bold text-black">Client Name</Label>
+                <Label className="mb-1 block text-[13px] font-bold text-black">Client Name</Label>
                 <Input
                   ref={clientNameRef}
                   value={fields.clientName}
@@ -278,12 +293,12 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: 
                   onBlur={handleFieldComplete}
                   onKeyDown={handleClientNameEnter}
                   placeholder="Enter client name"
-                  className={cn(FIELD_CLASS, "h-9")}
+                  className={cn(FIELD_CLASS, "h-11 text-[14px]")}
                 />
               </div>
 
               <div>
-                <Label className="mb-1 block text-[12.5px] font-bold text-black">Client Mobile</Label>
+                <Label className="mb-1 block text-[13px] font-bold text-black">Client Mobile</Label>
                 <Input
                   ref={clientMobileRef}
                   type="tel"
@@ -292,22 +307,23 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: 
                   onBlur={handleFieldComplete}
                   onKeyDown={handleClientMobileEnter}
                   placeholder="03XXXXXXXXX"
-                  className={cn(FIELD_CLASS, "h-9")}
+                  className={cn(FIELD_CLASS, "h-11 text-[14px]")}
                 />
               </div>
 
-              {error && <span className="text-[11px] font-semibold text-[#c0392b]">{error}</span>}
+              {error && <span className="text-[12.5px] font-semibold text-[#c0392b]">{error}</span>}
+              {successMsg && <span className="text-[12.5px] font-semibold text-[#1a7f37]">{successMsg}</span>}
             </div>
 
             <div
               className={cn(
-                "flex min-w-0 flex-1 flex-col gap-1.5 rounded-[6px] border p-2 sm:pl-4",
+                "flex min-w-0 flex-1 flex-col gap-2 rounded-[6px] border p-3 sm:pl-4",
                 matches.length > 0 ? "border-[#f0dca3] bg-[#fffaf0]" : "border-[#ececef] bg-[#fafafb] sm:border-l-0",
               )}
             >
               <div
                 className={cn(
-                  "flex items-center gap-1.5 text-[11px] font-semibold",
+                  "flex items-center gap-1.5 text-[13px] font-semibold",
                   isSearching
                     ? "text-[#8a8a92]"
                     : matches.length > 0
@@ -319,31 +335,31 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: 
               >
                 {isSearching ? (
                   <>
-                    <Loader2 className="size-3.5 animate-spin" />
+                    <Loader2 className="size-4 animate-spin" />
                     Checking existing clients…
                   </>
                 ) : matches.length > 0 ? (
                   <>
-                    <TriangleAlert className="size-3.5" />
+                    <TriangleAlert className="size-4" />
                     {matches.length} matching client{matches.length === 1 ? "" : "s"} already on file
                   </>
                 ) : hasSearched ? (
                   <>
-                    <CircleCheck className="size-3.5" />
+                    <CircleCheck className="size-4" />
                     No match on file — looks like a new client.
                   </>
                 ) : (
                   "Matching clients on file"
                 )}
               </div>
-              <div className="max-h-56 overflow-y-auto rounded-[5px] border border-[#e8d9a8] bg-white">
-                <table className="w-full text-[11px]">
+              <div className="max-h-80 overflow-y-auto rounded-[5px] border border-[#e8d9a8] bg-white">
+                <table className="w-full text-[13.5px]">
                   <thead>
                     <tr className="bg-[#f5f5f7] text-left text-[#55555c]">
-                      <th className="px-2 py-1 font-semibold">Client No.</th>
-                      <th className="px-2 py-1 font-semibold">Name</th>
-                      <th className="px-2 py-1 font-semibold">Phone</th>
-                      <th className="px-2 py-1 text-center font-semibold">Del</th>
+                      <th className="px-3 py-2 font-semibold">Client No.</th>
+                      <th className="px-3 py-2 font-semibold">Name</th>
+                      <th className="px-3 py-2 font-semibold">Phone</th>
+                      <th className="px-3 py-2 text-center font-semibold">Del</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -354,10 +370,10 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: 
                           onClick={() => handleSelectMatch(client)}
                           className="cursor-pointer border-t border-[#ececef] hover:bg-[#f5f5f7]"
                         >
-                          <td className="px-2 py-1 font-medium whitespace-nowrap">{client.clientNo}</td>
-                          <td className="px-2 py-1">{client.clientName}</td>
-                          <td className="px-2 py-1 tabular-nums whitespace-nowrap">{client.phoneNo}</td>
-                          <td className="px-2 py-1 text-center">
+                          <td className="px-3 py-2.5 font-medium whitespace-nowrap">{client.clientNo}</td>
+                          <td className="px-3 py-2.5">{client.clientName}</td>
+                          <td className="px-3 py-2.5 tabular-nums whitespace-nowrap">{client.phoneNo}</td>
+                          <td className="px-3 py-2.5 text-center">
                             <input
                               type="checkbox"
                               checked={selectedForDelete?.clientId === client.clientId}
@@ -366,14 +382,14 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: 
                               }
                               onClick={(e) => e.stopPropagation()}
                               aria-label={`Select ${client.clientNo} to delete`}
-                              className="size-3.5 accent-[#c0392b]"
+                              className="size-4 accent-[#c0392b]"
                             />
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={4} className="px-2 py-3 text-center text-[#8a8a92]">
+                        <td colSpan={4} className="px-3 py-4 text-center text-[#8a8a92]">
                           {isSearching ? "Searching…" : "No matches yet"}
                         </td>
                       </tr>
@@ -381,7 +397,7 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: 
                   </tbody>
                 </table>
               </div>
-              <span className="text-[10.5px] text-[#8a6d1f]">
+              <span className="text-[12px] text-[#8a6d1f]">
                 {matches.length > 0 ? "Tap a row to load them, or tick the box to delete." : " "}
               </span>
             </div>
@@ -392,15 +408,15 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: 
               type="button"
               variant={selectedForDelete ? "destructive" : "outline"}
               onClick={handleDelete}
-              className="h-9"
+              className="h-10"
             >
               {selectedForDelete ? `Delete ${selectedForDelete.clientNo}` : "Delete"}
             </Button>
             <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={handleClear} className="h-9">
+              <Button type="button" variant="outline" onClick={handleClear} className="h-10">
                 Clear
               </Button>
-              <Button type="button" onClick={handleSave} disabled={isSaving} className="h-9">
+              <Button type="button" onClick={handleSave} disabled={isSaving} className="h-10">
                 {isSaving ? "Checking…" : "Save"}
               </Button>
             </div>

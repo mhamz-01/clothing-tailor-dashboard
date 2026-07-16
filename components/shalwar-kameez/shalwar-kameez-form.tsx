@@ -7,6 +7,7 @@ import { ClientLookupSection } from "@/components/shalwar-kameez/client-lookup-s
 import { MeasurementsPanel } from "@/components/shalwar-kameez/measurements-panel"
 import { OrderSummaryPanel } from "@/components/shalwar-kameez/order-summary-panel"
 import { PartDesignTable } from "@/components/shalwar-kameez/part-design-table"
+import { StatusToast } from "@/components/shalwar-kameez/status-toast"
 import { StyleOptionsPanel } from "@/components/shalwar-kameez/style-options-panel"
 import {
   AlertDialog,
@@ -61,7 +62,7 @@ export function ShalwarKameezForm() {
       <div
         ref={boardRef}
         style={{ width: BOARD_WIDTH, height: BOARD_HEIGHT }}
-        className={`flex flex-none origin-center flex-col overflow-hidden bg-white shadow-[0_6px_34px_rgba(0,0,0,0.16)] ${notoNaskhArabic.variable}`}
+        className={`relative flex flex-none origin-center flex-col overflow-hidden bg-white shadow-[0_6px_34px_rgba(0,0,0,0.16)] ${notoNaskhArabic.variable}`}
       >
         {/* Title bar */}
         <div className="flex h-8 flex-none items-center gap-2.5 bg-black px-3 text-white">
@@ -95,6 +96,7 @@ export function ShalwarKameezForm() {
             onSearchClientNo={form.handleSearchClientNo}
             onAddClient={form.handleAddClient}
             onSelectExistingClient={form.handleSelectExistingClient}
+            onClientDeleted={form.handleClientDeleted}
           />
 
           <div className="grid min-h-0 flex-1 grid-cols-[228px_1fr_420px] gap-2">
@@ -136,21 +138,26 @@ export function ShalwarKameezForm() {
           </div>
 
           <ActionBar
-            statusMsg={state.statusMsg}
-            statusKind={state.statusKind}
             onPrintReceipt={form.handlePrintReceipt}
             onSave={form.handleSave}
-            onClear={form.clearForm}
+            onClear={() => form.clearForm()}
             onPrev={form.handlePrev}
             onNext={form.handleNext}
             prevDisabled={!form.canGoPrev}
             nextDisabled={!form.canGoNext}
             onPrint={form.handlePrint}
-            onDelete={form.handleDelete}
             onExit={form.handleExit}
           />
         </div>
       </div>
+
+      {/* Rendered outside the scaled board on purpose -- the board is
+          CSS-transform-scaled to fit the viewport, so anything nested
+          inside it shrinks along with it on any screen smaller than
+          1610x770 (i.e. almost every real screen). Kept at native size here
+          so it stays legible regardless of how small the board itself gets
+          scaled down to. */}
+      <StatusToast statusMsg={state.statusMsg} statusKind={state.statusKind} onDismiss={form.dismissStatus} />
 
       <AlertDialog open={form.pendingNav !== null} onOpenChange={(open) => !open && form.cancelNavigation()}>
         <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">

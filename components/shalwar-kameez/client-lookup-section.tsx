@@ -33,6 +33,7 @@ interface ClientLookupSectionProps {
   onSearchClientNo: () => void
   onAddClient: (client: { clientNo: string; clientName: string; phoneNo: string }) => void
   onSelectExistingClient: (client: ClientRow) => void
+  onClientDeleted: (clientNo: string) => void
 }
 
 function SearchIcon() {
@@ -82,6 +83,7 @@ export function ClientLookupSection({
   onSearchClientNo,
   onAddClient,
   onSelectExistingClient,
+  onClientDeleted,
 }: ClientLookupSectionProps) {
   const [isAddClientOpen, setIsAddClientOpen] = useState(false)
 
@@ -183,6 +185,7 @@ export function ClientLookupSection({
         onOpenChange={setIsAddClientOpen}
         onAdd={onAddClient}
         onSelectExisting={onSelectExistingClient}
+        onClientDeleted={onClientDeleted}
       />
     </div>
   )

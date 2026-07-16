@@ -159,8 +159,16 @@ export async function findMatchingClients(query: ClientSearchQuery): Promise<Cli
 // this removes the client's entire order history, not just the clients row.
 export async function deleteClient(clientId: number): Promise<void> {
   const supabase = createClient()
-  const { error } = await supabase.from("clients").delete().eq("client_id", clientId)
+  // .select() forces Postgrest to return the deleted row(s) -- without it, a
+  // delete blocked by RLS (or a client_id that no longer exists) still comes
+  // back with no error and 0 rows affected, which reads as success unless
+  // checked for explicitly. Confirming a row actually came back is the only
+  // way to tell "deleted" from "silently did nothing" apart.
+  const { data, error } = await supabase.from("clients").delete().eq("client_id", clientId).select("client_id")
   if (error) throw new Error(error.message)
+  if (!data || data.length === 0) {
+    throw new Error("Client could not be deleted — they may already be removed, or you may not have permission.")
+  }
 }
 
 // record_counter (see tailor-schema-supabase.md §8) increments by trigger on

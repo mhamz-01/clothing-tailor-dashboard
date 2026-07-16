@@ -368,6 +368,7 @@ export function useShalwarKameezForm() {
       if (!client) {
         searchMatchedClientNoRef.current = normalized
         setAsyncClientNoResult({ normalized, status: "ok", message: "" })
+        resetFormKeepingIdentity({ clientNo: normalized, clientName: "", phoneNo: "" })
         return
       }
       await loadClientIntoForm(normalized, client)
@@ -377,6 +378,40 @@ export function useShalwarKameezForm() {
     } finally {
       setIsCheckingClientNo(false)
     }
+  }
+
+  // Wipes everything back to blank except Book Date, then re-seeds Client
+  // No/Name/Phone with whatever identity the caller already knows -- shared
+  // by a brand-new Add Client pick (identity provided) and a Client No/Phone
+  // lookup that came back empty (identity is just what was typed, the rest
+  // blank). Record No. is refreshed from the DB rather than carried over --
+  // this is always "starting fresh for a client with no order on file", so
+  // whatever number was previously loaded/previewed is no longer the right
+  // next number to show (same as Clear -- see clearForm below).
+  function resetFormKeepingIdentity(overrides: { clientNo: string; clientName: string; phoneNo: string }) {
+    deliveryDateTouchedRef.current = false
+    setState((prev) => {
+      const fresh = createInitialState()
+      const computed = computeDeliveryDate(prev.bookDate, pricingSettings)
+      const next: ShalwarKameezFormState = {
+        ...fresh,
+        bookDate: prev.bookDate,
+        clientNo: overrides.clientNo,
+        clientName: overrides.clientName,
+        phoneNo: overrides.phoneNo,
+        // Not part of "fresh" -- a caller may have just flashed a status
+        // message (e.g. "No matching client found.") right before resetting
+        // the identity fields, and that message should survive the reset.
+        statusMsg: prev.statusMsg,
+        statusKind: prev.statusKind,
+        order: computed ? { ...fresh.order, deliveryDate: computed } : fresh.order,
+      }
+      lastSnapshotRef.current = snapshotEditableState(next)
+      return next
+    })
+    nextRecordNoQuery.refetch().then(({ data }) => {
+      if (data != null) setState((prev) => ({ ...prev, recordNo: String(data) }))
+    })
   }
 
   // Fired when Add Client's Save hands back a freshly-entered Client No/Name/
@@ -390,24 +425,9 @@ export function useShalwarKameezForm() {
   // database to navigate back to until they're actually saved (see
   // handleSave).
   function handleAddClient(client: { clientNo: string; clientName: string; phoneNo: string }) {
-    deliveryDateTouchedRef.current = false
     searchMatchedClientNoRef.current = null
     setAsyncClientNoResult(null)
-    setState((prev) => {
-      const fresh = createInitialState()
-      const computed = computeDeliveryDate(prev.bookDate, pricingSettings)
-      const next: ShalwarKameezFormState = {
-        ...fresh,
-        bookDate: prev.bookDate,
-        recordNo: prev.recordNo,
-        clientNo: client.clientNo,
-        clientName: client.clientName,
-        phoneNo: client.phoneNo,
-        order: computed ? { ...fresh.order, deliveryDate: computed } : fresh.order,
-      }
-      lastSnapshotRef.current = snapshotEditableState(next)
-      return next
-    })
+    resetFormKeepingIdentity(client)
   }
 
   // Fired when a row is picked from Add Client's "already on file" match
@@ -436,6 +456,13 @@ export function useShalwarKameezForm() {
 
   function flashStatus(message: string, kind: StatusKind = "info") {
     setState((prev) => ({ ...prev, statusMsg: message, statusKind: kind }))
+  }
+
+  // Fired by the status toast on auto-dismiss or a manual close click --
+  // not called anywhere in the save/search flows themselves, which only
+  // ever flash a new message rather than clear one.
+  function dismissStatus() {
+    setState((prev) => (prev.statusKind === "idle" ? prev : { ...prev, statusMsg: "", statusKind: "idle" }))
   }
 
   function updateField<K extends keyof ShalwarKameezFormState>(key: K, value: ShalwarKameezFormState[K]) {
@@ -482,14 +509,17 @@ export function useShalwarKameezForm() {
     setState((prev) => ({ ...prev, order: { ...prev.order, [key]: value } }))
   }
 
-  function clearForm() {
+  // `message`/`kind` let callers other than the plain Clear button reuse
+  // this same wipe-and-refresh (e.g. handleClientDeleted below saying *why*
+  // the form just emptied out, instead of the generic "Cleared").
+  function clearForm(message = "Cleared", kind: StatusKind = "info") {
     deliveryDateTouchedRef.current = false
     const fresh = createInitialState()
     const computed = computeDeliveryDate(fresh.bookDate, pricingSettings)
     const next: ShalwarKameezFormState = {
       ...fresh,
-      statusMsg: "Cleared",
-      statusKind: "info",
+      statusMsg: message,
+      statusKind: kind,
       order: computed ? { ...fresh.order, deliveryDate: computed } : fresh.order,
     }
     lastSnapshotRef.current = snapshotEditableState(next)
@@ -499,6 +529,22 @@ export function useShalwarKameezForm() {
     nextRecordNoQuery.refetch().then(({ data }) => {
       if (data != null) setState((prev) => ({ ...prev, recordNo: String(data) }))
     })
+  }
+
+  // Fired when Add Client's delete confirmation actually removes a client
+  // (see add-client-modal.tsx's confirmDelete). Always drops that client's
+  // cached row/latest-order lookups -- a re-search moments later shouldn't
+  // resolve from a 5-minute-stale cache that still thinks they exist (see
+  // fetchClientRowCached/fetchLatestOrderCached above). Only wipes the
+  // on-screen form if the client just deleted is the one currently loaded
+  // into it -- deleting some other, unrelated client from the modal
+  // shouldn't disturb whatever the tailor is mid-typing.
+  function handleClientDeleted(clientNo: string) {
+    const normalized = clientNo.trim().toUpperCase()
+    queryClient.removeQueries({ queryKey: queryKeys.clientByNo(normalized) })
+    queryClient.removeQueries({ queryKey: queryKeys.clientLatestOrder(normalized) })
+    if (state.clientNo.trim().toUpperCase() !== normalized) return
+    clearForm("Client deleted — form cleared.", "info")
   }
 
   async function handleSave() {
@@ -642,14 +688,18 @@ export function useShalwarKameezForm() {
   }
 
   async function handleSearchPhone() {
-    if (!state.phoneNo.trim()) {
+    const trimmedPhone = state.phoneNo.trim()
+    if (!trimmedPhone) {
       flashStatus("Enter a Phone No to search.", "error")
       return
     }
     flashStatus("Searching by phone no…")
     try {
-      const client = applyClientSearchResult(await searchClients({ phoneNo: state.phoneNo.trim() }))
-      if (!client) return
+      const client = applyClientSearchResult(await searchClients({ phoneNo: trimmedPhone }))
+      if (!client) {
+        resetFormKeepingIdentity({ clientNo: "", clientName: "", phoneNo: trimmedPhone })
+        return
+      }
       const latest = await fetchLatestOrderCached(client.clientNo)
       if (latest) {
         applyLatestOrder(latest)
@@ -792,6 +842,8 @@ export function useShalwarKameezForm() {
     updatePartDesign,
     clearForm,
     handleSave,
+    dismissStatus,
+    handleClientDeleted,
     handleSearchClientName,
     handleSearchPhone,
     handleSearchRecord,
