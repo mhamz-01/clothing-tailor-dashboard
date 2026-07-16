@@ -7,4 +7,11 @@ export const queryKeys = {
   admins: ["admins"] as const,
   catalogOptions: ["catalogOptions"] as const,
   designCatalog: (partType: string) => ["designCatalog", partType] as const,
+  // Shalwar Kameez order form + its Settings page (see
+  // hooks/shalwar-kameez/* and use-shalwar-kameez-form.ts).
+  buttonPrices: ["buttonPrices"] as const,
+  pricingSettings: ["pricingSettings"] as const,
+  nextRecordNo: ["nextRecordNo"] as const,
+  clientByNo: (clientNo: string) => ["clientByNo", clientNo] as const,
+  clientLatestOrder: (clientNo: string) => ["clientLatestOrder", clientNo] as const,
 }

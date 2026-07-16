@@ -8,6 +8,16 @@ import { MeasurementsPanel } from "@/components/shalwar-kameez/measurements-pane
 import { OrderSummaryPanel } from "@/components/shalwar-kameez/order-summary-panel"
 import { PartDesignTable } from "@/components/shalwar-kameez/part-design-table"
 import { StyleOptionsPanel } from "@/components/shalwar-kameez/style-options-panel"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { useShalwarKameezForm } from "@/hooks/shalwar-kameez/use-shalwar-kameez-form"
 
 const BOARD_WIDTH = 1610
@@ -75,13 +85,16 @@ export function ShalwarKameezForm() {
             clientName={state.clientName}
             phoneNo={state.phoneNo}
             onClientNoChange={(value) => form.updateField("clientNo", value)}
-            onBookDateChange={(value) => form.updateField("bookDate", value)}
+            onBookDateChange={form.updateBookDate}
             onPBalChange={(value) => form.updateField("pBal", value)}
             onClientNameChange={(value) => form.updateField("clientName", value)}
             onPhoneNoChange={(value) => form.updateField("phoneNo", value)}
             onSearchRecord={form.handleSearchRecord}
             onSearchClientName={form.handleSearchClientName}
             onSearchPhone={form.handleSearchPhone}
+            onSearchClientNo={form.handleSearchClientNo}
+            onAddClient={form.handleAddClient}
+            onSelectExistingClient={form.handleSelectExistingClient}
           />
 
           <div className="grid min-h-0 flex-1 grid-cols-[228px_1fr_420px] gap-2">
@@ -114,6 +127,7 @@ export function ShalwarKameezForm() {
               <OrderSummaryPanel
                 order={state.order}
                 onOrderFieldChange={form.updateOrderField}
+                tailoringAmount={form.tailoringAmount}
                 total={form.total}
                 balance={form.balance}
                 buttonOptions={form.buttonOptions}
@@ -129,12 +143,34 @@ export function ShalwarKameezForm() {
             onClear={form.clearForm}
             onPrev={form.handlePrev}
             onNext={form.handleNext}
+            prevDisabled={!form.canGoPrev}
+            nextDisabled={!form.canGoNext}
             onPrint={form.handlePrint}
             onDelete={form.handleDelete}
             onExit={form.handleExit}
           />
         </div>
       </div>
+
+      <AlertDialog open={form.pendingNav !== null} onOpenChange={(open) => !open && form.cancelNavigation()}>
+        <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[14px] font-bold text-black">Discard unsaved changes?</AlertDialogTitle>
+            <AlertDialogDescription className="text-[12px] text-[#8a8a92]">
+              This order has changes that haven&apos;t been saved. Moving to the {form.pendingNav === "prev" ? "previous" : "next"}{" "}
+              client will lose them.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="h-9" onClick={form.cancelNavigation}>
+              Stay here
+            </AlertDialogCancel>
+            <AlertDialogAction className="h-9" onClick={form.confirmDiscardAndNavigate}>
+              Discard and continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -1,13 +1,17 @@
 import { ButtonTypePanel } from "@/components/shalwar-kameez/button-type-panel"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
+import { FIELD_CLASS, NO_SPINNER_CLASS } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
 import type { OrderAmounts, RadioItem } from "@/types/shalwar-kameez"
 
 interface OrderSummaryPanelProps {
   order: OrderAmounts
   onOrderFieldChange: (key: keyof OrderAmounts, value: string) => void
+  // Computed from order_pricing_settings/button_types.price * Suit Qty (see
+  // use-shalwar-kameez-form.ts) rather than a tailor-entered order field --
+  // read-only here, hence not part of `order`/`onOrderFieldChange`.
+  tailoringAmount: number
   total: number
   balance: number
   buttonOptions: RadioItem[]
@@ -20,7 +24,7 @@ const fieldClass = cn(FIELD_CLASS, "h-[22px] text-right tabular-nums")
 // the right, in one bordered box. Mirrors the Claude Design spec (Shalwar
 // Kameez Dashboard.dc.html) pixel-for-pixel, including its field labels
 // ("Suit Qty", "Cloth Amount", "Shiling Amt").
-export function OrderSummaryPanel({ order, onOrderFieldChange, total, balance, buttonOptions }: OrderSummaryPanelProps) {
+export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, total, balance, buttonOptions }: OrderSummaryPanelProps) {
   return (
     <div className="flex min-h-0 flex-1 gap-3 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] p-[9px]">
       <div className="flex flex-1 flex-col gap-1.5">
@@ -34,19 +38,35 @@ export function OrderSummaryPanel({ order, onOrderFieldChange, total, balance, b
           <Label className={labelClass}>Tailoring Amt</Label>
           <Input
             type="number"
-            value={order.tailoringAmount}
-            onChange={(e) => onOrderFieldChange("tailoringAmount", e.target.value)}
-            className={fieldClass}
+            value={tailoringAmount}
+            readOnly
+            title="Set from Settings — (base amount + selected Button Type's price) × Suit Qty"
+            className={cn(fieldClass, NO_SPINNER_CLASS, "bg-[#f0f0f2] text-[#55555c]")}
           />
 
           <Label className={labelClass}>Cloth Amount</Label>
-          <Input type="number" value={order.clothAmount} onChange={(e) => onOrderFieldChange("clothAmount", e.target.value)} className={fieldClass} />
+          <Input
+            type="number"
+            value={order.clothAmount}
+            onChange={(e) => onOrderFieldChange("clothAmount", e.target.value)}
+            className={cn(fieldClass, NO_SPINNER_CLASS)}
+          />
 
           <Label className={labelClass}>Shiling Amt</Label>
-          <Input type="number" value={order.shillingAmt} onChange={(e) => onOrderFieldChange("shillingAmt", e.target.value)} className={fieldClass} />
+          <Input
+            type="number"
+            value={order.shillingAmt}
+            onChange={(e) => onOrderFieldChange("shillingAmt", e.target.value)}
+            className={cn(fieldClass, NO_SPINNER_CLASS)}
+          />
 
           <Label className={labelClass}>Others Amt</Label>
-          <Input type="number" value={order.othersAmt} onChange={(e) => onOrderFieldChange("othersAmt", e.target.value)} className={fieldClass} />
+          <Input
+            type="number"
+            value={order.othersAmt}
+            onChange={(e) => onOrderFieldChange("othersAmt", e.target.value)}
+            className={cn(fieldClass, NO_SPINNER_CLASS)}
+          />
         </div>
 
         <div className="mt-0.5 grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1.5 border-t border-[#e4e4e9] pt-1.5">

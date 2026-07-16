@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
+import type { ClientRow } from "@/types/garment-order"
 
 interface ClientNoValidation {
-  status: "idle" | "checking" | "ok" | "invalid_format" | "duplicate"
+  status: "idle" | "checking" | "ok" | "invalid_format" | "existing"
   message: string
 }
 
@@ -29,6 +30,9 @@ interface ClientLookupSectionProps {
   onSearchRecord: () => void
   onSearchClientName: () => void
   onSearchPhone: () => void
+  onSearchClientNo: () => void
+  onAddClient: (client: { clientNo: string; clientName: string; phoneNo: string }) => void
+  onSelectExistingClient: (client: ClientRow) => void
 }
 
 function SearchIcon() {
@@ -54,7 +58,9 @@ const VALIDATION_TONE: Record<ClientNoValidation["status"], string> = {
   checking: "text-[#8a8a92]",
   ok: "text-[#1a7f37]",
   invalid_format: "text-[#c0392b]",
-  duplicate: "text-[#c0392b]",
+  // Existing client is informational, not an error -- their previous order
+  // gets loaded into the form rather than blocking the save.
+  existing: "text-[#1a7f37]",
 }
 
 export function ClientLookupSection({
@@ -73,6 +79,9 @@ export function ClientLookupSection({
   onSearchRecord,
   onSearchClientName,
   onSearchPhone,
+  onSearchClientNo,
+  onAddClient,
+  onSelectExistingClient,
 }: ClientLookupSectionProps) {
   const [isAddClientOpen, setIsAddClientOpen] = useState(false)
 
@@ -85,9 +94,10 @@ export function ClientLookupSection({
             <ClientNoInput
               value={clientNo}
               onChange={onClientNoChange}
-              invalid={clientNoValidation.status === "invalid_format" || clientNoValidation.status === "duplicate"}
+              invalid={clientNoValidation.status === "invalid_format"}
               className="h-8"
               inputClassName="text-[16px]"
+              onEnter={onSearchClientNo}
             />
             <button
               type="button"
@@ -131,6 +141,7 @@ export function ClientLookupSection({
           <Input
             value={clientName}
             onChange={(e) => onClientNameChange(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && onSearchClientName()}
             placeholder="Enter client name"
             className={field}
           />
@@ -152,6 +163,7 @@ export function ClientLookupSection({
             type="tel"
             value={phoneNo}
             onChange={(e) => onPhoneNoChange(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && onSearchPhone()}
             placeholder="03XXXXXXXXX"
             className={cn(field, "tabular-nums")}
           />
@@ -166,7 +178,12 @@ export function ClientLookupSection({
         </div>
       </div>
 
-      <AddClientModal open={isAddClientOpen} onOpenChange={setIsAddClientOpen} />
+      <AddClientModal
+        open={isAddClientOpen}
+        onOpenChange={setIsAddClientOpen}
+        onAdd={onAddClient}
+        onSelectExisting={onSelectExistingClient}
+      />
     </div>
   )
 }

@@ -9,13 +9,18 @@ interface ActionBarProps {
   onClear: () => void
   onPrev: () => void
   onNext: () => void
+  // Disabled at the ends of the Prev/Next session history (see
+  // use-shalwar-kameez-form.ts's canGoPrev/canGoNext) rather than hidden --
+  // keeps the row's layout stable regardless of history length.
+  prevDisabled: boolean
+  nextDisabled: boolean
   onPrint: () => void
   onDelete: () => void
   onExit: () => void
 }
 
 const outlinedBtn =
-  "h-8 shrink-0 rounded-[4px] border border-[#c2c2ca] bg-white px-3 text-[16px] font-bold whitespace-nowrap text-[#222226] hover:border-black hover:bg-[#f4f4f6]"
+  "h-8 shrink-0 rounded-[4px] border border-[#c2c2ca] bg-white px-3 text-[16px] font-bold whitespace-nowrap text-[#222226] hover:border-black hover:bg-[#f4f4f6] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#c2c2ca] disabled:hover:bg-white"
 
 const STATUS_BAR_STYLES: Record<Exclude<StatusKind, "idle">, string> = {
   info: "border-[#c2c2ca] bg-[#f4f4f6] text-[#333338]",
@@ -63,6 +68,8 @@ export function ActionBar({
   onClear,
   onPrev,
   onNext,
+  prevDisabled,
+  nextDisabled,
   onPrint,
   onDelete,
   onExit,
@@ -97,10 +104,10 @@ export function ActionBar({
           <button type="button" onClick={onClear} className={outlinedBtn}>
             Clear
           </button>
-          <button type="button" onClick={onPrev} className={outlinedBtn}>
+          <button type="button" onClick={onPrev} disabled={prevDisabled} className={outlinedBtn}>
             Prev
           </button>
-          <button type="button" onClick={onNext} className={outlinedBtn}>
+          <button type="button" onClick={onNext} disabled={nextDisabled} className={outlinedBtn}>
             Next
           </button>
           <button type="button" onClick={onPrint} className={outlinedBtn}>

@@ -4,6 +4,9 @@ import type { ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { LogOut } from "lucide-react"
 
+// QueryClientProvider lives up in app/tailor/layout.tsx instead -- it needs
+// to cover orders/shalwar-kameez too, which is a sibling of this (portal)
+// route group, not nested inside it.
 export default function TailorPortalLayout({ children }: { children: ReactNode }) {
   const router = useRouter()
 

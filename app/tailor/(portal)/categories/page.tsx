@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const CATEGORIES = [
@@ -14,6 +14,14 @@ const CATEGORIES = [
 export default function TailorCategoriesPage() {
   return (
     <div className="mx-auto flex min-h-screen max-w-3xl flex-col items-center px-4 py-10">
+      <Link
+        href="/tailor/settings"
+        aria-label="Pricing settings"
+        className="fixed top-4 right-28 z-10 flex size-8 items-center justify-center rounded-full border bg-white text-slate-500 shadow-sm hover:text-slate-900"
+      >
+        <Settings className="size-4" />
+      </Link>
+
       <div className="relative mb-4 h-24 w-24">
         <Image
           src="/paradise-tailor-logo-lightbackground.png"

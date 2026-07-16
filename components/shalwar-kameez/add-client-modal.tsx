@@ -1,8 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { CircleCheck, Loader2, TriangleAlert, Trash2, UserPlus } from "lucide-react"
+import { useRef, useState, type KeyboardEvent } from "react"
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -13,94 +16,422 @@ import { Button } from "@/components/ui/button"
 import { ClientNoInput } from "@/components/shalwar-kameez/client-no-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { deleteClient, fetchNextClientNumber, findMatchingClients, searchClients } from "@/lib/queries/garment-orders"
 import { CLIENT_NO_PATTERN, FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
+import type { ClientRow, ClientSearchQuery } from "@/types/garment-order"
 
 interface AddClientModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  // Carries the newly-entered Client No/Name/Phone back up to the main sheet
+  // (see client-lookup-section.tsx) -- the clients table row itself is only
+  // written later, when the whole order is saved (create_shalwar_kameez_order
+  // upserts it), so this is just a handoff of the three fields.
+  onAdd: (client: { clientNo: string; clientName: string; phoneNo: string }) => void
+  // Fired when a row in the "already on file" match table is picked instead
+  // -- unlike onAdd, this loads that client's full previous order (not just
+  // the three identity fields) into the main sheet.
+  onSelectExisting: (client: ClientRow) => void
 }
 
 const emptyFields = { clientId: "", clientName: "", clientMobile: "" }
 
-// Frontend-only "Add Client" modal, opened from the Client No. row's + Add
-// button. Not wired to any client record yet — Save/Clear/Delete are UI-only
-// placeholders until the clients table (tailor-schema-supabase.md) is wired up.
-export function AddClientModal({ open, onOpenChange }: AddClientModalProps) {
+export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting }: AddClientModalProps) {
   const [fields, setFields] = useState(emptyFields)
+  const [error, setError] = useState("")
+  const [matches, setMatches] = useState<ClientRow[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  // Distinguishes "haven't checked yet" from "checked, nobody matches" -- the
+  // latter gets its own all-clear line instead of just showing nothing.
+  const [hasSearched, setHasSearched] = useState(false)
+  // Checking a row's box only marks it -- the footer's Delete button is what
+  // actually raises the confirmation dialog (see handleDelete/pendingDelete).
+  const [selectedForDelete, setSelectedForDelete] = useState<ClientRow | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<ClientRow | null>(null)
+  // Guards against an older, slower lookup landing after a newer one.
+  const searchRequestIdRef = useRef(0)
+  // Blocks double-clicking Save while the pre-save duplicate check is in
+  // flight (see handleSave).
+  const [isSaving, setIsSaving] = useState(false)
+  // Enter on Client ID/Name hands focus to the next box in the sequence
+  // (Client ID -> Client Name -> Client Mobile) so the tailor can tab through
+  // with just Enter -- the existing-client check still runs off the blur that
+  // move causes, same as it would from a mouse-click handoff.
+  const clientNameRef = useRef<HTMLInputElement>(null)
+  const clientMobileRef = useRef<HTMLInputElement>(null)
 
   function updateField(key: keyof typeof emptyFields, value: string) {
     setFields((prev) => ({ ...prev, [key]: value }))
+    // Clears the previous result immediately -- it was about a different,
+    // now-stale value, and a fresh one only comes back once this field is
+    // complete again (see handleFieldComplete).
+    setMatches([])
+    setHasSearched(false)
+    setError("")
+  }
+
+  // Checks the DB once a field is "complete" -- blurred or confirmed with
+  // Enter -- rather than on every keystroke, and only for an exact match
+  // (see findMatchingClients), so a client only ever shows up here once the
+  // tailor has actually finished typing something that matches them.
+  async function handleFieldComplete() {
+    const clientNo = fields.clientId.trim()
+    const name = fields.clientName.trim()
+    const phoneNo = fields.clientMobile.trim()
+
+    const query: ClientSearchQuery = {
+      clientNo: CLIENT_NO_PATTERN.test(clientNo) ? clientNo.toUpperCase() : undefined,
+      clientName: name || undefined,
+      phoneNo: phoneNo || undefined,
+    }
+    if (!query.clientNo && !query.clientName && !query.phoneNo) {
+      setMatches([])
+      setHasSearched(false)
+      return
+    }
+
+    const requestId = ++searchRequestIdRef.current
+    setIsSearching(true)
+    try {
+      const results = await findMatchingClients(query)
+      if (searchRequestIdRef.current !== requestId) return
+      setMatches(results)
+      setHasSearched(true)
+    } catch {
+      if (searchRequestIdRef.current === requestId) {
+        setMatches([])
+        setHasSearched(false)
+      }
+    } finally {
+      if (searchRequestIdRef.current === requestId) setIsSearching(false)
+    }
+  }
+
+  // On Enter: hands focus to Client Mobile. The resulting blur (Client
+  // Name's own onBlur, already wired to handleFieldComplete) is what runs
+  // the check, so this never fires it directly and never fires it twice.
+  // Two dedicated handlers rather than one ref-accepting factory -- a ref
+  // read through a function called during render (as a factory invoked
+  // inline in JSX would be) trips react-hooks/refs, even though the actual
+  // `.current` access here only ever happens inside the event itself.
+  function handleClientNameEnter(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter") return
+    clientMobileRef.current?.focus()
+  }
+
+  // Last field -- Enter just blurs, running the check via onBlur same as above.
+  function handleClientMobileEnter(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") e.currentTarget.blur()
   }
 
   function handleClear() {
+    // Invalidates any still-in-flight handleFieldComplete lookup so its
+    // result lands as a no-op instead of repopulating matches with the
+    // client that was just cleared.
+    searchRequestIdRef.current += 1
     setFields(emptyFields)
+    setMatches([])
+    setIsSearching(false)
+    setHasSearched(false)
+    setSelectedForDelete(null)
+    setError("")
   }
 
-  function handleSave() {
+  // Re-checks Client No and Phone No against the DB right before handing
+  // values to the outer form -- the "matches" list above can be stale (typed
+  // after the last blur, or Save clicked before that lookup resolved), and
+  // with phone_no now unique (see
+  // 20260715020000_add_clients_phone_no_unique.sql) a collision on either
+  // field would otherwise reach create_shalwar_kameez_order and fail there
+  // instead of here, or silently overwrite someone's phone number since that
+  // RPC upserts by Client No. Blocks the handoff and tells the tailor to pick
+  // the existing row or delete it first, rather than ever forwarding
+  // colliding values up to client-lookup-section.
+  async function handleSave() {
+    const clientNo = fields.clientId.trim().toUpperCase()
+    const clientName = fields.clientName.trim()
+    const phoneNo = fields.clientMobile.trim()
+    if (!CLIENT_NO_PATTERN.test(clientNo)) {
+      setError("Client ID must be a letter-number, e.g. A-1.")
+      return
+    }
+    if (!clientName || !phoneNo) {
+      setError("Client Name and Client Mobile are required.")
+      return
+    }
+
+    setError("")
+    setIsSaving(true)
+    try {
+      const [byClientNo, byPhone] = await Promise.all([
+        searchClients({ clientNo }),
+        searchClients({ phoneNo }),
+      ])
+      const clash = byClientNo[0] ?? byPhone[0]
+      if (clash) {
+        setError(
+          `${clash.clientNo} — ${clash.clientName} is already on file. Select existing client first, or delete them to proceed.`
+        )
+        return
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not verify client details.")
+      return
+    } finally {
+      setIsSaving(false)
+    }
+
+    onAdd({ clientNo, clientName, phoneNo })
+    handleClear()
     onOpenChange(false)
   }
 
+  // Doubles as "clear the draft and close" (original placeholder behavior)
+  // when nothing's checked, and "confirm deleting the checked client" once a
+  // row's box is checked -- the checkbox itself never opens the confirmation
+  // dialog directly.
   function handleDelete() {
+    if (selectedForDelete) {
+      setPendingDelete(selectedForDelete)
+      return
+    }
+    searchRequestIdRef.current += 1
     setFields(emptyFields)
+    setMatches([])
+    setIsSearching(false)
+    setHasSearched(false)
+    setError("")
     onOpenChange(false)
+  }
+
+  // A row click anywhere but the checkbox means "this is who I meant" --
+  // loads that client's full previous order into the main sheet and closes
+  // the modal, same as typing their Client No there and pressing Enter.
+  function handleSelectMatch(client: ClientRow) {
+    onSelectExisting(client)
+    onOpenChange(false)
+  }
+
+  // Suggests the next unused number for a letter while picking a fresh
+  // Client ID here (A-1..A-3 taken -> 4). Swallows errors -- this is a
+  // convenience suggestion, not a required step, so a failed lookup should
+  // just leave the number box empty for the tailor to fill in by hand.
+  async function suggestNextClientNumber(letter: string): Promise<number | null> {
+    try {
+      return await fetchNextClientNumber(letter)
+    } catch {
+      return null
+    }
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete) return
+    const client = pendingDelete
+    try {
+      await deleteClient(client.clientId)
+      setMatches((prev) => prev.filter((row) => row.clientId !== client.clientId))
+      setSelectedForDelete(null)
+      setPendingDelete(null)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : ""
+      setError(message || "Could not delete client.")
+      setPendingDelete(null)
+    }
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-[14px] font-bold text-black">Add Client</AlertDialogTitle>
-          <AlertDialogDescription className="text-[12px] text-[#8a8a92]">
-            Enter the client&apos;s details below.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+    <>
+      <AlertDialog open={open} onOpenChange={onOpenChange}>
+        <AlertDialogContent className="w-full max-w-2xl gap-4 rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
+          <AlertDialogHeader>
+            <div className="mb-1 flex size-8 items-center justify-center rounded-[6px] border border-[#dcdce1] bg-[#f5f5f7]">
+              <UserPlus className="size-4 text-[#333338]" strokeWidth={2} />
+            </div>
+            <AlertDialogTitle className="text-[14px] font-bold text-black">Add Client</AlertDialogTitle>
+            <AlertDialogDescription className="text-[12px] text-[#8a8a92]">
+              Enter the client&apos;s details below. Finish a field to check if they&apos;re already on file.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-        <div className="flex flex-col gap-3">
-          <div>
-            <Label className="mb-1 block text-[12.5px] font-bold text-black">Client ID</Label>
-            <ClientNoInput
-              value={fields.clientId}
-              onChange={(value) => updateField("clientId", value)}
-              invalid={fields.clientId.trim() !== "" && !CLIENT_NO_PATTERN.test(fields.clientId.trim())}
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <div className="flex flex-col gap-3 sm:w-64 sm:shrink-0">
+              <div>
+                <Label className="mb-1 block text-[12.5px] font-bold text-black">Client ID</Label>
+                <ClientNoInput
+                  value={fields.clientId}
+                  onChange={(value) => updateField("clientId", value)}
+                  onEnter={() => clientNameRef.current?.focus()}
+                  onBlur={handleFieldComplete}
+                  invalid={fields.clientId.trim() !== "" && !CLIENT_NO_PATTERN.test(fields.clientId.trim())}
+                  className="h-9"
+                  suggestNextNumber={suggestNextClientNumber}
+                />
+              </div>
+
+              <div>
+                <Label className="mb-1 block text-[12.5px] font-bold text-black">Client Name</Label>
+                <Input
+                  ref={clientNameRef}
+                  value={fields.clientName}
+                  onChange={(e) => updateField("clientName", e.target.value)}
+                  onBlur={handleFieldComplete}
+                  onKeyDown={handleClientNameEnter}
+                  placeholder="Enter client name"
+                  className={cn(FIELD_CLASS, "h-9")}
+                />
+              </div>
+
+              <div>
+                <Label className="mb-1 block text-[12.5px] font-bold text-black">Client Mobile</Label>
+                <Input
+                  ref={clientMobileRef}
+                  type="tel"
+                  value={fields.clientMobile}
+                  onChange={(e) => updateField("clientMobile", e.target.value)}
+                  onBlur={handleFieldComplete}
+                  onKeyDown={handleClientMobileEnter}
+                  placeholder="03XXXXXXXXX"
+                  className={cn(FIELD_CLASS, "h-9")}
+                />
+              </div>
+
+              {error && <span className="text-[11px] font-semibold text-[#c0392b]">{error}</span>}
+            </div>
+
+            <div
+              className={cn(
+                "flex min-w-0 flex-1 flex-col gap-1.5 rounded-[6px] border p-2 sm:pl-4",
+                matches.length > 0 ? "border-[#f0dca3] bg-[#fffaf0]" : "border-[#ececef] bg-[#fafafb] sm:border-l-0",
+              )}
+            >
+              <div
+                className={cn(
+                  "flex items-center gap-1.5 text-[11px] font-semibold",
+                  isSearching
+                    ? "text-[#8a8a92]"
+                    : matches.length > 0
+                      ? "text-[#8a6d1f]"
+                      : hasSearched
+                        ? "text-[#1a7f37]"
+                        : "text-[#8a8a92]",
+                )}
+              >
+                {isSearching ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    Checking existing clients…
+                  </>
+                ) : matches.length > 0 ? (
+                  <>
+                    <TriangleAlert className="size-3.5" />
+                    {matches.length} matching client{matches.length === 1 ? "" : "s"} already on file
+                  </>
+                ) : hasSearched ? (
+                  <>
+                    <CircleCheck className="size-3.5" />
+                    No match on file — looks like a new client.
+                  </>
+                ) : (
+                  "Matching clients on file"
+                )}
+              </div>
+              <div className="max-h-56 overflow-y-auto rounded-[5px] border border-[#e8d9a8] bg-white">
+                <table className="w-full text-[11px]">
+                  <thead>
+                    <tr className="bg-[#f5f5f7] text-left text-[#55555c]">
+                      <th className="px-2 py-1 font-semibold">Client No.</th>
+                      <th className="px-2 py-1 font-semibold">Name</th>
+                      <th className="px-2 py-1 font-semibold">Phone</th>
+                      <th className="px-2 py-1 text-center font-semibold">Del</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {matches.length > 0 ? (
+                      matches.map((client) => (
+                        <tr
+                          key={client.clientId}
+                          onClick={() => handleSelectMatch(client)}
+                          className="cursor-pointer border-t border-[#ececef] hover:bg-[#f5f5f7]"
+                        >
+                          <td className="px-2 py-1 font-medium whitespace-nowrap">{client.clientNo}</td>
+                          <td className="px-2 py-1">{client.clientName}</td>
+                          <td className="px-2 py-1 tabular-nums whitespace-nowrap">{client.phoneNo}</td>
+                          <td className="px-2 py-1 text-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedForDelete?.clientId === client.clientId}
+                              onChange={() =>
+                                setSelectedForDelete((prev) => (prev?.clientId === client.clientId ? null : client))
+                              }
+                              onClick={(e) => e.stopPropagation()}
+                              aria-label={`Select ${client.clientNo} to delete`}
+                              className="size-3.5 accent-[#c0392b]"
+                            />
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="px-2 py-3 text-center text-[#8a8a92]">
+                          {isSearching ? "Searching…" : "No matches yet"}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <span className="text-[10.5px] text-[#8a6d1f]">
+                {matches.length > 0 ? "Tap a row to load them, or tick the box to delete." : " "}
+              </span>
+            </div>
+          </div>
+
+          <AlertDialogFooter className="sm:justify-between">
+            <Button
+              type="button"
+              variant={selectedForDelete ? "destructive" : "outline"}
+              onClick={handleDelete}
               className="h-9"
-            />
-          </div>
+            >
+              {selectedForDelete ? `Delete ${selectedForDelete.clientNo}` : "Delete"}
+            </Button>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={handleClear} className="h-9">
+                Clear
+              </Button>
+              <Button type="button" onClick={handleSave} disabled={isSaving} className="h-9">
+                {isSaving ? "Checking…" : "Save"}
+              </Button>
+            </div>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-          <div>
-            <Label className="mb-1 block text-[12.5px] font-bold text-black">Client Name</Label>
-            <Input
-              value={fields.clientName}
-              onChange={(e) => updateField("clientName", e.target.value)}
-              placeholder="Enter client name"
-              className={cn(FIELD_CLASS, "h-9")}
-            />
-          </div>
-
-          <div>
-            <Label className="mb-1 block text-[12.5px] font-bold text-black">Client Mobile</Label>
-            <Input
-              type="tel"
-              value={fields.clientMobile}
-              onChange={(e) => updateField("clientMobile", e.target.value)}
-              placeholder="03XXXXXXXXX"
-              className={cn(FIELD_CLASS, "h-9")}
-            />
-          </div>
-        </div>
-
-        <AlertDialogFooter className="gap-2">
-          <Button type="button" variant="destructive" onClick={handleDelete} className="h-9">
-            Delete
-          </Button>
-          <Button type="button" variant="outline" onClick={handleClear} className="h-9">
-            Clear
-          </Button>
-          <Button type="button" onClick={handleSave} className="h-9">
-            Save
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      <AlertDialog open={pendingDelete !== null} onOpenChange={(next) => !next && setPendingDelete(null)}>
+        <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
+          {pendingDelete && (
+            <>
+              <AlertDialogHeader>
+                <div className="mb-1 flex size-8 items-center justify-center rounded-[6px] border border-[#f3c6c6] bg-[#fdecec]">
+                  <Trash2 className="size-4 text-[#c0392b]" strokeWidth={2} />
+                </div>
+                <AlertDialogTitle className="text-[14px] font-bold text-black">Delete client?</AlertDialogTitle>
+                <AlertDialogDescription className="text-[12px] text-[#8a8a92]">
+                  {pendingDelete.clientNo} — {pendingDelete.clientName} and all of their orders, measurements, and style
+                  choices will be permanently removed. This can&apos;t be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="gap-2">
+                <AlertDialogCancel className="h-9">Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={confirmDelete} className="h-9">
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

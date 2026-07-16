@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
+import { FIELD_CLASS, NO_SPINNER_CLASS } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
 import type { MeasurementRow } from "@/types/shalwar-kameez"
 
@@ -42,7 +42,7 @@ export function MeasurementsPanel({
             value={row.value}
             onChange={(e) => row.onChange(e.target.value)}
             placeholder="—"
-            className={cn(FIELD_CLASS, "h-[23px]")}
+            className={cn(FIELD_CLASS, NO_SPINNER_CLASS, "h-[23px]")}
           />
           <label className="font-[family-name:var(--font-naskh)] text-right text-[22px] font-bold text-[#111116]" dir="rtl">
             {row.ur}
@@ -58,14 +58,14 @@ export function MeasurementsPanel({
           value={extraNo1}
           onChange={(e) => onExtraNo1Change(e.target.value)}
           placeholder="—"
-          className={cn(FIELD_CLASS, "h-[23px]")}
+          className={cn(FIELD_CLASS, NO_SPINNER_CLASS, "h-[23px]")}
         />
         <Input
           type="number"
           value={extraNo2}
           onChange={(e) => onExtraNo2Change(e.target.value)}
           placeholder="—"
-          className={cn(FIELD_CLASS, "h-[23px]")}
+          className={cn(FIELD_CLASS, NO_SPINNER_CLASS, "h-[23px]")}
         />
       </div>
 

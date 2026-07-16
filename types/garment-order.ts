@@ -60,6 +60,60 @@ export interface PartDesignInput {
   designNo: number | null
 }
 
+// Result of fetch_latest_order_for_client (see
+// 20260715010000_add_fetch_latest_order_for_client.sql) -- the most recent
+// order on file for an existing Client No., used to prefill the form when a
+// tailor types a returning client's number directly.
+export interface LatestOrderMeasurements {
+  lambai: number | null
+  chaati: number | null
+  bazu: number | null
+  teera: number | null
+  collar: number | null
+  kamar: number | null
+  daman: number | null
+  shalwarLambai: number | null
+  pancha: number | null
+}
+
+export interface LatestOrderPartDesign {
+  partType: PartType
+  size1: number | null
+  size2: number | null
+  designNo: number | null
+}
+
+export interface LatestClientOrder {
+  recordNo: number
+  clientName: string
+  phoneNo: string
+  measurements: LatestOrderMeasurements
+  note1: string | null
+  note2: string | null
+  pocketTypeCode: string | null
+  bainGalaTypeCode: string | null
+  collarTypeCode: string | null
+  damanTypeCode: string | null
+  buttonTypeCode: string | null
+  styleFlagCodes: string[]
+  partDesigns: LatestOrderPartDesign[]
+}
+
+// order_pricing_settings (see 20260716020000_add_pricing_settings.sql) --
+// single-row config the tailor edits from the Settings page (gear icon on
+// /tailor/categories) and the Shalwar Kameez order form reads to compute
+// Tailoring Amt and default Delivery Date. Shilling Amt is a plain
+// tailor-entered order field, not part of this settings config.
+export interface OrderPricingSettings {
+  baseTailoringAmount: number
+  deliveryTurnaroundDays: number
+}
+
+export interface ButtonTypePriceRow {
+  code: string
+  price: number
+}
+
 export interface CreateShalwarKameezOrderInput {
   clientNo: string
   clientName: string

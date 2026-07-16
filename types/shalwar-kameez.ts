@@ -64,10 +64,12 @@ export interface RadioOptionDefinition {
   label: string
 }
 
+// Tailoring Amt is deliberately not here -- it's computed from
+// order_pricing_settings/button_types.price * Suit Qty (see
+// use-shalwar-kameez-form.ts), not a tailor-entered order field.
 export interface OrderAmounts {
   quantity: string
   deliveryDate: string
-  tailoringAmount: string
   clothAmount: string
   shillingAmt: string
   othersAmt: string

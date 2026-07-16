@@ -12,6 +12,16 @@ export function todayDateInputValue(): string {
     const d = new Date()
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
   }
+
+  // Used to default a Shalwar Kameez order's Delivery Date to Book Date +
+  // the tailor's configured turnaround (see order_pricing_settings /
+  // use-shalwar-kameez-form.ts) -- local calendar days, not a 24h offset, so
+  // DST transitions don't shift the result by a day.
+  export function addDaysToDateInputValue(value: string, days: number): string {
+    const [year, month, day] = value.split("-").map(Number)
+    const d = new Date(year, month - 1, day + days)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+  }
   
   export function formatDueDate(value: string | null): string {
     if (!value) return "—"
