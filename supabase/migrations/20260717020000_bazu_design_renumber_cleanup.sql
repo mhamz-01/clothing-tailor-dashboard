@@ -1,0 +1,22 @@
+-- Bazu's picker was renumbered back down to a clean 1-4
+-- (lib/constants/shalwar-kameez.ts) -- the underlying image files were
+-- shifted on disk to match: arm2.jpg -> arm1.jpg, arm3.jpg -> arm2.jpg,
+-- arm4.jpg -> arm3.jpg, arm5.jpg -> arm4.jpg. The old arm1.jpg (already
+-- unused, dropped in an earlier change) and arm6.jpg were retired
+-- entirely, not renamed.
+--
+-- design_catalog rows for bazu design_no 1-4 need no change here: they've
+-- existed since the very first seed (20260714000000_..._and_seed_images
+-- inserted 1-6), and their image_path strings ("arm1.jpg".."arm4.jpg") are
+-- unchanged text -- the FK check at save time
+-- (order_part_designs.design_no -> design_catalog(part_type, design_no))
+-- already passes for these regardless of what the file on disk currently
+-- contains.
+--
+-- design_no 5 and 6 are now genuinely gone (no file exists at those paths
+-- anymore, not just "unused"), so their catalog rows are dropped rather
+-- than left dangling. The existing FK from order_part_designs makes this
+-- self-guarding: if any order was ever actually saved with bazu design 5
+-- or 6, this delete fails loudly instead of silently orphaning that
+-- order's data, and would need resolving by hand before re-running.
+delete from design_catalog where part_type = 'bazu' and design_no in (5, 6);

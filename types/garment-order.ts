@@ -95,6 +95,8 @@ export interface LatestClientOrder {
   collarTypeCode: string | null
   damanTypeCode: string | null
   buttonTypeCode: string | null
+  bainSize: string | null
+  collarSize: string | null
   styleFlagCodes: string[]
   partDesigns: LatestOrderPartDesign[]
 }
@@ -134,6 +136,8 @@ export interface CreateShalwarKameezOrderInput {
   collarTypeCode: string | null
   damanTypeCode: string | null
   buttonTypeCode: string | null
+  bainSize: string | null
+  collarSize: string | null
   styleFlagCodes: string[]
   partDesigns: PartDesignInput[]
 }

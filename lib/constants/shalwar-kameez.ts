@@ -95,27 +95,62 @@ export const CLIENT_NO_PATTERN = /^[A-Za-z]-\d+$/
 
 // collar_type_code — confirmed via real images (public/kameez-shalwar-assets/collar)
 // that "collar" is a genuine 5th style, not a stray UI option (see
-// 20260714010000_add_collar_option_and_seed_images.sql).
-export const VALID_COLLAR_TYPE_CODES: string[] = ["american_cut", "english_cut", "french_cut", "collar", "none"]
+// 20260714010000_add_collar_option_and_seed_images.sql). "none" was dropped
+// from COLLAR_OPTIONS below (UI-only -- the DB enum/catalog row still has it,
+// untouched, in case any live order already has it saved) and so from this
+// whitelist too, since it can no longer be reached by picking a radio option.
+export const VALID_COLLAR_TYPE_CODES: string[] = ["american_cut", "english_cut", "french_cut", "collar"]
 
 // Each part-design row opens a picker modal (see PartDesignPickerModal) sourced from
 // its own numbered image folder under public/kameez-shalwar-assets. Folder/prefix
 // don't always match the part key 1:1 (kuf's files are named "kaf", jaib maps to the
 // "pockets" folder) because the asset folders were handed over already named this way.
-const PART_DESIGN_IMAGE_FOLDERS: Record<PartDesignKey, { dir: string; prefix: string; count: number }> = {
-  bazu: { dir: "arm", prefix: "arm", count: 6 },
-  kuf: { dir: "kuf", prefix: "kaf", count: 4 },
-  buttonPatti: { dir: "bpatti", prefix: "bpatti", count: 7 },
-  jaib: { dir: "pockets", prefix: "pocket", count: 11 },
+//
+// `images` is an explicit list rather than a plain 1..count run -- design
+// numbers aren't always contiguous (Kuf's is, but only because it's been
+// kept that way on purpose -- see the renumber note below), don't all share
+// one file extension (Kuf's design 5 is a .png, everything else here is
+// .jpg -- ext defaults to "jpg" per entry when omitted), and a replaced
+// image doesn't always keep the plain `${prefix}${n}` filename either --
+// Kuf's design 3 image was swapped in place under the original kaf3.jpg
+// name first, but Next's image-optimizer cache is keyed by URL, not file
+// content, so the old render kept being served indefinitely (even in
+// incognito, since that cache lives server-side) until the file was
+// renamed to kaf3-v2.jpg -- a genuinely new URL the cache had never seen.
+// `file` overrides the `${prefix}${n}` stem for exactly this situation;
+// reach for it again next time a design's image is replaced under the same
+// design number rather than trying to reuse the old filename.
+//
+// Bazu briefly dropped designs 1 and 6 (leaving 2-5 with gaps at both
+// ends), then got renumbered back down to a clean 1-4 -- arm2..arm5.jpg
+// were renamed on disk to arm1..arm4.jpg (old arm1.jpg/arm6.jpg retired
+// entirely), so this list is contiguous again. If Bazu designs ever need
+// to change again, prefer renumbering the files to keep this contiguous
+// over reintroducing gaps -- see supabase/migrations/
+// 20260717020000_bazu_design_renumber_cleanup.sql for the matching catalog
+// cleanup this required.
+function sequentialImages(count: number): { n: number; ext?: string; file?: string }[] {
+  return Array.from({ length: count }, (_, i) => ({ n: i + 1 }))
+}
+
+const PART_DESIGN_ASSETS: Record<PartDesignKey, { dir: string; prefix: string; images: { n: number; ext?: string; file?: string }[] }> = {
+  bazu: { dir: "arm", prefix: "arm", images: sequentialImages(4) },
+  kuf: {
+    dir: "kuf",
+    prefix: "kaf",
+    images: [{ n: 1 }, { n: 2 }, { n: 3, file: "kaf3-v2" }, { n: 4 }, { n: 5, ext: "png" }],
+  },
+  buttonPatti: { dir: "bpatti", prefix: "bpatti", images: sequentialImages(7) },
+  jaib: { dir: "pockets", prefix: "pocket", images: sequentialImages(11) },
 }
 
 export const PART_DESIGN_IMAGES: Record<PartDesignKey, PartDesignImageOption[]> = Object.fromEntries(
-  Object.entries(PART_DESIGN_IMAGE_FOLDERS).map(([key, { dir, prefix, count }]) => [
+  Object.entries(PART_DESIGN_ASSETS).map(([key, { dir, prefix, images }]) => [
     key,
-    Array.from({ length: count }, (_, i) => {
-      const n = String(i + 1)
-      return { value: n, src: `/kameez-shalwar-assets/${dir}/${prefix}${n}.jpg` }
-    }),
+    images.map(({ n, ext = "jpg", file }) => ({
+      value: String(n),
+      src: `/kameez-shalwar-assets/${dir}/${file ?? `${prefix}${n}`}.${ext}`,
+    })),
   ])
 ) as Record<PartDesignKey, PartDesignImageOption[]>
 
@@ -206,15 +241,53 @@ export const PART_DESIGN_SIZE_CONFIG: Record<PartDesignKey, PartDesignSizeConfig
   },
 }
 
-// Plain numbered options (1-12), shared by every part of the form that just needs a
-// design/style number rather than a named option — the part-design "Design #" select
-// and the Bain/Gala + Collar quick-pick dropdowns. Maps loosely to `design_catalog
-// .design_no` in tailor-schema-supabase.md §4; once that catalog table is wired up,
-// this list should come from Supabase instead of being hard-coded here.
-export const NUMBERED_OPTIONS: RadioOptionDefinition[] = Array.from({ length: 12 }, (_, i) => {
-  const n = String(i + 1)
-  return { value: n, label: n }
-})
+// Size quick-picks shown alongside the Bain/Gala and Collar/Cut radio rows.
+// Bain/Gala and Collar have no numbered "design" of their own (unlike Bazu/
+// Kuf/Button Patti/Jaib, which open a picker modal with actual design
+// images) -- these are plain size values, saved as-is to
+// shalwar_kameez_details.bain_size / collar_size (free text, not an enum, so
+// either list can change without a schema migration). Bain and Collar are
+// separate size scales (client request), so they get their own option lists.
+// Display-only: native <select> options can't hold styled/partial-size text,
+// so the "make the fraction smaller" ask is done with actual Unicode vulgar
+// fraction glyphs (½ ¼ ¾) -- a single compact character that reads as a
+// proper small fraction in any font, instead of a plain "1/2" string. The
+// saved `value` stays the literal string from the client, untouched.
+const SIZE_FRACTION_LABELS: Record<string, string> = {
+  "1/2": "½",
+  "3/4": "¾",
+  "1 1/4": "1¼",
+  "1 1/2": "1½",
+  "1 3/4": "1¾",
+  "2 1/4": "2¼",
+  "2 1/2": "2½",
+  "2 3/4": "2¾",
+  "3 1/4": "3¼",
+  "3 1/2": "3½",
+}
+
+export const BAIN_SIZE_OPTIONS: RadioOptionDefinition[] = [
+  "1/2",
+  "3/4",
+  "1-1",
+  "1+1",
+  "1 1/4",
+  "1 1/2",
+  "1 3/4",
+  "2",
+].map((v) => ({ value: v, label: SIZE_FRACTION_LABELS[v] ?? v }))
+
+export const COLLAR_SIZE_OPTIONS: RadioOptionDefinition[] = [
+  "1 1/2",
+  "1 3/4",
+  "2",
+  "2 1/4",
+  "2 1/2",
+  "2 3/4",
+  "3",
+  "3 1/4",
+  "3 1/2",
+].map((v) => ({ value: v, label: SIZE_FRACTION_LABELS[v] ?? v }))
 
 // Option values match the `*_type_code` Postgres enums in tailor-schema-supabase.md §2,
 // so the selected `value` can be saved to Supabase as-is once the form is wired up.
@@ -229,7 +302,7 @@ export const BAIN_GALA_OPTIONS: RadioOptionDefinition[] = [
   { value: "sida_bain", label: "Sida Bain" },
   { value: "half_bain", label: "Half Bain" },
   { value: "gol_gala", label: "Gol Gala" },
-  { value: "none", label: "None" },
+  { value: "half_bain_gol", label: "Half Bain Gol" },
 ]
 
 export const COLLAR_OPTIONS: RadioOptionDefinition[] = [
@@ -237,7 +310,6 @@ export const COLLAR_OPTIONS: RadioOptionDefinition[] = [
   { value: "english_cut", label: "English Cut" },
   { value: "french_cut", label: "French Cut" },
   { value: "collar", label: "Collar" },
-  { value: "none", label: "None" },
 ]
 
 export const DAMAN_OPTIONS: RadioOptionDefinition[] = [
@@ -257,3 +329,53 @@ export const BUTTON_TYPE_OPTIONS: RadioOptionDefinition[] = [
   { value: "RTDS", label: "R.T.D.S" },
   { value: "EMD", label: "EMD" },
 ]
+
+// Confirmed real images for Pocket/Bain-Gala/Collar/Daman option values and
+// a few style flags -- seeded into the DB (pocket_types/bain_gala_types/
+// collar_types/daman_types/style_flag_catalog.image_path) by
+// 20260714010000_add_collar_option_and_seed_images.sql,
+// 20260714020000_seed_style_flag_images.sql, and
+// 20260716030000_add_half_bain_gol_bain_option.sql, but never read by the
+// UI itself -- StyleOptionsPanel/CheckboxGroup render these as plain radios/
+// checkboxes with no thumbnail, and the DB catalog rows are otherwise
+// unused (see PART_DESIGN_IMAGES above for the equivalent, already-wired
+// case). Mirrored here as plain frontend maps, same pattern, for the order
+// sheet (lib/utils/order-sheet.ts) to look up by the tailor's actual
+// selection. Options/flags with no entry here (Button Type entirely; "none"
+// on Daman/Pockets; most style flags) never had a confirmed image and fall
+// back to label-only, same as any part design with nothing selected.
+//
+// public/kameez-shalwar-assets/dobat/dobat.jpg exists on disk but isn't
+// referenced by any migration or confirmed to belong to a specific style
+// flag (kaf_dboty vs btn_dboty are both plausible given the filename) --
+// deliberately left unmapped rather than guessed.
+export const POCKET_IMAGES: Record<string, string> = {
+  "1_side_pocket": "/kameez-shalwar-assets/s-pocket/spocket1.jpg",
+  "2_side_pocket": "/kameez-shalwar-assets/s-pocket/spocket2.jpg",
+}
+
+export const BAIN_GALA_IMAGES: Record<string, string> = {
+  gool_bain: "/kameez-shalwar-assets/bain/gool_bain.jpg",
+  sida_bain: "/kameez-shalwar-assets/bain/sida_bain.jpg",
+  half_bain: "/kameez-shalwar-assets/bain/half_bain.jpg",
+  gol_gala: "/kameez-shalwar-assets/bain/gool_gala.jpg",
+  half_bain_gol: "/kameez-shalwar-assets/bain/half-bain-gol.png",
+}
+
+export const COLLAR_IMAGES: Record<string, string> = {
+  american_cut: "/kameez-shalwar-assets/collar/collor4.jpg",
+  english_cut: "/kameez-shalwar-assets/collar/collor2.jpg",
+  french_cut: "/kameez-shalwar-assets/collar/collor1.jpg",
+  collar: "/kameez-shalwar-assets/collar/collor3.jpg",
+}
+
+export const DAMAN_IMAGES: Record<string, string> = {
+  qurta: "/kameez-shalwar-assets/daman/kurta.jpg",
+  sida_daman: "/kameez-shalwar-assets/daman/sidadaman.jpg",
+}
+
+export const STYLE_FLAG_IMAGES: Record<string, string> = {
+  kaj_patti: "/kameez-shalwar-assets/kajpatti/kajpatti.jpg",
+  shalwar_zip: "/kameez-shalwar-assets/shalwar-zip/zip.jpg",
+  large_buttons: "/kameez-shalwar-assets/largebuttons/largebtns.jpg",
+}

@@ -224,6 +224,8 @@ export async function fetchLatestOrderForClient(clientNo: string): Promise<Lates
     collar_type_code: string | null
     daman_type_code: string | null
     button_type_code: string | null
+    bain_size: string | null
+    collar_size: string | null
     style_flag_codes: string[]
     part_designs: { part_type: PartType; size1: number | null; size2: number | null; design_no: number | null }[]
   }
@@ -250,6 +252,8 @@ export async function fetchLatestOrderForClient(clientNo: string): Promise<Lates
     collarTypeCode: row.collar_type_code,
     damanTypeCode: row.daman_type_code,
     buttonTypeCode: row.button_type_code,
+    bainSize: row.bain_size,
+    collarSize: row.collar_size,
     styleFlagCodes: row.style_flag_codes ?? [],
     partDesigns: (row.part_designs ?? []).map((part) => ({
       partType: part.part_type,
@@ -292,6 +296,8 @@ export async function createShalwarKameezOrder(input: CreateShalwarKameezOrderIn
     p_collar_type_code: input.collarTypeCode,
     p_daman_type_code: input.damanTypeCode,
     p_button_type_code: input.buttonTypeCode,
+    p_bain_size: input.bainSize,
+    p_collar_size: input.collarSize,
     p_style_flag_codes: input.styleFlagCodes,
     p_part_designs: input.partDesigns.map((part) => ({
       part_type: part.partType,

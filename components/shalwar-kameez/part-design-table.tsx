@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
 import { formatSizeLabel } from "@/lib/utils/format-size"
+import { handleGridArrowKeyDown } from "@/lib/utils/keyboard-nav"
 import type { CheckboxItem, PartDesignRowState } from "@/types/shalwar-kameez"
 
 interface PartDesignTableProps {
@@ -19,13 +20,22 @@ interface PartDesignTableProps {
 // input for Design # instead of a dropdown. Clicking the Urdu label button
 // opens PartDesignPickerModal, which writes back into the same three fields
 // as the row's manual inputs below.
+//
+// Arrow keys move through the grid (Design #/Size 1/Size 2/design button ×
+// one row per part) instead of doing nothing -- see lib/utils/keyboard-nav.
+// Left/Right on the text fields still moves the caret normally mid-value,
+// only jumping cells once it's at that edge.
 export function PartDesignTable({ rows, onSizeChange, fiveButtonsItem }: PartDesignTableProps) {
   const [modalIndex, setModalIndex] = useState<number | null>(null)
   const modalRow = modalIndex !== null ? rows[modalIndex] : null
 
   return (
     <div className="rounded-[5px] border border-[#dcdce1] bg-[#fafafb] p-[9px]">
-      <div className="grid grid-cols-[1fr_1fr_1fr_54px] items-center gap-x-1.5 gap-y-[5px]">
+      <div
+        className="grid grid-cols-[1fr_1fr_1fr_54px] items-center gap-x-1.5 gap-y-[5px]"
+        data-nav-container
+        onKeyDown={handleGridArrowKeyDown}
+      >
         <div className="text-center text-[13px] font-bold tracking-[0.05em] text-[#8a8a92] uppercase">Design #</div>
         <div className="text-center text-[13px] font-bold tracking-[0.05em] text-[#8a8a92] uppercase">Size 1</div>
         <div className="text-center text-[13px] font-bold tracking-[0.05em] text-[#8a8a92] uppercase">Size 2</div>
@@ -38,6 +48,8 @@ export function PartDesignTable({ rows, onSizeChange, fiveButtonsItem }: PartDes
               onChange={(e) => onSizeChange(index, "designNo", e.target.value)}
               placeholder="—"
               className={cn(FIELD_CLASS, "h-[23px] text-center")}
+              data-nav-row={index}
+              data-nav-col={0}
             />
             <Input
               type="text"
@@ -45,6 +57,8 @@ export function PartDesignTable({ rows, onSizeChange, fiveButtonsItem }: PartDes
               onChange={(e) => onSizeChange(index, "size1", e.target.value)}
               placeholder="—"
               className={cn(FIELD_CLASS, "h-[23px] text-center")}
+              data-nav-row={index}
+              data-nav-col={1}
             />
             <Input
               type="text"
@@ -52,12 +66,16 @@ export function PartDesignTable({ rows, onSizeChange, fiveButtonsItem }: PartDes
               onChange={(e) => onSizeChange(index, "size2", e.target.value)}
               placeholder="—"
               className={cn(FIELD_CLASS, "h-[23px] text-center")}
+              data-nav-row={index}
+              data-nav-col={2}
             />
             <button
               type="button"
               onClick={() => setModalIndex(index)}
               dir="rtl"
               className="flex h-[29px] items-center justify-center rounded-[3px] border border-black bg-white font-[family-name:var(--font-naskh)] text-[18px] font-bold text-black"
+              data-nav-row={index}
+              data-nav-col={3}
             >
               {row.ur}
             </button>

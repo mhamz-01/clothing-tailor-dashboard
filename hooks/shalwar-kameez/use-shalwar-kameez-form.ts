@@ -8,25 +8,35 @@ import { usePricingSettings } from "@/hooks/shalwar-kameez/use-pricing-settings"
 import { createShalwarKameezOrder, fetchLatestOrderForClient, fetchNextRecordNo, searchClients } from "@/lib/queries/garment-orders"
 import { queryKeys } from "@/lib/queries/keys"
 import {
+  BAIN_GALA_IMAGES,
   BAIN_GALA_OPTIONS,
   BASIC_CHECKS,
   BUTTON_TYPE_OPTIONS,
   CLIENT_NO_PATTERN,
+  COLLAR_IMAGES,
   COLLAR_OPTIONS,
+  DAMAN_IMAGES,
   DAMAN_OPTIONS,
   FIVE_BUTTONS_CHECK,
   MEASUREMENTS,
+  PART_DESIGN_IMAGES,
   PART_DESIGNS,
   PART_TYPE_DB_CODES,
+  POCKET_IMAGES,
   POCKET_OPTIONS,
+  STYLE_FLAG_IMAGES,
   STYLE_FLAGS,
   STYLE_FLAG_DB_CODES,
   VALID_COLLAR_TYPE_CODES,
 } from "@/lib/constants/shalwar-kameez"
-import { addDaysToDateInputValue, todayDateInputValue } from "@/lib/utils/date"
+import { addDaysToDateInputValue, formatDueDate, todayDateInputValue } from "@/lib/utils/date"
+import { formatSizeLabel } from "@/lib/utils/format-size"
+import { buildOrderSheetHtml, printOrderSheetHtml } from "@/lib/utils/order-sheet"
+import { buildReceiptHtml, printReceiptHtml } from "@/lib/utils/receipt"
 import type {
   BasicCheckKey,
   OrderAmounts,
+  PartDesignKey,
   RadioGroupName,
   RadioOptionDefinition,
   ShalwarKameezFormState,
@@ -57,8 +67,8 @@ function createInitialState(): ShalwarKameezFormState {
     styleFlags: { kafDboty: false, btnDboty: false, noLbl: false, kajPatti: false, twoJeb: false, noJeb: false, fiveBtn: false },
     partDesigns: PART_DESIGNS.map((definition) => ({ ...definition, size1: "", size2: "", designNo: "" })),
     radios: { pocket: "", bain: "", collar: "", daman: "", button: "" },
-    bainStyleNo: "",
-    collarStyleNo: "",
+    bainSize: "",
+    collarSize: "",
     order: { quantity: "", deliveryDate: "", clothAmount: "", shillingAmt: "", othersAmt: "", advance: "" },
     statusMsg: "",
     statusKind: "idle",
@@ -132,8 +142,8 @@ function snapshotEditableState(s: ShalwarKameezFormState): string {
     styleFlags: s.styleFlags,
     partDesigns: s.partDesigns,
     radios: s.radios,
-    bainStyleNo: s.bainStyleNo,
-    collarStyleNo: s.collarStyleNo,
+    bainSize: s.bainSize,
+    collarSize: s.collarSize,
     order: s.order,
   })
 }
@@ -160,6 +170,7 @@ export function useShalwarKameezForm() {
   const lastSnapshotRef = useRef(snapshotEditableState(state))
   const [clientHistory, setClientHistory] = useState<ClientHistoryState>({ entries: [], index: -1 })
   const [pendingNav, setPendingNav] = useState<"prev" | "next" | null>(null)
+  const [receiptPreviewOpen, setReceiptPreviewOpen] = useState(false)
 
   const buttonPricesQuery = useButtonPrices()
   const pricingSettingsQuery = usePricingSettings()
@@ -185,6 +196,29 @@ export function useShalwarKameezForm() {
       lastSnapshotRef.current = snapshotEditableState(next)
       return next
     })
+  }
+
+  // Others Amt folds in the selected Button Type's price (client request --
+  // it used to live inside Tailoring Amt instead, see tailoringAmount below).
+  // Others Amt is also a plain tailor-editable field, so the injected amount
+  // has to coexist with whatever they've typed on top of it -- tracked as a
+  // delta against what was last applied, same render-time-adjustment idiom
+  // as the block above, rather than a useEffect. Driven off the live
+  // radios.button + buttonPrices rather than the click that set them, so it
+  // self-corrects the same way regardless of *how* the button got selected
+  // (a click, loading a client's previous order, Prev/Next) and once
+  // buttonPrices (loaded async) actually arrives.
+  const [lastAppliedButton, setLastAppliedButton] = useState<{ code: string; price: number } | null>(null)
+  if (buttonPricesQuery.isSuccess) {
+    const currentButtonPrice = buttonPrices[state.radios.button] ?? 0
+    if (!lastAppliedButton || lastAppliedButton.code !== state.radios.button || lastAppliedButton.price !== currentButtonPrice) {
+      const delta = currentButtonPrice - (lastAppliedButton?.price ?? 0)
+      setLastAppliedButton({ code: state.radios.button, price: currentButtonPrice })
+      setState((prev) => {
+        const updatedOthersAmt = toAmount(prev.order.othersAmt) + delta
+        return { ...prev, order: { ...prev.order, othersAmt: updatedOthersAmt === 0 ? "" : String(updatedOthersAmt) } }
+      })
+    }
   }
 
   const createOrderMutation = useMutation({
@@ -284,6 +318,8 @@ export function useShalwarKameezForm() {
           daman: data.damanTypeCode ?? "",
           button: data.buttonTypeCode ?? "",
         },
+        bainSize: data.bainSize ?? "",
+        collarSize: data.collarSize ?? "",
       }
       lastSnapshotRef.current = snapshotEditableState(next)
       return next
@@ -390,6 +426,7 @@ export function useShalwarKameezForm() {
   // next number to show (same as Clear -- see clearForm below).
   function resetFormKeepingIdentity(overrides: { clientNo: string; clientName: string; phoneNo: string }) {
     deliveryDateTouchedRef.current = false
+    setLastAppliedButton(null)
     setState((prev) => {
       const fresh = createInitialState()
       const computed = computeDeliveryDate(prev.bookDate, pricingSettings)
@@ -514,6 +551,7 @@ export function useShalwarKameezForm() {
   // the form just emptied out, instead of the generic "Cleared").
   function clearForm(message = "Cleared", kind: StatusKind = "info") {
     deliveryDateTouchedRef.current = false
+    setLastAppliedButton(null)
     const fresh = createInitialState()
     const computed = computeDeliveryDate(fresh.bookDate, pricingSettings)
     const next: ShalwarKameezFormState = {
@@ -550,10 +588,6 @@ export function useShalwarKameezForm() {
   async function handleSave() {
     if (!state.clientNo.trim() || !state.clientName.trim() || !state.phoneNo.trim()) {
       flashStatus("Client No, Client Name, and Phone No are required.", "error")
-      return
-    }
-    if (!state.order.quantity.trim() || !state.order.deliveryDate.trim()) {
-      flashStatus("Quantity and Delivery Date are required.", "error")
       return
     }
 
@@ -606,7 +640,7 @@ export function useShalwarKameezForm() {
       phoneNo: state.phoneNo.trim(),
       orderType: "kameez_shalwar",
       quantity,
-      deliveryDate: state.order.deliveryDate,
+      deliveryDate,
       tailoringAmount,
       clothAmount,
       shillingAmt,
@@ -630,6 +664,8 @@ export function useShalwarKameezForm() {
       collarTypeCode: VALID_COLLAR_TYPE_CODES.includes(state.radios.collar) ? state.radios.collar : null,
       damanTypeCode: state.radios.daman || null,
       buttonTypeCode: state.radios.button || null,
+      bainSize: state.bainSize || null,
+      collarSize: state.collarSize || null,
       styleFlagCodes,
       partDesigns,
     }
@@ -757,8 +793,21 @@ export function useShalwarKameezForm() {
     setPendingNav(null)
   }
 
+  // Opens the confirmation preview -- see receiptHtml/confirmPrintReceipt
+  // below, which do the actual building and printing once confirmed.
   function handlePrintReceipt() {
-    flashStatus("Print receipt isn't connected yet.")
+    setReceiptPreviewOpen(true)
+  }
+  function closeReceiptPreview() {
+    setReceiptPreviewOpen(false)
+  }
+  function confirmPrintReceipt() {
+    try {
+      printReceiptHtml(receiptHtml)
+    } catch (error) {
+      flashStatus(errorMessage(error), "error")
+    }
+    setReceiptPreviewOpen(false)
   }
   function handleDelete() {
     flashStatus("Delete isn't connected yet.")
@@ -766,8 +815,14 @@ export function useShalwarKameezForm() {
   function handleSearchRecord() {
     flashStatus("Searching by record no isn't connected yet.")
   }
+  // Builds and prints the A5 order sheet directly (no confirmation preview,
+  // unlike Print Receipt) -- see orderSheetHtml below for what goes on it.
   function handlePrint() {
-    window.print()
+    try {
+      printOrderSheetHtml(orderSheetHtml)
+    } catch (error) {
+      flashStatus(errorMessage(error), "error")
+    }
   }
   function handleExit() {
     router.push("/tailor/categories")
@@ -786,11 +841,18 @@ export function useShalwarKameezForm() {
   // saved on the order (see handleSave above) -- kept as one shared value so
   // the live Tailoring Amt preview always matches what gets saved.
   const quantity = Math.trunc(toAmount(state.order.quantity)) || 1
-  // Tailoring Amt = (settings' base amount + the selected button type's
-  // price) * Suit Qty -- read-only on the order form (see
-  // order-summary-panel.tsx), computed fresh every render rather than
-  // mirrored into state. Shilling Amt is a plain tailor-entered field.
-  const tailoringAmount = pricingSettings ? quantity * (pricingSettings.baseTailoringAmount + (buttonPrices[state.radios.button] ?? 0)) : 0
+  // Delivery Date defaults to Book Date when left blank -- neither field is a
+  // hard-required field on save anymore, but the orders.delivery_date column
+  // itself is NOT NULL, so a save with no delivery date typed still needs
+  // some date to go in. Book Date is always populated (defaults to today),
+  // so it's the sensible fallback.
+  const deliveryDate = state.order.deliveryDate.trim() || state.bookDate
+  // Tailoring Amt = settings' base amount * Suit Qty -- read-only on the
+  // order form (see order-summary-panel.tsx), computed fresh every render
+  // rather than mirrored into state. The selected Button Type's price lives
+  // in Others Amt instead (see the render-time adjustment above). Shilling
+  // Amt is a plain tailor-entered field.
+  const tailoringAmount = pricingSettings ? quantity * pricingSettings.baseTailoringAmount : 0
   const clothAmount = toAmount(state.order.clothAmount)
   const shillingAmt = toAmount(state.order.shillingAmt)
   const othersAmt = toAmount(state.order.othersAmt)
@@ -833,6 +895,114 @@ export function useShalwarKameezForm() {
     onChange: () => toggleStyleFlag("fiveBtn"),
   }
 
+  const pocketOptions = mapRadioOptions(POCKET_OPTIONS, "pocket")
+  const bainOptions = mapRadioOptions(BAIN_GALA_OPTIONS, "bain")
+  const collarOptions = mapRadioOptions(COLLAR_OPTIONS, "collar")
+  const damanOptions = mapRadioOptions(DAMAN_OPTIONS, "daman")
+  const buttonOptions = mapRadioOptions(BUTTON_TYPE_OPTIONS, "button")
+  const selectedButtonType = buttonOptions.find((option) => option.checked)
+
+  // Rebuilt fresh every render from the same live values the Order Summary
+  // panel shows -- not a snapshot taken at print time, so the preview dialog
+  // (and the eventual print) always reflects whatever's currently on screen,
+  // same as the rest of this form.
+  const receiptHtml = buildReceiptHtml({
+    recordNo: state.recordNo,
+    clientNo: state.clientNo,
+    clientName: state.clientName,
+    bookDate: formatDueDate(state.bookDate),
+    quantity: String(quantity),
+    deliveryDate: formatDueDate(deliveryDate),
+    buttonTypeLabel: selectedButtonType?.label ?? null,
+    tailoringAmount: `Rs ${tailoringAmount.toFixed(2)}`,
+    clothAmount: `Rs ${clothAmount.toFixed(2)}`,
+    shillingAmt: `Rs ${shillingAmt.toFixed(2)}`,
+    othersAmt: `Rs ${othersAmt.toFixed(2)}`,
+    total: `Rs ${total.toFixed(2)}`,
+    advance: `Rs ${advance.toFixed(2)}`,
+    balance: `Rs ${balance.toFixed(2)}`,
+  })
+
+  // Reference design ("Paradise Tailors and Fabrics") has one fixed slot
+  // per design choice rather than a free-flowing list of everything
+  // selected -- see lib/utils/order-sheet.ts's top comment for the full
+  // row-by-row mapping this mirrors. Each helper below builds one
+  // OrderSheetDesignItem, or null when there's nothing to show for that
+  // slot; buildOrderSheetHtml drops any row whose items are all null.
+  function partDesignItem(key: PartDesignKey, labelUr: string, forcedDesignNo?: string) {
+    const row = state.partDesigns.find((r) => r.key === key)
+    if (!row) return null
+    const designNo = forcedDesignNo ?? row.designNo
+    const image = PART_DESIGN_IMAGES[key].find((option) => option.value === designNo)
+    const sizeText = [row.size1 && formatSizeLabel(row.size1), row.size2 && formatSizeLabel(row.size2)].filter(Boolean).join(" / ") || null
+    if (!image && !sizeText) return null
+    return { imageSrc: image?.src ?? null, label: labelUr, size: sizeText }
+  }
+
+  function flagItem(checked: boolean, label: string, imageSrc: string | null) {
+    return checked ? { imageSrc, label, size: null } : null
+  }
+
+  const collarSelected = collarOptions.find((o) => o.checked)
+  const bainSelected = bainOptions.find((o) => o.checked)
+  // Collar and Bain/Gala share one slot on the reference form -- collar
+  // wins if the form data somehow has both set, since it's listed first.
+  const collarOrBainItem = collarSelected
+    ? { imageSrc: COLLAR_IMAGES[collarSelected.value] ?? null, label: collarSelected.label, size: state.collarSize || null }
+    : bainSelected
+      ? { imageSrc: BAIN_GALA_IMAGES[bainSelected.value] ?? null, label: bainSelected.label, size: state.bainSize || null }
+      : null
+
+  const pocketSelected = pocketOptions.find((o) => o.checked)
+  const pocketsItem = pocketSelected
+    ? { imageSrc: POCKET_IMAGES[pocketSelected.value] ?? null, label: pocketSelected.label, size: null }
+    : null
+
+  const damanSelected = damanOptions.find((o) => o.checked)
+  const damanItem = damanSelected
+    ? { imageSrc: DAMAN_IMAGES[damanSelected.value] ?? null, label: damanSelected.label, size: null }
+    : null
+
+  // "No Jeb" always renders as design 9 (pockets/pocket9.jpg, the client's
+  // designated "no pocket" design) regardless of whatever's actually typed
+  // in the Jaib row's Design # box -- same override handleSave already
+  // applies at save time, mirrored here so the print sheet matches what
+  // actually gets saved. Size1/Size2 are left untouched by this override,
+  // same as at save time -- only the image changes.
+  const jaibItem = partDesignItem("jaib", "جیب", state.styleFlags.noJeb ? "9" : undefined)
+  const buttonPattiItem = partDesignItem("buttonPatti", "بٹن پٹی")
+  const cuffItem = partDesignItem("kuf", "کف")
+
+  // Kaf Dboty has no confirmed image (see STYLE_FLAG_IMAGES) -- shown as a
+  // label-only slot when checked, same "no image -> just the name" fallback
+  // used throughout this sheet.
+  const kajPattiItem = flagItem(state.styleFlags.kajPatti, "Kaj Patti", STYLE_FLAG_IMAGES[STYLE_FLAG_DB_CODES.kajPatti] ?? null)
+  const kafDbotyItem = flagItem(state.styleFlags.kafDboty, "Kaf Dboty", STYLE_FLAG_IMAGES[STYLE_FLAG_DB_CODES.kafDboty] ?? null)
+  const shalwarZipDesignItem = flagItem(
+    state.basicChecks.shalwarZip,
+    "Shalwar Zip",
+    STYLE_FLAG_IMAGES[STYLE_FLAG_DB_CODES.shalwarZip] ?? null
+  )
+
+  const orderSheetHtml = buildOrderSheetHtml({
+    recordNo: state.recordNo,
+    clientNo: state.clientNo,
+    clientName: state.clientName,
+    bookDate: formatDueDate(state.bookDate),
+    deliveryDate: formatDueDate(deliveryDate),
+    quantity: String(quantity),
+    measurements: measurementRows.map((row) => ({ ur: row.ur, value: row.value })),
+    collarOrBain: collarOrBainItem,
+    buttonPatti: buttonPattiItem,
+    jaib: jaibItem,
+    pockets: pocketsItem,
+    kajPatti: kajPattiItem,
+    kafDboty: kafDbotyItem,
+    cuff: cuffItem,
+    shalwarZip: shalwarZipDesignItem,
+    daman: damanItem,
+  })
+
   return {
     state,
     clientNoValidation,
@@ -859,6 +1029,10 @@ export function useShalwarKameezForm() {
     cancelNavigation,
     handlePrint,
     handlePrintReceipt,
+    receiptPreviewOpen,
+    receiptHtml,
+    closeReceiptPreview,
+    confirmPrintReceipt,
     handleDelete,
     handleExit,
     measurementRows,
@@ -866,11 +1040,11 @@ export function useShalwarKameezForm() {
     shalwarZipItem,
     fiveButtonsItem,
     styleFlagItems,
-    pocketOptions: mapRadioOptions(POCKET_OPTIONS, "pocket"),
-    bainOptions: mapRadioOptions(BAIN_GALA_OPTIONS, "bain"),
-    collarOptions: mapRadioOptions(COLLAR_OPTIONS, "collar"),
-    damanOptions: mapRadioOptions(DAMAN_OPTIONS, "daman"),
-    buttonOptions: mapRadioOptions(BUTTON_TYPE_OPTIONS, "button"),
+    pocketOptions,
+    bainOptions,
+    collarOptions,
+    damanOptions,
+    buttonOptions,
     tailoringAmount,
     total,
     balance,

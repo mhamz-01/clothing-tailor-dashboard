@@ -92,10 +92,11 @@ export interface ShalwarKameezFormState {
   styleFlags: Record<StyleFlagKey, boolean>
   partDesigns: PartDesignRowState[]
   radios: Record<RadioGroupName, string>
-  // Numbered quick-pick dropdowns shown alongside the Bain/Gala and Collar Type
-  // radio rows — independent of `radios`, no schema column yet.
-  bainStyleNo: string
-  collarStyleNo: string
+  // Size quick-pick dropdowns shown alongside the Bain/Gala and Collar Type
+  // radio rows — independent of `radios`; saved to
+  // shalwar_kameez_details.bain_size / collar_size.
+  bainSize: string
+  collarSize: string
   order: OrderAmounts
   statusMsg: string
   statusKind: StatusKind

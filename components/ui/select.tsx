@@ -125,11 +125,12 @@ export function Select({
   value,
   onValueChange,
   children,
+  ...selectProps
 }: {
   value: string
   onValueChange: (value: string) => void
   children: React.ReactNode
-}) {
+} & Omit<React.ComponentPropsWithoutRef<"select">, "value" | "onChange" | "children" | "className" | "disabled">) {
   const { triggerClassName, triggerDisabled, placeholder, options } =
     parseSelectChildren(children)
 
@@ -143,6 +144,7 @@ export function Select({
         value={value}
         disabled={triggerDisabled}
         onChange={(event) => onValueChange(event.target.value)}
+        {...selectProps}
       >
         <option value="" disabled>
           {placeholder}

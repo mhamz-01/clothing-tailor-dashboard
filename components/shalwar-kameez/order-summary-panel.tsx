@@ -3,7 +3,22 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FIELD_CLASS, NO_SPINNER_CLASS } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
+import { handleGridArrowKeyDown } from "@/lib/utils/keyboard-nav"
 import type { OrderAmounts, RadioItem } from "@/types/shalwar-kameez"
+
+// Amount fields (including Delivery Date) sit in nav column 0, Button Type
+// in column 1 (see ButtonTypePanel) -- so ArrowRight from any amount field
+// reaches the button type in the same row, and ArrowLeft from a button type
+// goes back. Delivery Date's native Up/Down/Left/Right (step/move between
+// its day/month/year segments) is suppressed at the keyboard-nav level so it
+// behaves like any other cell here; Enter opens its date picker instead of
+// stepping a segment (see the Input below).
+const AMOUNT_NAV_COL = 0
+const BUTTON_TYPE_NAV_COL = 1
+// Advance's row -- the last amount field, and the fallback landing spot for
+// ArrowLeft from a Button Type row with no row-aligned amount field of its
+// own (see ButtonTypePanel's leftFallbackRow/leftFallbackCol).
+const AMOUNT_LAST_ROW = 6
 
 interface OrderSummaryPanelProps {
   order: OrderAmounts
@@ -26,22 +41,47 @@ const fieldClass = cn(FIELD_CLASS, "h-[22px] text-right tabular-nums")
 // ("Suit Qty", "Cloth Amount", "Shiling Amt").
 export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, total, balance, buttonOptions }: OrderSummaryPanelProps) {
   return (
-    <div className="flex min-h-0 flex-1 gap-3 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] p-[9px]">
+    <div
+      className="flex min-h-0 flex-1 gap-3 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] p-[9px]"
+      data-nav-container
+      onKeyDown={handleGridArrowKeyDown}
+    >
       <div className="flex flex-1 flex-col gap-1.5">
         <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1.5">
           <Label className={labelClass}>Suit Qty</Label>
-          <Input type="number" value={order.quantity} onChange={(e) => onOrderFieldChange("quantity", e.target.value)} className={fieldClass} />
+          <Input
+            type="number"
+            value={order.quantity}
+            onChange={(e) => onOrderFieldChange("quantity", e.target.value)}
+            className={fieldClass}
+            data-nav-row={0}
+            data-nav-col={AMOUNT_NAV_COL}
+          />
 
           <Label className={labelClass}>Delivery Date</Label>
-          <Input type="date" value={order.deliveryDate} onChange={(e) => onOrderFieldChange("deliveryDate", e.target.value)} className={fieldClass} />
+          <Input
+            type="date"
+            value={order.deliveryDate}
+            onChange={(e) => onOrderFieldChange("deliveryDate", e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter") return
+              e.preventDefault()
+              e.currentTarget.showPicker?.()
+            }}
+            className={fieldClass}
+            data-nav-row={1}
+            data-nav-col={AMOUNT_NAV_COL}
+          />
 
           <Label className={labelClass}>Tailoring Amt</Label>
           <Input
             type="number"
             value={tailoringAmount}
             readOnly
-            title="Set from Settings — (base amount + selected Button Type's price) × Suit Qty"
+            title="Set from Settings — base amount × Suit Qty"
             className={cn(fieldClass, NO_SPINNER_CLASS, "bg-[#f0f0f2] text-[#55555c]")}
+            data-nav-row={2}
+            data-nav-col={AMOUNT_NAV_COL}
           />
 
           <Label className={labelClass}>Cloth Amount</Label>
@@ -50,6 +90,8 @@ export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, 
             value={order.clothAmount}
             onChange={(e) => onOrderFieldChange("clothAmount", e.target.value)}
             className={cn(fieldClass, NO_SPINNER_CLASS)}
+            data-nav-row={3}
+            data-nav-col={AMOUNT_NAV_COL}
           />
 
           <Label className={labelClass}>Shiling Amt</Label>
@@ -58,6 +100,8 @@ export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, 
             value={order.shillingAmt}
             onChange={(e) => onOrderFieldChange("shillingAmt", e.target.value)}
             className={cn(fieldClass, NO_SPINNER_CLASS)}
+            data-nav-row={4}
+            data-nav-col={AMOUNT_NAV_COL}
           />
 
           <Label className={labelClass}>Others Amt</Label>
@@ -66,6 +110,8 @@ export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, 
             value={order.othersAmt}
             onChange={(e) => onOrderFieldChange("othersAmt", e.target.value)}
             className={cn(fieldClass, NO_SPINNER_CLASS)}
+            data-nav-row={5}
+            data-nav-col={AMOUNT_NAV_COL}
           />
         </div>
 
@@ -76,7 +122,14 @@ export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, 
           </div>
 
           <Label className={labelClass}>Advance</Label>
-          <Input type="number" value={order.advance} onChange={(e) => onOrderFieldChange("advance", e.target.value)} className={fieldClass} />
+          <Input
+            type="number"
+            value={order.advance}
+            onChange={(e) => onOrderFieldChange("advance", e.target.value)}
+            className={fieldClass}
+            data-nav-row={AMOUNT_LAST_ROW}
+            data-nav-col={AMOUNT_NAV_COL}
+          />
 
           <Label className="text-[13px] font-bold text-black">Balance</Label>
           <div className="flex h-6 items-center justify-end rounded-[3px] border border-black bg-black px-1.5 text-[14px] font-bold tabular-nums text-white">
@@ -85,7 +138,12 @@ export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, 
         </div>
       </div>
 
-      <ButtonTypePanel options={buttonOptions} />
+      <ButtonTypePanel
+        options={buttonOptions}
+        navCol={BUTTON_TYPE_NAV_COL}
+        leftFallbackRow={AMOUNT_LAST_ROW}
+        leftFallbackCol={AMOUNT_NAV_COL}
+      />
     </div>
   )
 }

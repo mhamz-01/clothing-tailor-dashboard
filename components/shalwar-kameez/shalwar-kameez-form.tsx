@@ -7,6 +7,7 @@ import { ClientLookupSection } from "@/components/shalwar-kameez/client-lookup-s
 import { MeasurementsPanel } from "@/components/shalwar-kameez/measurements-panel"
 import { OrderSummaryPanel } from "@/components/shalwar-kameez/order-summary-panel"
 import { PartDesignTable } from "@/components/shalwar-kameez/part-design-table"
+import { ReceiptPreviewDialog } from "@/components/shalwar-kameez/receipt-preview-dialog"
 import { StatusToast } from "@/components/shalwar-kameez/status-toast"
 import { StyleOptionsPanel } from "@/components/shalwar-kameez/style-options-panel"
 import {
@@ -117,10 +118,10 @@ export function ShalwarKameezForm() {
               bainOptions={form.bainOptions}
               collarOptions={form.collarOptions}
               damanOptions={form.damanOptions}
-              bainStyleNo={state.bainStyleNo}
-              onBainStyleNoChange={(value) => form.updateField("bainStyleNo", value)}
-              collarStyleNo={state.collarStyleNo}
-              onCollarStyleNoChange={(value) => form.updateField("collarStyleNo", value)}
+              bainSize={state.bainSize}
+              onBainSizeChange={(value) => form.updateField("bainSize", value)}
+              collarSize={state.collarSize}
+              onCollarSizeChange={(value) => form.updateField("collarSize", value)}
               shalwarZipItem={form.shalwarZipItem}
             />
 
@@ -158,6 +159,13 @@ export function ShalwarKameezForm() {
           so it stays legible regardless of how small the board itself gets
           scaled down to. */}
       <StatusToast statusMsg={state.statusMsg} statusKind={state.statusKind} onDismiss={form.dismissStatus} />
+
+      <ReceiptPreviewDialog
+        open={form.receiptPreviewOpen}
+        html={form.receiptHtml}
+        onCancel={form.closeReceiptPreview}
+        onConfirm={form.confirmPrintReceipt}
+      />
 
       <AlertDialog open={form.pendingNav !== null} onOpenChange={(open) => !open && form.cancelNavigation()}>
         <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
