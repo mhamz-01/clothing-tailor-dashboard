@@ -1,52 +1,75 @@
 // A5-portrait order sheet for the Shalwar Kameez form's "Print" button --
-// rebuilt to match a specific reference design (a traditional paper
-// tailor-shop order form: "Paradise Tailors and Fabrics") pixel-for-pixel
-// in structure, not the earlier generic "show every selected thing in an
-// auto-flowing grid" version. This one has a fixed, specific layout:
+// started from a specific reference design (a traditional paper tailor-shop
+// order form: "Paradise Tailors and Fabrics"), since refined by client
+// feedback past what that reference literally showed (its N.T./N.C. header
+// columns and bottom-of-page design-name caption were both dropped as
+// clutter -- see below). The design area is one bordered box with content
+// free-flowing in two implicit columns (flex, no per-item cell borders) --
+// not a ruled table -- and part-design sizes (Jaib/Kuf/Bazu/Button Patti)
+// stack as separate numbers to the right of the icon, not above it like the
+// simpler radio-selection items (Bain/Gala, Collar).
 //
-// Header: business name, centered -> rule -> Client Name (left) / Book Date
-// (right) -> a bordered two-cell info row: S. No. (Client No over Record
-// No, stacked) | Qty.
+// Header: business name, centered -> Client Name (left) / Book Date (right)
+// -> a bordered two-cell info row: S. No. (Client No over Record No,
+// stacked) | Qty.
 //
-// Body: measurements as a bordered column on the left (full page height),
-// design area on the right as six fixed rows, each item's size written
-// plain above its image (no "Size:" label) and its name below:
-//   1. Collar OR Bain/Gala -- never both; whichever is actually selected
-//   2. Button Patti + size
-//   3. Jaib + size, and the Pockets selection, in the same row
-//   4. Kaj Patti + Kaf Dboty + Kuf ("cuff") + Kuf's size
-//   5. Shalwar Zip
-//   6. Daman
-// Delivery Date sits bottom-right of the design area, matching the
-// reference. A row/item is only rendered when there's actually something
-// selected for it -- same "no empty boxes" rule as before, just applied to
-// a fixed row structure instead of a free-flowing grid.
+// Body: measurements as a bordered table on the left (one row per
+// measurement, a ruled column between the value and its Urdu name, full
+// page height), design area on the right as one bordered box, content
+// arranged in six implicit rows (no ruled lines between them), each with a
+// left/right column pair. No item anywhere in the design area prints a
+// name/label under its image (client request) -- just the icon, and its
+// size where it has one:
+//   1. Bain/Gala (left) | Collar (right) -- independent, both can appear
+//   2. Large Buttons, with the Btn Dboty image stacked directly under it
+//      when checked (left) | Button Patti + size, with a "5 Button" note if
+//      that Button Patti modal checkbox is set (right)
+//   3. Pockets, image only, no size (left) | Jaib + stacked size1/size2
+//      (right)
+//   4. Kaj Patti (left) | Kuf ("cuff") + stacked size1/size2, with a
+//      "Kaf Dboty Na Ho" note directly under the Kuf image when Kaf Dboty
+//      is NOT checked -- nothing prints there at all when it is checked
+//      (right)
+//   5. Shalwar Zip (left) | Bazu ("arm") + stacked size1/size2 (right)
+//   6. Daman (left) -- Delivery Date is NOT this row's right column anymore;
+//      it's pinned via position: absolute to the page's own bottom-right
+//      corner (.delivery-pin), independent of the design-area flow
+//      entirely. It used to live in this row and its flow height was part
+//      of what pushed the sheet's total content past A5 and onto a second
+//      printed page.
+// Bain/Gala, Collar, Button Patti, Pockets, Jaib, Kuf, Shalwar Zip, Bazu,
+// and Daman all print at the larger image size (`opts.large` on
+// designItem) -- only Large Buttons and Kaj Patti stay at the base size,
+// per client request.
 //
 // Deliberately dropped versus the previous version, because the reference
 // form has no place for them ("nothing extra" per the brief this replaced):
 // Phone No, the free-text Note, Button Type, and every style flag other
-// than Kaj Patti/Kaf Dboty/Shalwar Zip (so Btn Dboty, No Lbl, 2 Jeb, No
-// Jeb, 5 Btn, Large Buttons never appear on this sheet even when checked).
-// If any of those turn out to still be needed, that's a real omission to
+// than Kaj Patti/Kaf Dboty/Shalwar Zip/Large Buttons/5 Btn (so Btn Dboty,
+// No Lbl, 2 Jeb, No Jeb never appear on this sheet even when checked). If
+// any of those turn out to still be needed, that's a real omission to
 // flag, not something this file tries to guess back in.
 //
 // Same standalone-document architecture as lib/utils/receipt.ts, and for
 // the same reason: @page can't be scoped by a CSS class, so this sheet's
 // @page rule would collide with the receipt's 80mm one (and vice versa) if
 // either lived in the app's own stylesheet. Each print flow gets its own
-// isolated document instead.
+// isolated document instead. Page size stays fixed at A5 (148mm x 210mm) --
+// every element below is sized to fit that without overflowing, not to
+// grow the page.
 
 export interface OrderSheetMeasurement {
   ur: string
   value: string
 }
 
-// One design slot on the right-hand side (a part design, a selected radio
-// option, or a checked style flag) -- all rendered the same way: size
-// (plain, no label) above the image, name below. `size`/`label` are
-// pre-formatted strings, not raw numbers, since each field's own
-// unit/label conventions (or lack of one, per this design) live in
-// whichever hook logic builds this.
+// One design slot (a part design, a selected radio option, or a checked
+// style flag) -- size (plain, no label) and image and name. `size`/`label`
+// are pre-formatted strings, not raw numbers, since each field's own unit/
+// label conventions (or lack of one, per this design) live in whichever
+// hook logic builds this. A `size` containing " / " renders as two stacked
+// lines instead of one (Jaib/Kuf/Bazu/Button Patti's size1+size2), per the
+// reference image's stacked-numbers-beside-the-icon style.
 export interface OrderSheetDesignItem {
   imageSrc: string | null
   label: string | null
@@ -61,17 +84,30 @@ export interface OrderSheetData {
   deliveryDate: string // formatted, display-ready
   quantity: string
   measurements: OrderSheetMeasurement[]
-  // Collar and Bain/Gala share one slot -- the reference form has exactly
-  // one place for a neckline/collar style, not two, so whichever of the
-  // two is actually selected goes here (collar wins if somehow both are).
-  collarOrBain: OrderSheetDesignItem | null
+  // Bain/Gala and Collar get their own slot now (left/right of row 1) --
+  // a client can genuinely have both selected, so unlike an older single
+  // shared slot, both render independently when present.
+  bain: OrderSheetDesignItem | null
+  collar: OrderSheetDesignItem | null
+  // Large Buttons sits beside Button Patti in row 2 -- it's a style flag,
+  // not a part design, so it carries no size of its own. Btn Dboty stacks
+  // directly under Large Buttons, in that same left column, when checked.
+  largeButtons: OrderSheetDesignItem | null
+  btnDboty: OrderSheetDesignItem | null
   buttonPatti: OrderSheetDesignItem | null
-  jaib: OrderSheetDesignItem | null
+  // "5 Button" is a checkbox inside the Button Patti design picker modal,
+  // not its own design item -- rendered as a plain note beside it.
+  fiveBtn: boolean
   pockets: OrderSheetDesignItem | null
+  jaib: OrderSheetDesignItem | null
   kajPatti: OrderSheetDesignItem | null
-  kafDboty: OrderSheetDesignItem | null
   cuff: OrderSheetDesignItem | null
+  // Whether Kaf Dboty is checked -- when not checked, "Kaf Dboty Na Ho"
+  // prints directly under the Kuf image as a note; when checked, that spot
+  // is left blank (checked is the assumed default, so it needs no note).
+  kafDboty: boolean
   shalwarZip: OrderSheetDesignItem | null
+  bazu: OrderSheetDesignItem | null
   daman: OrderSheetDesignItem | null
 }
 
@@ -103,42 +139,131 @@ function resolveAssetUrl(path: string): string {
 }
 
 function measurementRow(m: OrderSheetMeasurement): string {
-  return `<div class="mrow"><span class="mval">${escapeHtml(m.value || "—")}</span><span class="mur" dir="rtl">${escapeHtml(m.ur)}</span></div>`
+  return `<tr><td class="mval">${escapeHtml(m.value || "—")}</td><td class="mur" dir="rtl">${escapeHtml(m.ur)}</td></tr>`
 }
 
-// Renders one design slot -- empty string (not a placeholder box) if there's
-// nothing to show, so buildRow below can drop it entirely rather than
-// leaving a gap. Size sits plain above the image (no "Size:" prefix, per
-// the reference design); name sits below.
-function designItem(item: OrderSheetDesignItem | null, labelDir: "rtl" | "ltr"): string {
-  if (!item || (!item.imageSrc && !item.label && !item.size)) return ""
-  return `<div class="ditem">
-    ${item.size ? `<div class="ditem-size">${escapeHtml(item.size)}</div>` : ""}
-    ${item.imageSrc ? `<div class="ditem-image"><img src="${resolveAssetUrl(item.imageSrc)}" alt="${escapeHtml(item.label ?? "")}" /></div>` : ""}
-    ${item.label ? `<div class="ditem-label" dir="${labelDir}">${escapeHtml(item.label)}</div>` : ""}
-  </div>`
+// Two trailing blank rows -- matching the reference form's own layout,
+// which leaves a couple of extra rows for the tailor to hand-write a
+// measurement that isn't one of the fixed fields above.
+function blankMeasurementRow(): string {
+  return `<tr><td class="mval">&nbsp;</td><td class="mur">&nbsp;</td></tr>`
 }
 
-// One of the six fixed rows -- built from whichever of its 1-3 possible
-// items actually rendered something; the row itself is dropped entirely if
-// none of them did, so an all-unselected row doesn't leave a blank gap in
-// the middle of the design area.
-function buildRow(items: string[]): string {
-  const filled = items.filter((html) => html !== "")
-  if (filled.length === 0) return ""
-  return `<div class="drow">${filled.join("\n")}</div>`
+// A `size` with " / " in it (Jaib/Kuf/Bazu/Button Patti's size1+size2)
+// splits into separate stacked lines -- one number per line, matching the
+// reference image's style for those parts (as opposed to Bain/Gala/
+// Collar's single size value).
+function sizeLines(size: string | null): string[] {
+  if (!size) return []
+  return size.split(" / ").filter(Boolean)
+}
+
+// A plain note with no image/size of its own -- e.g. "5 Button",
+// "Kaf Dboty Na Ho".
+function note(text: string, extraClass = ""): string {
+  return `<div class="dnote ${extraClass}">${escapeHtml(text)}</div>`
+}
+
+// Bain/Gala and Collar sizes are raw client-entered strings like "1 1/4" or
+// "3/4" (see BAIN_SIZE_OPTIONS/COLLAR_SIZE_OPTIONS) -- the trailing
+// `n/n` fraction renders smaller than the whole-number part, like a proper
+// typographic fraction, instead of printing as one same-size run of digits.
+// Values with no fraction (a plain "2", or "1-1"/"1+1") pass through as-is.
+function formatSizeWithFraction(value: string): string {
+  const match = value.match(/^(\d+\s+)?(\d+\/\d+)$/)
+  if (!match) return escapeHtml(value)
+  const [, whole, fraction] = match
+  return `${whole ? escapeHtml(whole) : ""}<span class="mfrac">${escapeHtml(fraction)}</span>`
+}
+
+// Renders one design slot -- empty string if there's nothing to show. No
+// name/label text prints under any item (client request -- the icon plus
+// its size, where it has one, is enough); `item.label` still feeds the
+// image's alt text, just not a visible on-image label. `sizePosition: "top"`
+// (the default) writes the size plain above the image, centered, for
+// Bain/Gala. `"left"` instead sits it immediately beside the image, close
+// on its left, for Collar specifically (client request -- the two sit side
+// by side in row 1, but each wants its size positioned differently).
+// `"right"` stacks each size line beside the image, for the part-design
+// items that carry two measurements (Jaib, Kuf, Bazu, Button Patti), per
+// the reference. `opts.large` bumps up the image to the shared "large"
+// size (Bain/Collar/Button Patti/Pockets/Jaib/Bazu/Shalwar Zip/Daman all
+// use this one). `opts.imageSizeClass` overrides that with a distinct
+// class instead, sized on its own independent of every other item -- Kuf
+// uses this (`ditem-image-kuf`) so its size can be tuned without dragging
+// the other eight items along with it. `opts.belowNote` prints directly
+// under the image, inside the same column as it (not spanning the row) --
+// used for Kuf's "Kaf Dboty"/"Kaf Dboty Na Ho" note, which only makes
+// sense anchored under that image. `opts.belowNoteClass` moves that note
+// independently of the image (a sibling, untouched by it) -- position:
+// relative + top/left, same pattern as imagePosClass.
+// `opts.aboveSizeNote` (only meaningful
+// with `sizePosition: "right"`) prints directly above the size text, in
+// that same size column -- used for Button Patti's "5 Button" note, which
+// sits above its size rather than spanning/trailing the whole row.
+function designItem(
+  item: OrderSheetDesignItem | null,
+  sizePosition: "top" | "left" | "right" = "top",
+  opts: {
+    large?: boolean
+    imageSizeClass?: string
+    imagePosClass?: string
+    sizeSizeClass?: string
+    sizePosClass?: string
+    belowNote?: string
+    belowNoteClass?: string
+    aboveSizeNote?: string
+    aboveSizeNoteClass?: string
+  } = {}
+): string {
+  if (!item || (!item.imageSrc && !item.size)) return ""
+  const lines = sizeLines(item.size)
+  const sizeModifierClass = opts.imageSizeClass ?? (opts.large ? "ditem-image-lg" : "")
+  // `imagePosClass` is separate from the size classes above on purpose --
+  // it only ever nudges position (position: relative + top/left), never
+  // size, and applies to the image element alone, not the size text next
+  // to/above it (that's a sibling, untouched by this). `sizeSizeClass`/
+  // `sizePosClass` are the mirror of `imageSizeClass`/`imagePosClass` for
+  // the size text itself -- wired up for all three modes: "top"/"left"'s
+  // single .ditem-size element, and "right"'s .ditem-size-lines wrapper
+  // (used by Kuf/Button Patti, among others) -- deliberately its own
+  // element, siblings with (not a parent of) the aboveSizeNote below, so
+  // `aboveSizeNoteClass` moves that note independently, without dragging
+  // the size numbers along, and vice versa.
+  const imageClass = ["ditem-image", sizeModifierClass, opts.imagePosClass].filter(Boolean).join(" ")
+  const imageBlock = item.imageSrc
+    ? `<div class="${imageClass}"><img src="${resolveAssetUrl(item.imageSrc)}" alt="${escapeHtml(item.label ?? "")}" /></div>`
+    : ""
+  const belowNoteBlock = opts.belowNote ? note(opts.belowNote, opts.belowNoteClass ?? "") : ""
+  const sizeClass = ["ditem-size", opts.sizeSizeClass, opts.sizePosClass].filter(Boolean).join(" ")
+
+  if (sizePosition === "right") {
+    const aboveSizeNoteBlock = opts.aboveSizeNote ? note(opts.aboveSizeNote, opts.aboveSizeNoteClass ?? "") : ""
+    const sizeLinesClass = ["ditem-size-lines", opts.sizeSizeClass, opts.sizePosClass].filter(Boolean).join(" ")
+    const sizeLinesBlock = lines.length
+      ? `<div class="${sizeLinesClass}">${lines.map((line) => `<div class="ditem-size-line">${escapeHtml(line)}</div>`).join("")}</div>`
+      : ""
+    const sizeBlock =
+      sizeLinesBlock || aboveSizeNoteBlock ? `<div class="ditem-sizes">${aboveSizeNoteBlock}${sizeLinesBlock}</div>` : ""
+    return `<div class="ditem ditem-row">
+      <div class="ditem-main">${imageBlock}${belowNoteBlock}</div>
+      ${sizeBlock}
+    </div>`
+  }
+
+  if (sizePosition === "left") {
+    const sizeBlock = lines.length ? `<div class="${sizeClass}">${formatSizeWithFraction(lines.join(" / "))}</div>` : ""
+    return `<div class="ditem ditem-row">
+      ${sizeBlock}
+      <div class="ditem-main">${imageBlock}${belowNoteBlock}</div>
+    </div>`
+  }
+
+  const sizeBlock = lines.length ? `<div class="${sizeClass}">${formatSizeWithFraction(lines.join(" / "))}</div>` : ""
+  return `<div class="ditem">${sizeBlock}${imageBlock}${belowNoteBlock}</div>`
 }
 
 export function buildOrderSheetHtml(data: OrderSheetData): string {
-  const rows = [
-    buildRow([designItem(data.collarOrBain, "ltr")]),
-    buildRow([designItem(data.buttonPatti, "rtl")]),
-    buildRow([designItem(data.jaib, "rtl"), designItem(data.pockets, "ltr")]),
-    buildRow([designItem(data.kajPatti, "ltr"), designItem(data.kafDboty, "ltr"), designItem(data.cuff, "rtl")]),
-    buildRow([designItem(data.shalwarZip, "ltr")]),
-    buildRow([designItem(data.daman, "ltr")]),
-  ].filter((html) => html !== "")
-
   return `<!doctype html>
 <html>
 <head>
@@ -151,43 +276,211 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
   body {
     width: 136mm;
     font-family: "Segoe UI", Tahoma, "Noto Nastaliq Urdu", "Noto Naskh Arabic", Arial, sans-serif;
-    font-size: 10.5px;
+    font-size: 10px;
   }
   [dir="rtl"] { font-family: "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Segoe UI", Tahoma, Arial, sans-serif; }
 
-  .page { border: 2px solid #000; padding: 3mm; display: flex; flex-direction: column; min-height: 198mm; }
+  .page { position: relative; border: 1.5px solid #000; padding: 2.5mm; display: flex; flex-direction: column; height: 198mm; }
 
-  .title { font-size: 19px; font-weight: 800; text-align: center; letter-spacing: 0.02em; border-bottom: 1.5px solid #000; padding-bottom: 2mm; margin-bottom: 2mm; }
+  .title { font-size: 17px; font-weight: 800; text-align: center; letter-spacing: 0.02em; text-transform: uppercase; margin-bottom: 1.5mm; }
 
-  .subheader { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; font-weight: bold; margin-bottom: 2mm; }
+  .subheader { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; font-weight: bold; margin-bottom: 1.5mm; }
 
-  .info-table { display: flex; border: 1px solid #000; margin-bottom: 2.5mm; }
-  .info-cell { padding: 1.5mm 2mm; text-align: center; }
-  .info-cell.sno { flex: 0 0 42%; border-right: 1px solid #000; }
+  .info-table { display: flex; border: 1px solid #000; margin-bottom: 1.5mm; }
+  .info-cell { padding: 1mm 1.5mm; text-align: center; border-right: 1px solid #000; }
+  .info-cell:last-child { border-right: none; }
+  .info-cell.sno { flex: 0 0 42%; }
   .info-cell.qty { flex: 1; }
-  .info-heading { font-size: 8.5px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: #555; margin-bottom: 1mm; }
-  .info-value { font-size: 14px; font-weight: bold; }
-  .info-value2 { font-size: 11px; color: #333; margin-top: 0.5mm; }
+  .info-heading { font-size: 8.5px; font-weight: bold; margin-bottom: 0.7mm; }
+  .info-value { font-size: 13px; font-weight: bold; }
+  .info-value2 { font-size: 10.5px; color: #333; margin-top: 0.3mm; }
 
-  .body { display: flex; gap: 3.5mm; flex: 1; align-items: stretch; }
+  .body { display: flex; gap: 1.5mm; flex: 1; min-height: 0; align-items: stretch; }
 
-  .measurements { width: 34mm; flex-shrink: 0; border: 1px solid #000; border-radius: 2px; padding: 1.5mm; page-break-inside: avoid; }
-  .mrow { display: flex; justify-content: space-between; align-items: baseline; padding: 1.2mm 0; border-bottom: 1px dotted #ccc; font-size: 10.5px; }
-  .mrow:last-child { border-bottom: none; }
-  .mval { font-weight: bold; }
-  .mur { font-size: 12.5px; }
+  .measurements { width: 32mm; flex-shrink: 0; }
+  .mtable { width: 100%; border-collapse: collapse; border: 1px solid #000; table-layout: fixed; }
+  .mtable td { border: 1px solid #000; padding: 0.8mm 0.6mm; text-align: center; font-size: 18px; }
+  .mtable td.mval { font-weight: bold; width: 42%; }
+  .mtable td.mur { font-size: 14px; }
 
-  .design-area { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 1.5mm; }
-  .drow { display: flex; align-items: flex-end; justify-content: center; gap: 4mm; }
+  /* The gap property here is a floor, not the whole story -- space-between
+     still tops it up with any leftover height, split equally across every
+     row-to-row gap. Without this floor, a row that's grown tall (e.g. Kaj
+     Patti's own enlarged image) can eat enough of that leftover pool that
+     neighboring gaps -- like row 2 (Button Patti) to row 3 (Pockets/Jaib)
+     -- visually collapse tighter than the rest. This guarantees every
+     unmodified row pair gets at least the same 3mm, row 1's tight-below
+     class aside, which still overrides via its own negative margin. */
+  .design-area { flex: 1; min-width: 0; border: 1px solid #000; padding: 1mm 1mm; display: flex; flex-direction: column; justify-content: space-between; gap: 1mm; }
+  .drow { display: flex; align-items: flex-end; gap: 3mm; }
+  .drow.gap-lg { gap: 24mm; }
+  /* Pulls the row right after this one up close -- used on row 1
+     (Bain/Collar) so it sits tight against row 2 (Large Buttons/Button
+     Patti), instead of the even space-between gap every other row pair
+     gets. */
+  .drow.tight-below { margin-bottom: -14mm; }
+  /* Same idea as tight-below, but its own separate dial -- this is what
+     controls row 2 (Large Buttons/Button Patti) -> row 3 (Pockets/Jaib)
+     specifically, independent of the design-area gap floor above (which
+     still applies to every other row pair) and independent of row 1's
+     tight-below. 0mm = falls back to that shared floor/space-between gap;
+     negative pulls row 3 up closer; positive pushes it further away. */
+  .drow.gap-below-row2 { margin-bottom: 3mm; }
+  /* Pure visual nudges, item-level -- position: relative + top/left shifts
+     just Bain or just Collar, without affecting document flow at all, so
+     these don't touch the row's own gap/position dials (tight-below,
+     gap-below-row2, or a row-level nudge elsewhere), each other, or
+     anything in the rest of the sheet. Negative top = up, negative left =
+     left; positive is the opposite of each. */
+  .dslot.pos-bain { position: relative; top: 0mm; left: 0mm; }
+  .dslot.pos-collar { position: relative; top: -6mm; left: -8mm; }
+  .dslot.pos-shalwarzip { position: relative; top: -4mm; left: 6mm; }
+  .dslot.pos-daman { position: relative; top: 0mm; left: -18mm; }
+
+  .dslot { flex: 1; min-width: 0; display: flex; }
+  .dslot.left { justify-content: flex-end; }
+  .dslot.right { justify-content: flex-start; }
+  .dslot.pin-end { justify-content: flex-end; }
+  /* Left-aligns both columns instead of pulling them toward the center
+     divide -- used for rows where the two items should sit at their own
+     column's left edge, with the natural column-width gap between them. */
+  .drow.spread .dslot.left, .drow.spread .dslot.right { justify-content: flex-start; }
+  /* Large Buttons + Btn Dboty's positioning box. Deliberately NOT a flex
+     stack -- a flex column would size itself off whichever items are
+     actually present, so Large Buttons' rendered position shifted up/down
+     depending on whether Btn Dboty was checked. Fixed height/width instead,
+     with each image pinned via its own position: absolute class
+     (.pos-largebuttons-img / .pos-btndboty-img below) -- each one's top/left
+     is a standalone offset from this box's own top-left corner, completely
+     independent of whether the other image is present at all. Resize this
+     box (height/width) if either image's offset needs more room to move
+     into. Height is trimmed to just past Btn Dboty's own bottom edge
+     (its top: 14mm + the base 18mm image height) -- both images are
+     anchored via top/left, not bottom/right, so this box's height is pure
+     reserved flow space with no effect on where either image actually
+     paints; shrinking it recovers page height without moving anything
+     visible. */
+  .dstack { position: relative; height: 34mm; width: 22mm; }
+
   .ditem { display: flex; flex-direction: column; align-items: center; text-align: center; }
-  .ditem-size { font-size: 10px; font-weight: bold; margin-bottom: 0.7mm; }
-  .ditem-image { height: 15mm; width: 15mm; display: flex; align-items: center; justify-content: center; }
+  .ditem-size { font-size: 20px; font-weight: bold; margin-bottom: 0; }
+  .ditem-size .mfrac { font-size: 0.68em; }
+  .ditem-image { height: 18mm; width: 18mm; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+  /* Nudges just Bain's image -- its size text (.ditem-size, a sibling
+     above it) stays put since this only targets the image element. */
+  .pos-bain-img { position: relative; top: -5mm; left: 0mm; }
   .ditem-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .ditem-label { font-size: 9.5px; font-weight: bold; margin-top: 0.7mm; max-width: 22mm; }
+  .ditem-image-lg { height: 22mm; width: 22mm; }
+  /* Kuf's own size, independent of .ditem-image-lg above -- edit this one
+     to resize just the Kuf ("cuff") picture without touching Bain/Collar/
+     Button Patti/Pockets/Jaib/Bazu/Shalwar Zip/Daman. */
+  .ditem-image-kuf { height: -2mm; width: 32mm; }
+  /* Nudges just Kuf's image -- its size numbers and Kaf Dboty note
+     (siblings) are untouched, and this is independent of .pos-kuf-size and
+     .pos-kafdboty-note below. */
+  .pos-kuf-img { position: relative; top: -5mm; left: -10mm; }
+  /* Nudges just Kuf's size numbers (the stacked .ditem-sizes column) --
+     its image (a sibling) is untouched. Left-aligned, same reasoning as
+     Jaib below (size2 above size1, via cuffItem's reverseSizes, and size2
+     being a longer string than size1 would otherwise stagger the two
+     centered lines sideways). gap is the vertical space between the two
+     stacked size lines -- edit that value to open up or tighten it. */
+  .pos-kuf-size { position: relative; top: -8mm; left: -10mm; display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 2.4mm; }
+  /* Nudges just the "Kaf Dboty"/"Kaf Dboty Na Ho" note under the Kuf image
+     -- the image (a sibling) is untouched, and this is independent of
+     .pos-kuf-size above (which only moves the size numbers). */
+  .pos-kafdboty-note { position: relative; top: -7mm; left: -11mm; }
+  /* Nudges just Jaib's image -- its stacked size numbers (a sibling) are
+     untouched. */
+  .pos-jaib-img { position: relative; top: 0mm; left: 0mm; }
+  /* Nudges just Jaib's stacked size numbers -- its image (a sibling) is
+     untouched. Left-aligned (rather than the shared .ditem centered
+     default) so size1/size2 share a left edge instead of each centering on
+     its own width -- otherwise size2 being a longer string than size1
+     visibly staggers the two lines sideways. gap is the vertical space
+     between the two lines -- edit that value to open up or tighten it. */
+  .pos-jaib-size { position: relative; top: 4mm; left: 0mm; display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 2mm; }
+  /* Nudges just Bazu's image -- its stacked size numbers (a sibling) are
+     untouched. */
+  .pos-bazu-img { position: relative; top: -4mm; left: -2mm; }
+  /* Nudges just Bazu's stacked size numbers -- its image (a sibling) is
+     untouched. Left-aligned, same reasoning as Jaib/Kuf above (size2 above
+     size1, via bazuItem's reverseSizes, would otherwise stagger sideways
+     against the shorter size1 if centered). gap is the vertical space
+     between the two stacked size lines -- edit that value to open up or
+     tighten it. */
+  .pos-bazu-size { position: relative; top: -2mm; left: -1mm; display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 2mm; }
+  /* Nudges just Pockets' image (its only content -- no size/label print
+     for it, see designItem's guard). */
+  .pos-pockets-img { position: relative; top: -2mm; left: 0mm; }
+  /* Kaj Patti's own size, same pattern -- edit this one to resize just its
+     picture without touching Large Buttons/Btn Dboty, which still share
+     the plain .ditem-image base size above. */
+  .ditem-image-kajpatti { height: 35mm; width: 18mm; }
+  /* Nudges just Kaj Patti's image -- nothing else sits in that dslot (Kaj
+     Patti has no size/note of its own), so this is independent of every
+     other item's position. */
+  .pos-kajpatti-img { position: relative; top: -5mm; left: -10mm; }
+  /* Button Patti's own size, same pattern -- edit this one to resize just
+     its picture without touching Bain/Collar/Pockets/Jaib/Bazu/Shalwar
+     Zip/Daman, which still share .ditem-image-lg above. */
+  .ditem-image-buttonpatti { height: 26mm; width: 20mm; }
+  /* Nudges just Button Patti's image -- its size text/"5 Button" note
+     (siblings inside .ditem-sizes) stay put since this only targets the
+     image element. */
+  .pos-buttonpatti-img { position: relative; top: -4mm; left: 4mm; }
+  /* Button Patti's own size-text size (font-size of the "12-1 3/4" line),
+     independent of the shared .ditem-sizes font-size that Jaib/Kuf/Bazu
+     still use. */
+  .ditem-sizes-buttonpatti { font-size: 15px; }
+  /* Nudges just Button Patti's size numbers ("12-1 3/4") -- independent of
+     the "5 Button" note above it and of Button Patti's image (both
+     siblings). */
+  .pos-buttonpatti-size { position: relative; top: -9mm; left: -3mm; }
+  /* Nudges just the "5 Button" note -- independent of Button Patti's size
+     numbers below it (a sibling inside the same .ditem-sizes column). */
+  .pos-5button-note { position: relative; top:-10mm; left: 1mm; }
+  /* Collar's own size, same pattern -- edit this one to resize just its
+     picture without touching Bain/Button Patti/Pockets/Jaib/Bazu/Shalwar
+     Zip/Daman, which still share .ditem-image-lg above. */
+  .ditem-image-collar { height: 24mm; width: 30mm; }
+  /* Nudges just Collar's size text -- the image beside it (a sibling) is
+     untouched, and this is independent of .dslot.pos-collar (which moves
+     the whole item, image included). */
+  .pos-collar-size { position: relative; top: -5mm; left: 1mm; }
+  /* Nudges just Collar's image -- its size text (a sibling) is untouched,
+     and this is independent of .dslot.pos-collar (which moves the whole
+     item, image included) and .pos-collar-size above. */
+  .pos-collar-img { position: relative; top: -1mm; left: 0mm; }
+  /* Large Buttons' own position within .dstack -- position: absolute so it
+     sits at a fixed spot in the box regardless of whether Btn Dboty (its
+     sibling below) is present at all. Edit top/left to move just this
+     image. */
+  .pos-largebuttons-img { position: absolute; top: 0mm; left: 11mm; }
+  /* Btn Dboty's own position within .dstack -- position: absolute, same
+     idea as Large Buttons above, so moving one never shifts the other.
+     Edit top/left to move just this image. */
+  .pos-btndboty-img { position: absolute; top: 14mm; left: 14mm; }
 
-  .delivery-date { text-align: right; font-size: 10px; font-weight: bold; margin-top: 1.5mm; }
+  .ditem-row { flex-direction: row; align-items: center; gap: 1mm; }
+  .ditem-main { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .ditem-sizes { display: flex; flex-direction: column; font-size: 15px; font-weight: bold; line-height: 1.2; }
 
-  .footer { margin-top: 1.5mm; text-align: center; font-size: 7px; color: #999; }
+  .dnote { font-size: 14px; font-weight: bold; text-align: center; margin: 0.5mm 0; }
+
+  .delivery-value { display: inline-block; border-bottom: 1px solid #000; padding-bottom: 0.3mm; min-width: 20mm; }
+  /* Delivery Date pins to the page's own bottom-right corner via
+     position: absolute on .page above -- deliberately NOT part of the
+     Daman row's flex flow anymore, so it no longer adds to the
+     design-area's total flow height (which was tipping the sheet onto a
+     second printed page) and no longer moves when Daman's own position is
+     tuned. right/bottom are its only two dials -- edit those to nudge
+     it, independent of everything else on the sheet. Kept within the
+     page's own 2.5mm padding inset so it never prints past the border/A5
+     edge. */
+  .delivery-pin { position: absolute; right: 4.5mm; bottom: 8.5mm;  font-size: 16px; font-weight: bold; text-align: right; }
+
+  .footer { margin-top: 1mm; text-align: center; font-size: 6.5px; color: #999; }
 </style>
 </head>
 <body>
@@ -213,14 +506,81 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
 
     <div class="body">
       <div class="measurements">
-        ${data.measurements.map(measurementRow).join("\n")}
+        <table class="mtable">
+          <tbody>
+            ${data.measurements.map(measurementRow).join("\n")}
+            ${blankMeasurementRow()}
+          </tbody>
+        </table>
       </div>
 
       <div class="design-area">
-        ${rows.join("\n")}
-        <div class="delivery-date">D. Date: ${escapeHtml(data.deliveryDate)}</div>
+        <div class="drow gap-lg spread tight-below pos-row1">
+          <div class="dslot left pos-bain">${designItem(data.bain, "top", { large: true, imagePosClass: "pos-bain-img" })}</div>
+          <div class="dslot right pos-collar">${designItem(data.collar, "left", { imageSizeClass: "ditem-image-collar", imagePosClass: "pos-collar-img", sizePosClass: "pos-collar-size" })}</div>
+        </div>
+
+        <div class="drow gap-below-row2 pos-row2">
+          <div class="dslot left">
+            <div class="dstack">
+              ${designItem(data.largeButtons, "top", { imagePosClass: "pos-largebuttons-img" })}
+              ${designItem(data.btnDboty, "top", { imagePosClass: "pos-btndboty-img" })}
+            </div>
+          </div>
+          <div class="dslot right">
+            ${designItem(data.buttonPatti, "right", {
+              imageSizeClass: "ditem-image-buttonpatti",
+              imagePosClass: "pos-buttonpatti-img",
+              sizeSizeClass: "ditem-sizes-buttonpatti",
+              sizePosClass: "pos-buttonpatti-size",
+              aboveSizeNote: data.fiveBtn ? "5 Button" : undefined,
+              aboveSizeNoteClass: "pos-5button-note",
+            })}
+          </div>
+        </div>
+
+        <div class="drow spread">
+          <div class="dslot left">${designItem(data.pockets, "top", { large: true, imagePosClass: "pos-pockets-img" })}</div>
+          <div class="dslot right">${designItem(data.jaib, "right", {
+            large: true,
+            imagePosClass: "pos-jaib-img",
+            sizePosClass: "pos-jaib-size",
+          })}</div>
+        </div>
+
+        <div class="drow">
+          <div class="dslot left">${designItem(data.kajPatti, "top", {
+            imageSizeClass: "ditem-image-kajpatti",
+            imagePosClass: "pos-kajpatti-img",
+          })}</div>
+          <div class="dslot right">
+            ${designItem(data.cuff, "right", {
+              imageSizeClass: "ditem-image-kuf",
+              imagePosClass: "pos-kuf-img",
+              sizePosClass: "pos-kuf-size",
+              belowNote: data.kafDboty ? undefined : "Kaf Dboty Na Ho",
+              belowNoteClass: "pos-kafdboty-note",
+            })}
+          </div>
+        </div>
+
+        <div class="drow spread">
+          <div class="dslot left pos-shalwarzip">${designItem(data.shalwarZip, "top", { large: true })}</div>
+          <div class="dslot right">${designItem(data.bazu, "right", {
+            large: true,
+            imagePosClass: "pos-bazu-img",
+            sizePosClass: "pos-bazu-size",
+          })}</div>
+        </div>
+
+        <div class="drow">
+          <div class="dslot left pos-daman">${designItem(data.daman, "top", { large: true })}</div>
+          <div class="dslot right"></div>
+        </div>
       </div>
     </div>
+
+    <div class="delivery-pin">D. Date:       <span class="delivery-value">${escapeHtml(data.deliveryDate)}</span></div>
 
     <div class="footer">Developed by IntellectualHut &middot; 0304-9024972</div>
   </div>

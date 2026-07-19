@@ -24,6 +24,7 @@ import {
   PART_TYPE_DB_CODES,
   POCKET_IMAGES,
   POCKET_OPTIONS,
+  SIZE_FRACTION_LABELS,
   STYLE_FLAG_IMAGES,
   STYLE_FLAGS,
   STYLE_FLAG_DB_CODES,
@@ -929,12 +930,18 @@ export function useShalwarKameezForm() {
   // row-by-row mapping this mirrors. Each helper below builds one
   // OrderSheetDesignItem, or null when there's nothing to show for that
   // slot; buildOrderSheetHtml drops any row whose items are all null.
-  function partDesignItem(key: PartDesignKey, labelUr: string, forcedDesignNo?: string) {
+  // `separator` defaults to " / " -- order-sheet.ts's sizeLines() splits on
+  // exactly that to stack size1/size2 as separate lines (Jaib/Kuf/Bazu).
+  // Button Patti passes "-" instead so its Length/Width prints as one
+  // "12-1 3/4" line rather than stacking (client request) -- sizeLines()
+  // only splits on " / ", so a "-"-joined string naturally stays single-line.
+  function partDesignItem(key: PartDesignKey, labelUr: string, forcedDesignNo?: string, separator = " / ", reverseSizes = false) {
     const row = state.partDesigns.find((r) => r.key === key)
     if (!row) return null
     const designNo = forcedDesignNo ?? row.designNo
     const image = PART_DESIGN_IMAGES[key].find((option) => option.value === designNo)
-    const sizeText = [row.size1 && formatSizeLabel(row.size1), row.size2 && formatSizeLabel(row.size2)].filter(Boolean).join(" / ") || null
+    const sizes = [row.size1 && formatSizeLabel(row.size1), row.size2 && formatSizeLabel(row.size2)]
+    const sizeText = (reverseSizes ? sizes.reverse() : sizes).filter(Boolean).join(separator) || null
     if (!image && !sizeText) return null
     return { imageSrc: image?.src ?? null, label: labelUr, size: sizeText }
   }
@@ -945,15 +952,32 @@ export function useShalwarKameezForm() {
 
   const collarSelected = collarOptions.find((o) => o.checked)
   const bainSelected = bainOptions.find((o) => o.checked)
-  // Collar and Bain/Gala share one slot on the reference form -- collar
-  // wins if the form data somehow has both set, since it's listed first.
-  const collarOrBainItem = collarSelected
-    ? { imageSrc: COLLAR_IMAGES[collarSelected.value] ?? null, label: collarSelected.label, size: state.collarSize || null }
-    : bainSelected
-      ? { imageSrc: BAIN_GALA_IMAGES[bainSelected.value] ?? null, label: bainSelected.label, size: state.bainSize || null }
-      : null
+  // Bain/Gala and Collar each get their own cell on the reference form now
+  // (row 1, left/right) -- a client can have both selected at once, so
+  // unlike the old single shared slot, neither one displaces the other.
+  // Print sheet's size text reuses the exact same Unicode vulgar-fraction
+  // glyphs (½ ¼ ¾) as the on-screen size picker (see SIZE_FRACTION_LABELS)
+  // -- a proper "1¼" character reads as a professionally-set fraction in
+  // any font, rather than order-sheet.ts's own small-font-span fallback
+  // (which only kicks in for a value with no glyph mapped, e.g. "1-1").
+  const bainItem = bainSelected
+    ? {
+        imageSrc: BAIN_GALA_IMAGES[bainSelected.value] ?? null,
+        label: bainSelected.label,
+        size: state.bainSize ? (SIZE_FRACTION_LABELS[state.bainSize] ?? state.bainSize) : null,
+      }
+    : null
+  const collarItem = collarSelected
+    ? {
+        imageSrc: COLLAR_IMAGES[collarSelected.value] ?? null,
+        label: collarSelected.label,
+        size: state.collarSize ? (SIZE_FRACTION_LABELS[state.collarSize] ?? state.collarSize) : null,
+      }
+    : null
 
   const pocketSelected = pocketOptions.find((o) => o.checked)
+  // Order sheet shows Pockets as image-only -- no size/count digit, no
+  // label (client request).
   const pocketsItem = pocketSelected
     ? { imageSrc: POCKET_IMAGES[pocketSelected.value] ?? null, label: pocketSelected.label, size: null }
     : null
@@ -969,15 +993,28 @@ export function useShalwarKameezForm() {
   // applies at save time, mirrored here so the print sheet matches what
   // actually gets saved. Size1/Size2 are left untouched by this override,
   // same as at save time -- only the image changes.
-  const jaibItem = partDesignItem("jaib", "جیب", state.styleFlags.noJeb ? "9" : undefined)
-  const buttonPattiItem = partDesignItem("buttonPatti", "بٹن پٹی")
-  const cuffItem = partDesignItem("kuf", "کف")
+  // Jaib's two size lines print in reverse order (size2 above size1) --
+  // client request, same as Kuf below, opposite of Bazu's natural
+  // size1-then-size2 stack.
+  const jaibItem = partDesignItem("jaib", "جیب", state.styleFlags.noJeb ? "9" : undefined, " / ", true)
+  const buttonPattiItem = partDesignItem("buttonPatti", "بٹن پٹی", undefined, "-")
+  // Kuf's two size lines print in reverse order (size2 above size1) --
+  // client request, same as Jaib above and Bazu below.
+  const cuffItem = partDesignItem("kuf", "کف", undefined, " / ", true)
+  // Bazu's two size lines print in reverse order (size2 above size1) --
+  // client request, same as Jaib/Kuf above.
+  const bazuItem = partDesignItem("bazu", "بازو", undefined, " / ", true)
 
-  // Kaf Dboty has no confirmed image (see STYLE_FLAG_IMAGES) -- shown as a
-  // label-only slot when checked, same "no image -> just the name" fallback
-  // used throughout this sheet.
+  // Kaj Patti/Large Buttons have no confirmed per-item image beyond
+  // STYLE_FLAG_IMAGES -- shown as a label-only slot when checked, same
+  // "no image -> just the name" fallback used throughout this sheet.
   const kajPattiItem = flagItem(state.styleFlags.kajPatti, "Kaj Patti", STYLE_FLAG_IMAGES[STYLE_FLAG_DB_CODES.kajPatti] ?? null)
-  const kafDbotyItem = flagItem(state.styleFlags.kafDboty, "Kaf Dboty", STYLE_FLAG_IMAGES[STYLE_FLAG_DB_CODES.kafDboty] ?? null)
+  const largeButtonsDesignItem = flagItem(
+    state.basicChecks.isLargeButtons,
+    "Large Buttons",
+    STYLE_FLAG_IMAGES[STYLE_FLAG_DB_CODES.isLargeButtons] ?? null
+  )
+  const btnDbotyItem = flagItem(state.styleFlags.btnDboty, "Btn Dboty", STYLE_FLAG_IMAGES[STYLE_FLAG_DB_CODES.btnDboty] ?? null)
   const shalwarZipDesignItem = flagItem(
     state.basicChecks.shalwarZip,
     "Shalwar Zip",
@@ -992,14 +1029,19 @@ export function useShalwarKameezForm() {
     deliveryDate: formatDueDate(deliveryDate),
     quantity: String(quantity),
     measurements: measurementRows.map((row) => ({ ur: row.ur, value: row.value })),
-    collarOrBain: collarOrBainItem,
+    bain: bainItem,
+    collar: collarItem,
+    largeButtons: largeButtonsDesignItem,
+    btnDboty: btnDbotyItem,
     buttonPatti: buttonPattiItem,
-    jaib: jaibItem,
+    fiveBtn: state.styleFlags.fiveBtn,
     pockets: pocketsItem,
+    jaib: jaibItem,
     kajPatti: kajPattiItem,
-    kafDboty: kafDbotyItem,
     cuff: cuffItem,
+    kafDboty: state.styleFlags.kafDboty,
     shalwarZip: shalwarZipDesignItem,
+    bazu: bazuItem,
     daman: damanItem,
   })
 

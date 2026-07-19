@@ -253,7 +253,10 @@ export const PART_DESIGN_SIZE_CONFIG: Record<PartDesignKey, PartDesignSizeConfig
 // fraction glyphs (½ ¼ ¾) -- a single compact character that reads as a
 // proper small fraction in any font, instead of a plain "1/2" string. The
 // saved `value` stays the literal string from the client, untouched.
-const SIZE_FRACTION_LABELS: Record<string, string> = {
+// Exported so lib/utils/order-sheet.ts's print sheet can reuse the exact
+// same glyphs for Bain/Collar's size text, instead of a separate
+// small-font-span approximation of a "professional" fraction.
+export const SIZE_FRACTION_LABELS: Record<string, string> = {
   "1/2": "½",
   "3/4": "¾",
   "1 1/4": "1¼",
@@ -378,4 +381,5 @@ export const STYLE_FLAG_IMAGES: Record<string, string> = {
   kaj_patti: "/kameez-shalwar-assets/kajpatti/kajpatti.jpg",
   shalwar_zip: "/kameez-shalwar-assets/shalwar-zip/zip.jpg",
   large_buttons: "/kameez-shalwar-assets/largebuttons/largebtns.jpg",
+  btn_dboty: "/kameez-shalwar-assets/btn-dboty/btn-dboty.jpg",
 }
