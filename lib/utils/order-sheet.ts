@@ -44,11 +44,23 @@
 //
 // Deliberately dropped versus the previous version, because the reference
 // form has no place for them ("nothing extra" per the brief this replaced):
-// Phone No, the free-text Note, Button Type, and every style flag other
-// than Kaj Patti/Kaf Dboty/Shalwar Zip/Large Buttons/5 Btn (so Btn Dboty,
-// No Lbl, 2 Jeb, No Jeb never appear on this sheet even when checked). If
-// any of those turn out to still be needed, that's a real omission to
-// flag, not something this file tries to guess back in.
+// Phone No, Button Type, and every style flag other than Kaj Patti/Kaf
+// Dboty/Shalwar Zip/Large Buttons/5 Btn/No Lbl/2 Jeb (so Btn Dboty and No
+// Jeb still never appear on this sheet even when checked -- No Jeb instead
+// silently swaps in Jaib's "no pocket" design image, per the hook that
+// builds this data). If any of those turn out to still be needed, that's a
+// real omission to flag, not something this file tries to guess back in.
+//
+// No Lbl/2 Jeb and the free-text Note reappeared later (client request) --
+// since the reference form has no place for them either, they don't join
+// the design-area flow like everything else above. Instead they print as
+// stacked lines pinned to the page's own bottom-left corner (.note-pin),
+// mirroring how Delivery Date is pinned bottom-right (.delivery-pin) --
+// same reasoning: keeping them out of the design-area flow means they add
+// no flow height that could tip the sheet onto a second printed page. When
+// present, No Lbl and/or 2 Jeb print first (one line each, in that order),
+// then the Note text below them, all in that one bottom-left spot -- never
+// three separate places on the page.
 //
 // Same standalone-document architecture as lib/utils/receipt.ts, and for
 // the same reason: @page can't be scoped by a CSS class, so this sheet's
@@ -116,6 +128,12 @@ export interface OrderSheetData {
   shalwarZip: OrderSheetDesignItem | null
   bazu: OrderSheetDesignItem | null
   daman: OrderSheetDesignItem | null
+  // No Lbl/2 Jeb style flags and the free-text Note -- none of these join
+  // the design-area flow (see the file-header comment); they print as
+  // stacked lines pinned to the page's bottom-left corner instead.
+  noLbl: boolean
+  twoJeb: boolean
+  note: string
 }
 
 function escapeHtml(value: string): string {
@@ -280,6 +298,20 @@ function designItem(
 
   const sizeBlock = lines.length ? `<div class="${sizeClass}">${formatSizeWithFraction(lines.join(" / "))}</div>` : ""
   return `<div class="ditem">${sizeBlock}${imageBlock}${belowNoteBlock}</div>`
+}
+
+// No Lbl/2 Jeb (each one checkbox-driven, so at most one line apiece) then
+// the free-text Note (which can itself span multiple lines) -- stacked in
+// that order inside .note-pin. Empty string (not even an empty .note-pin
+// div) when none of the three are present, same as every other optional
+// block on this sheet.
+function notePinBlock(data: Pick<OrderSheetData, "noLbl" | "twoJeb" | "note">): string {
+  const lines: string[] = []
+  if (data.noLbl) lines.push("No Lbl")
+  if (data.twoJeb) lines.push("2 Jeb")
+  if (data.note.trim()) lines.push(data.note.trim())
+  if (!lines.length) return ""
+  return `<div class="note-pin">${lines.map((line) => `<div>${escapeHtml(line)}</div>`).join("")}</div>`
 }
 
 export function buildOrderSheetHtml(data: OrderSheetData): string {
@@ -556,6 +588,15 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
      page's own 2.5mm padding inset so it never prints past the border/A5
      edge. */
   .delivery-pin { position: absolute; right: 4.5mm; bottom: 8.5mm;  font-size: 16px; font-weight: bold; text-align: right; }
+  /* No Lbl/2 Jeb + the free-text Note pin to the page's own bottom-left
+     corner, mirroring .delivery-pin's bottom-right pin above -- same
+     reasoning: kept out of the design-area's flow entirely (position:
+     absolute on .page) so none of them add flow height that could tip the
+     sheet onto a second printed page. Stacked lines, not one run-on line,
+     since the Note can be long free text. */
+  .note-pin { position: absolute; left: 4.5mm; bottom: 8.5mm; max-width: 60mm; font-size: 12px; font-weight: bold; text-align: left; }
+  .note-pin div { margin-top: 0.3mm; }
+  .note-pin div:first-child { margin-top: 0; }
 
   .footer { margin-top: 1mm; text-align: center; font-size: 6.5px; color: #999; }
 </style>
@@ -660,6 +701,8 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
         </div>
       </div>
     </div>
+
+    ${notePinBlock(data)}
 
     <div class="delivery-pin">D. Date:       <span class="delivery-value">${escapeHtml(data.deliveryDate)}</span></div>
 

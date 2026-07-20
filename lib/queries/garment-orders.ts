@@ -153,6 +153,30 @@ export async function findMatchingClients(query: ClientSearchQuery): Promise<Cli
   return (data ?? []).map(toClientRow)
 }
 
+// Inserts a brand-new clients row immediately from the Add Client modal's own
+// Save button (see add-client-modal.tsx handleSave) -- previously a client
+// added there was only ever a Client No/Name/Phone handoff to the main sheet,
+// with the actual clients-table row not written until the whole order got
+// saved later (create_shalwar_kameez_order's own upsert). That meant a client
+// added here but never followed by a saved order never made it into the
+// clients table at all. order_type is fixed to 'kameez_shalwar' since this
+// modal only exists inside the Shalwar Kameez form -- same fixed value
+// create_shalwar_kameez_order's own caller already passes (see
+// use-shalwar-kameez-form.ts). handleSave already re-checks Client No/Phone
+// for a clash immediately before calling this, so a unique-constraint error
+// here should only ever mean a race with another tailor saving the same
+// values in between.
+export async function addClient(client: { clientNo: string; clientName: string; phoneNo: string }): Promise<void> {
+  const supabase = createClient()
+  const { error } = await supabase.from("clients").insert({
+    client_no: client.clientNo,
+    client_name: client.clientName,
+    phone_no: client.phoneNo,
+    order_type: "kameez_shalwar",
+  })
+  if (error) throw new Error(error.message)
+}
+
 // garment_orders.client_id is on delete cascade (see
 // 20260716000000_cascade_delete_client_orders.sql), which cascades further
 // down to shalwar_kameez_details/order_part_designs/order_style_flags -- so

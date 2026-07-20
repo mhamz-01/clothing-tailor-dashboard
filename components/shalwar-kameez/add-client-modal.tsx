@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button"
 import { ClientNoInput } from "@/components/shalwar-kameez/client-no-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { deleteClient, fetchNextClientNumber, findMatchingClients, searchClients } from "@/lib/queries/garment-orders"
+import { addClient, deleteClient, fetchNextClientNumber, findMatchingClients, searchClients } from "@/lib/queries/garment-orders"
 import { CLIENT_NO_PATTERN, FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
 import type { ClientRow, ClientSearchQuery } from "@/types/garment-order"
@@ -24,10 +24,10 @@ import type { ClientRow, ClientSearchQuery } from "@/types/garment-order"
 interface AddClientModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  // Carries the newly-entered Client No/Name/Phone back up to the main sheet
-  // (see client-lookup-section.tsx) -- the clients table row itself is only
-  // written later, when the whole order is saved (create_shalwar_kameez_order
-  // upserts it), so this is just a handoff of the three fields.
+  // Fired after Save has already written the new row to the clients table
+  // (see handleSave/addClient) -- carries the same Client No/Name/Phone back
+  // up to the main sheet (see client-lookup-section.tsx) so it can load them
+  // into the form, same as picking an existing client would.
   onAdd: (client: { clientNo: string; clientName: string; phoneNo: string }) => void
   // Fired when a row in the "already on file" match table is picked instead
   // -- unlike onAdd, this loads that client's full previous order (not just
@@ -147,16 +147,18 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, on
     setSuccessMsg("")
   }
 
-  // Re-checks Client No and Phone No against the DB right before handing
-  // values to the outer form -- the "matches" list above can be stale (typed
-  // after the last blur, or Save clicked before that lookup resolved), and
-  // with phone_no now unique (see
-  // 20260715020000_add_clients_phone_no_unique.sql) a collision on either
-  // field would otherwise reach create_shalwar_kameez_order and fail there
-  // instead of here, or silently overwrite someone's phone number since that
-  // RPC upserts by Client No. Blocks the handoff and tells the tailor to pick
-  // the existing row or delete it first, rather than ever forwarding
-  // colliding values up to client-lookup-section.
+  // Re-checks Client No and Phone No against the DB right before writing the
+  // new row -- the "matches" list above can be stale (typed after the last
+  // blur, or Save clicked before that lookup resolved), and with phone_no now
+  // unique (see 20260715020000_add_clients_phone_no_unique.sql) a collision
+  // on either field would otherwise fail the insert below with a raw DB
+  // error instead of this friendlier one. Blocks the save and tells the
+  // tailor to pick the existing row or delete it first, rather than ever
+  // attempting to insert colliding values. Once both checks clear, addClient
+  // writes the row to the clients table immediately -- Save no longer just
+  // hands the three fields up for create_shalwar_kameez_order to write later,
+  // so a client added here exists on file even if no order is ever saved for
+  // them.
   async function handleSave() {
     const clientNo = fields.clientId.trim().toUpperCase()
     const clientName = fields.clientName.trim()
@@ -184,8 +186,9 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, on
         )
         return
       }
+      await addClient({ clientNo, clientName, phoneNo })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not verify client details.")
+      setError(err instanceof Error ? err.message : "Could not save client.")
       return
     } finally {
       setIsSaving(false)

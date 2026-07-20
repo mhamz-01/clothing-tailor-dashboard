@@ -1055,6 +1055,9 @@ export function useShalwarKameezForm() {
     shalwarZip: shalwarZipDesignItem,
     bazu: bazuItem,
     daman: damanItem,
+    noLbl: state.styleFlags.noLbl,
+    twoJeb: state.styleFlags.twoJeb,
+    note: state.note,
   })
 
   return {
