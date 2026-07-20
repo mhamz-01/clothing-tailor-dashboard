@@ -366,10 +366,10 @@ export const BAIN_GALA_IMAGES: Record<string, string> = {
 }
 
 export const COLLAR_IMAGES: Record<string, string> = {
-  american_cut: "/kameez-shalwar-assets/collar/collor4.jpg",
-  english_cut: "/kameez-shalwar-assets/collar/collor2.jpg",
-  french_cut: "/kameez-shalwar-assets/collar/collor1.jpg",
-  collar: "/kameez-shalwar-assets/collar/collor3.jpg",
+  american_cut: "/kameez-shalwar-assets/collar/collor4-removebg.png",
+  english_cut: "/kameez-shalwar-assets/collar/collor2-removebg.png",
+  french_cut: "/kameez-shalwar-assets/collar/collor1-removebg.png",
+  collar: "/kameez-shalwar-assets/collar/collor3-removebg.png",
 }
 
 export const DAMAN_IMAGES: Record<string, string> = {

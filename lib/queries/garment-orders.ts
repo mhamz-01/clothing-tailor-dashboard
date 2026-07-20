@@ -227,7 +227,7 @@ export async function fetchLatestOrderForClient(clientNo: string): Promise<Lates
     bain_size: string | null
     collar_size: string | null
     style_flag_codes: string[]
-    part_designs: { part_type: PartType; size1: number | null; size2: number | null; design_no: number | null }[]
+    part_designs: { part_type: PartType; size1: string | null; size2: string | null; design_no: number | null }[]
   }
 
   return {

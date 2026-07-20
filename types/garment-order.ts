@@ -55,8 +55,12 @@ export interface OrderMeasurementsInput {
 
 export interface PartDesignInput {
   partType: PartType
-  size1: number | null
-  size2: number | null
+  // Free text, not a number -- order_part_designs.size1/size2 are `text`
+  // (see 20260720000000_order_part_designs_size_to_text.sql) because the
+  // size pickers offer fraction values ("1 1/4") and, for Jaib, dimension
+  // pairs ("4x4 1/2") that a numeric column can't hold.
+  size1: string | null
+  size2: string | null
   designNo: number | null
 }
 
@@ -78,8 +82,9 @@ export interface LatestOrderMeasurements {
 
 export interface LatestOrderPartDesign {
   partType: PartType
-  size1: number | null
-  size2: number | null
+  // See PartDesignInput above -- same text-not-number reasoning.
+  size1: string | null
+  size2: string | null
   designNo: number | null
 }
 

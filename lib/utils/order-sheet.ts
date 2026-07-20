@@ -88,6 +88,13 @@ export interface OrderSheetData {
   // a client can genuinely have both selected, so unlike an older single
   // shared slot, both render independently when present.
   bain: OrderSheetDesignItem | null
+  // Gol Gala's reference image sits differently within its own frame than
+  // the other Bain/Gala options (Gool Bain/Sida Bain/Half Bain/Half Bain
+  // Gol all share one look) -- so it needs its own position nudge rather
+  // than the shared one every other Bain/Gala option uses. This is the
+  // only Bain/Gala option that needs the distinction; nothing else about
+  // Bain rendering depends on which specific option was picked.
+  bainIsGolGala: boolean
   collar: OrderSheetDesignItem | null
   // Large Buttons sits beside Button Patti in row 2 -- it's a style flag,
   // not a part design, so it carries no size of its own. Btn Dboty stacks
@@ -234,7 +241,12 @@ function designItem(
   const imageBlock = item.imageSrc
     ? `<div class="${imageClass}"><img src="${resolveAssetUrl(item.imageSrc)}" alt="${escapeHtml(item.label ?? "")}" /></div>`
     : ""
-  const belowNoteBlock = opts.belowNote ? note(opts.belowNote, opts.belowNoteClass ?? "") : ""
+  // `!== undefined` rather than a truthy check -- callers that want a
+  // fixed-height reservation for this note regardless of whether it has
+  // text this time around (see Kuf/pos-kafdboty-note) pass "" instead of
+  // omitting the option, so the note div (and its reserved height) still
+  // renders, just empty.
+  const belowNoteBlock = opts.belowNote !== undefined ? note(opts.belowNote, opts.belowNoteClass ?? "") : ""
   const sizeClass = ["ditem-size", opts.sizeSizeClass, opts.sizePosClass].filter(Boolean).join(" ")
 
   if (sizePosition === "right") {
@@ -361,6 +373,28 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
      paints; shrinking it recovers page height without moving anything
      visible. */
   .dstack { position: relative; height: 34mm; width: 22mm; }
+  /* Same fix as .kajpatti-slot further down, generalized to the rest of
+     the sheet: .design-area's justify-content: space-between sizes every
+     row-to-row gap off the *sum* of all six rows' heights, and each row's
+     own height is set by whichever of its two items is tallest. Left
+     unreserved, any row where the taller item happens to be unchecked
+     shrinks, and that freed height gets redistributed across every gap on
+     the page -- shifting every other item's position, even ones in
+     unrelated rows (this is what made Collar's position depend on whether
+     Bain, or anything else on the sheet, was checked -- Bain's row is the
+     one right above it, and once its own height became inconsistent, so
+     did every row after it). Each class below reserves its row's
+     known-tallest item's full footprint unconditionally -- present or not
+     -- so that row's track height, and therefore every gap derived from
+     it, stays constant no matter what's checked anywhere else on the
+     sheet. Only the tallest item per row needs reserving; a shorter
+     sibling can never grow the row past what the reserved one already
+     guarantees. Row 2 (dstack above) and row 4 (.kajpatti-slot below) are
+     already covered by their own existing fixed boxes. */
+  .bain-slot { height: 29mm; width: 22mm; }
+  .pockets-slot { height: 22mm; width: 22mm; }
+  .shalwarzip-slot { height: 22mm; width: 22mm; }
+  .daman-slot { height: 22mm; width: 22mm; }
 
   .ditem { display: flex; flex-direction: column; align-items: center; text-align: center; }
   .ditem-size { font-size: 20px; font-weight: bold; margin-bottom: 0; }
@@ -368,7 +402,20 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
   .ditem-image { height: 18mm; width: 18mm; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
   /* Nudges just Bain's image -- its size text (.ditem-size, a sibling
      above it) stays put since this only targets the image element. */
-  .pos-bain-img { position: relative; top: -5mm; left: 0mm; }
+  .pos-bain-img { position: relative; top: -6mm; left: 0mm; }
+  /* Nudges just Bain's size text -- its image (a sibling below it) is
+     untouched, and this is independent of .dslot.pos-bain (which moves the
+     whole item, image included) and .pos-bain-img above. */
+  .pos-bain-size { position: relative; top: 0mm; left: 0mm; }
+  /* Gol Gala-only overrides -- swapped in for .pos-bain-img/.pos-bain-size
+     above (not layered on top of them) whenever the selected Bain/Gala
+     option is specifically Gol Gala (see OrderSheetData.bainIsGolGala),
+     since its reference image sits differently in its own frame than
+     Gool Bain/Sida Bain/Half Bain/Half Bain Gol, which all share one look
+     and stay on .pos-bain-img/.pos-bain-size. Editing these only ever
+     affects Gol Gala; every other Bain/Gala option is untouched. */
+  .pos-bain-img-golgala { position: relative; top: 1mm; left: 0mm; }
+  .pos-bain-size-golgala { position: relative; top: 0mm; left: 0mm; }
   .ditem-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
   .ditem-image-lg { height: 22mm; width: 22mm; }
   /* Kuf's own size, independent of .ditem-image-lg above -- edit this one
@@ -388,8 +435,18 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
   .pos-kuf-size { position: relative; top: -8mm; left: -10mm; display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 2.4mm; }
   /* Nudges just the "Kaf Dboty"/"Kaf Dboty Na Ho" note under the Kuf image
      -- the image (a sibling) is untouched, and this is independent of
-     .pos-kuf-size above (which only moves the size numbers). */
-  .pos-kafdboty-note { position: relative; top: -7mm; left: -11mm; }
+     .pos-kuf-size above (which only moves the size numbers). Also reserves
+     this note's height unconditionally: Kuf's image (.ditem-main) and its
+     size numbers (.ditem-sizes) are flex siblings in .ditem-row, which
+     centers them on each other (align-items: center) -- so when the note
+     was only rendered while unchecked, ditem-main's own height changed
+     between checked/unchecked, and centering shifted the size numbers up
+     or down to match, even though they have nothing to do with Kaf Dboty.
+     The explicit height below (plus designItem always rendering this div,
+     just empty, when checked -- see the belowNote !== undefined check in
+     designItem) keeps ditem-main's height constant either way, so Kuf's
+     size numbers no longer move based on the note's presence. */
+  .pos-kafdboty-note { position: relative; top: -7mm; left: -11mm; height: 4.5mm; }
   /* Nudges just Jaib's image -- its stacked size numbers (a sibling) are
      untouched. */
   .pos-jaib-img { position: relative; top: 0mm; left: 0mm; }
@@ -421,6 +478,19 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
      Patti has no size/note of its own), so this is independent of every
      other item's position. */
   .pos-kajpatti-img { position: relative; top: -5mm; left: -10mm; }
+  /* .design-area's justify-content: space-between (see above) sizes every
+     row-to-row gap off the *sum* of all six rows' heights -- so when Kaj
+     Patti is unchecked, its dslot renders nothing, row 4's own flex track
+     shrinks from 35mm (Kaj Patti's image height) down to Kuf's ~18mm, and
+     that freed-up height gets redistributed across every gap, including
+     the one above row 4. Net effect: row 4's own top position -- and
+     Kuf's position inside it -- shifted depending on Kaj Patti's checked
+     state, even though Kuf has nothing to do with Kaj Patti. This box
+     reserves Kaj Patti's full 35mm/18mm footprint unconditionally (same
+     fix as .dstack uses for Large Buttons/Btn Dboty, just for a single
+     item instead of two stacked ones), so row 4's track height -- and
+     Kuf's position -- stay constant whether or not Kaj Patti is present. */
+  .kajpatti-slot { height: 35mm; width: 18mm; }
   /* Button Patti's own size, same pattern -- edit this one to resize just
      its picture without touching Bain/Collar/Pockets/Jaib/Bazu/Shalwar
      Zip/Daman, which still share .ditem-image-lg above. */
@@ -436,22 +506,22 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
   /* Nudges just Button Patti's size numbers ("12-1 3/4") -- independent of
      the "5 Button" note above it and of Button Patti's image (both
      siblings). */
-  .pos-buttonpatti-size { position: relative; top: -9mm; left: -3mm; }
+  .pos-buttonpatti-size { position: relative; top: -9mm; left: 0mm; }
   /* Nudges just the "5 Button" note -- independent of Button Patti's size
      numbers below it (a sibling inside the same .ditem-sizes column). */
   .pos-5button-note { position: relative; top:-10mm; left: 1mm; }
   /* Collar's own size, same pattern -- edit this one to resize just its
      picture without touching Bain/Button Patti/Pockets/Jaib/Bazu/Shalwar
      Zip/Daman, which still share .ditem-image-lg above. */
-  .ditem-image-collar { height: 24mm; width: 30mm; }
+  .ditem-image-collar { height: 20mm; width: 30mm; }
   /* Nudges just Collar's size text -- the image beside it (a sibling) is
      untouched, and this is independent of .dslot.pos-collar (which moves
      the whole item, image included). */
-  .pos-collar-size { position: relative; top: -5mm; left: 1mm; }
+  .pos-collar-size { position: relative; top: -8mm; left: 2mm; }
   /* Nudges just Collar's image -- its size text (a sibling) is untouched,
      and this is independent of .dslot.pos-collar (which moves the whole
      item, image included) and .pos-collar-size above. */
-  .pos-collar-img { position: relative; top: -1mm; left: 0mm; }
+  .pos-collar-img { position: relative; top: -4mm; left: 0mm; }
   /* Large Buttons' own position within .dstack -- position: absolute so it
      sits at a fixed spot in the box regardless of whether Btn Dboty (its
      sibling below) is present at all. Edit top/left to move just this
@@ -516,7 +586,11 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
 
       <div class="design-area">
         <div class="drow gap-lg spread tight-below pos-row1">
-          <div class="dslot left pos-bain">${designItem(data.bain, "top", { large: true, imagePosClass: "pos-bain-img" })}</div>
+          <div class="dslot left pos-bain"><div class="bain-slot">${designItem(data.bain, "top", {
+            large: true,
+            imagePosClass: data.bainIsGolGala ? "pos-bain-img-golgala" : "pos-bain-img",
+            sizePosClass: data.bainIsGolGala ? "pos-bain-size-golgala" : "pos-bain-size",
+          })}</div></div>
           <div class="dslot right pos-collar">${designItem(data.collar, "left", { imageSizeClass: "ditem-image-collar", imagePosClass: "pos-collar-img", sizePosClass: "pos-collar-size" })}</div>
         </div>
 
@@ -540,7 +614,7 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
         </div>
 
         <div class="drow spread">
-          <div class="dslot left">${designItem(data.pockets, "top", { large: true, imagePosClass: "pos-pockets-img" })}</div>
+          <div class="dslot left"><div class="pockets-slot">${designItem(data.pockets, "top", { large: true, imagePosClass: "pos-pockets-img" })}</div></div>
           <div class="dslot right">${designItem(data.jaib, "right", {
             large: true,
             imagePosClass: "pos-jaib-img",
@@ -549,23 +623,23 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
         </div>
 
         <div class="drow">
-          <div class="dslot left">${designItem(data.kajPatti, "top", {
+          <div class="dslot left"><div class="kajpatti-slot">${designItem(data.kajPatti, "top", {
             imageSizeClass: "ditem-image-kajpatti",
             imagePosClass: "pos-kajpatti-img",
-          })}</div>
+          })}</div></div>
           <div class="dslot right">
             ${designItem(data.cuff, "right", {
               imageSizeClass: "ditem-image-kuf",
               imagePosClass: "pos-kuf-img",
               sizePosClass: "pos-kuf-size",
-              belowNote: data.kafDboty ? undefined : "Kaf Dboty Na Ho",
+              belowNote: data.kafDboty ? "" : "Kaf Dboty Na Ho",
               belowNoteClass: "pos-kafdboty-note",
             })}
           </div>
         </div>
 
         <div class="drow spread">
-          <div class="dslot left pos-shalwarzip">${designItem(data.shalwarZip, "top", { large: true })}</div>
+          <div class="dslot left pos-shalwarzip"><div class="shalwarzip-slot">${designItem(data.shalwarZip, "top", { large: true })}</div></div>
           <div class="dslot right">${designItem(data.bazu, "right", {
             large: true,
             imagePosClass: "pos-bazu-img",
@@ -574,7 +648,7 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
         </div>
 
         <div class="drow">
-          <div class="dslot left pos-daman">${designItem(data.daman, "top", { large: true })}</div>
+          <div class="dslot left pos-daman"><div class="daman-slot">${designItem(data.daman, "top", { large: true })}</div></div>
           <div class="dslot right"></div>
         </div>
       </div>

@@ -93,6 +93,14 @@ function toNullableInt(value: string): number | null {
   return Number.isNaN(parsed) ? null : parsed
 }
 
+// Part-design size1/size2 are free text (fraction values like "1 1/4",
+// or Jaib's dimension pairs like "4x4 1/2") -- no parseFloat, just an
+// empty-string-to-null normalization, same shape as toNullableNumber/
+// toNullableInt above.
+function toNullableString(value: string): string | null {
+  return value.trim() === "" ? null : value
+}
+
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Something went wrong."
 }
@@ -307,8 +315,11 @@ export function useShalwarKameezForm() {
           const match = partByType.get(PART_TYPE_DB_CODES[row.key])
           return {
             ...row,
-            size1: match ? numberToInput(match.size1) : "",
-            size2: match ? numberToInput(match.size2) : "",
+            // Stored as text now (see PartDesignInput) -- no numberToInput
+            // round-trip, so fraction/dimension values like "1 1/4" or
+            // "4x4 1/2" survive a save-then-refetch intact.
+            size1: match?.size1 ?? "",
+            size2: match?.size2 ?? "",
             designNo: match?.designNo != null ? String(match.designNo) : "",
           }
         }),
@@ -630,8 +641,8 @@ export function useShalwarKameezForm() {
       .filter((row) => row.designNo.trim() || row.size1.trim() || row.size2.trim() || (row.key === "jaib" && state.styleFlags.noJeb))
       .map((row) => ({
         partType: PART_TYPE_DB_CODES[row.key],
-        size1: toNullableNumber(row.size1),
-        size2: toNullableNumber(row.size2),
+        size1: toNullableString(row.size1),
+        size2: toNullableString(row.size2),
         designNo: row.key === "jaib" && state.styleFlags.noJeb ? 9 : toNullableInt(row.designNo),
       }))
 
@@ -1030,6 +1041,7 @@ export function useShalwarKameezForm() {
     quantity: String(quantity),
     measurements: measurementRows.map((row) => ({ ur: row.ur, value: row.value })),
     bain: bainItem,
+    bainIsGolGala: bainSelected?.value === "gol_gala",
     collar: collarItem,
     largeButtons: largeButtonsDesignItem,
     btnDboty: btnDbotyItem,
