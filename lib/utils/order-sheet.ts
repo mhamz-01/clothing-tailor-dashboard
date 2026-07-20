@@ -223,8 +223,14 @@ function designItem(
     aboveSizeNoteClass?: string
   } = {}
 ): string {
-  if (!item || (!item.imageSrc && !item.size)) return ""
-  const lines = sizeLines(item.size)
+  // A `belowNote` is allowed to render even with no item at all -- Kaf
+  // Dboty Na Ho (see the Kuf/cuff call site) must print whenever Kaf Dboty
+  // is unchecked regardless of whether Kuf itself has anything selected
+  // (e.g. the whole sheet is otherwise empty except Collar). Bailing out
+  // early on `!item` here used to swallow that note along with the rest of
+  // an empty Kuf slot.
+  if ((!item || (!item.imageSrc && !item.size)) && opts.belowNote === undefined) return ""
+  const lines = sizeLines(item ? item.size : null)
   const sizeModifierClass = opts.imageSizeClass ?? (opts.large ? "ditem-image-lg" : "")
   // `imagePosClass` is separate from the size classes above on purpose --
   // it only ever nudges position (position: relative + top/left), never
@@ -238,9 +244,10 @@ function designItem(
   // `aboveSizeNoteClass` moves that note independently, without dragging
   // the size numbers along, and vice versa.
   const imageClass = ["ditem-image", sizeModifierClass, opts.imagePosClass].filter(Boolean).join(" ")
-  const imageBlock = item.imageSrc
-    ? `<div class="${imageClass}"><img src="${resolveAssetUrl(item.imageSrc)}" alt="${escapeHtml(item.label ?? "")}" /></div>`
-    : ""
+  const imageBlock =
+    item && item.imageSrc
+      ? `<div class="${imageClass}"><img src="${resolveAssetUrl(item.imageSrc)}" alt="${escapeHtml(item.label ?? "")}" /></div>`
+      : ""
   // `!== undefined` rather than a truthy check -- callers that want a
   // fixed-height reservation for this note regardless of whether it has
   // text this time around (see Kuf/pos-kafdboty-note) pass "" instead of
