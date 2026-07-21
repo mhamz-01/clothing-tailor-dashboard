@@ -331,7 +331,25 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
   }
   [dir="rtl"] { font-family: "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Segoe UI", Tahoma, Arial, sans-serif; }
 
-  .page { position: relative; border: 1.5px solid #000; padding: 2.5mm; display: flex; flex-direction: column; height: 198mm; }
+  /* zoom (not transform: scale) -- it's a layout property in Chromium, so
+     every mm/px value inside .page, and every hand-tuned position: relative
+     top/left nudge, negative margin, and gap on every design item below,
+     scales down by the exact same factor and stays in the same position
+     *relative to each other* -- nothing was individually repositioned to
+     get this safety margin. .page was sized to exactly fill the printable
+     198mm (210mm A5 minus the @page rule's 6mm top+bottom margins above),
+     with zero slack -- so small font-rendering differences between machines
+     (installed font versions/builds of "Segoe UI"/"Noto Nastaliq Urdu"/
+     "Noto Naskh Arabic", which this sheet pulls from whatever's on that OS)
+     were enough to push the last row (Daman/the page border/the
+     delivery-pin) a fraction of a mm past 198mm on some machines, tipping
+     it onto a second printed page. 0.96 buys ~8mm of headroom (198mm x 0.04)
+     against that variance -- comfortably more than the "half cut" overflow
+     reported -- while shrinking the whole sheet by an amount too small to
+     notice on an A5 printout. Requires a Chromium browser (Chrome/Edge) --
+     already the assumption this app's print flow is built on, see
+     print-receipt.md. */
+  .page { position: relative; border: 1.5px solid #000; padding: 2.5mm; display: flex; flex-direction: column; height: 198mm; zoom: 0.96; }
 
   .title { font-size: 17px; font-weight: 800; text-align: center; letter-spacing: 0.02em; text-transform: uppercase; margin-bottom: 1.5mm; }
 
