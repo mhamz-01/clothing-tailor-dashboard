@@ -73,7 +73,8 @@ export function MeasurementsPanel({
       ))}
 
       {/* Two unlabeled quick-entry boxes below Pancha — combined width equals one
-          measurement input above; purpose not decided yet. */}
+          measurement input above; free-form numbers, tailor's choice what goes
+          in them (see extraNo1/extraNo2 in types/shalwar-kameez.ts). */}
       <div className="mt-px grid grid-cols-2 gap-1.5">
         <Input
           type="number"

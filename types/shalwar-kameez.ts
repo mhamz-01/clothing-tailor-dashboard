@@ -84,7 +84,10 @@ export interface ShalwarKameezFormState {
   phoneNo: string
   pBal: string
   measurements: Record<MeasurementKey, string>
-  // Two unlabeled quick-entry boxes below Pancha — purpose not decided yet.
+  // Two unlabeled quick-entry boxes below Pancha — free-form numbers, no
+  // fixed meaning (the tailor decides what goes in them per order). Saved
+  // to shalwar_kameez_details.extra_no1/extra_no2 and printed in the order
+  // sheet's measurements table (see lib/utils/order-sheet.ts).
   extraNo1: string
   extraNo2: string
   note: string

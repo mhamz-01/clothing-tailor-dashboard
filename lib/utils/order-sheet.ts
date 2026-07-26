@@ -96,6 +96,11 @@ export interface OrderSheetData {
   deliveryDate: string // formatted, display-ready
   quantity: string
   measurements: OrderSheetMeasurement[]
+  // The two unlabeled quick-entry number boxes below Pancha on the form
+  // (see extraNo1/extraNo2 in types/shalwar-kameez.ts) -- printed side by
+  // side in the measurements table's trailing row, see extraMeasurementRow.
+  extraNo1: string
+  extraNo2: string
   // Bain/Gala and Collar get their own slot now (left/right of row 1) --
   // a client can genuinely have both selected, so unlike an older single
   // shared slot, both render independently when present.
@@ -167,11 +172,19 @@ function measurementRow(m: OrderSheetMeasurement): string {
   return `<tr><td class="mval">${escapeHtml(m.value || "—")}</td><td class="mur" dir="rtl">${escapeHtml(m.ur)}</td></tr>`
 }
 
-// Two trailing blank rows -- matching the reference form's own layout,
-// which leaves a couple of extra rows for the tailor to hand-write a
-// measurement that isn't one of the fixed fields above.
-function blankMeasurementRow(): string {
-  return `<tr><td class="mval">&nbsp;</td><td class="mur">&nbsp;</td></tr>`
+// One trailing row, split into its own two side-by-side cells -- matching
+// the form's own layout, where extraNo1/extraNo2 sit side by side below
+// Pancha with their combined width equal to one measurement input (see
+// measurements-panel.tsx). This is the print-sheet counterpart of those two
+// unlabeled quick-entry boxes -- free-form, no fixed meaning, printed blank
+// when not filled in rather than "—" (unlike the fixed measurements above),
+// since a tailor may have nothing to write here. Reuses the table's own
+// two-column shape (mval/mur) as a plain left/right split rather than a
+// value+Urdu-label pair, since neither box has a label of its own.
+function extraMeasurementRow(value1: string, value2: string): string {
+  const display1 = value1.trim() ? escapeHtml(value1) : "&nbsp;"
+  const display2 = value2.trim() ? escapeHtml(value2) : "&nbsp;"
+  return `<tr><td class="mval">${display1}</td><td class="mval">${display2}</td></tr>`
 }
 
 // A `size` with " / " in it (Jaib/Kuf/Bazu/Button Patti's size1+size2)
@@ -645,7 +658,7 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
         <table class="mtable">
           <tbody>
             ${data.measurements.map(measurementRow).join("\n")}
-            ${blankMeasurementRow()}
+            ${extraMeasurementRow(data.extraNo1, data.extraNo2)}
           </tbody>
         </table>
       </div>

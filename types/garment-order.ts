@@ -102,6 +102,11 @@ export interface LatestClientOrder {
   buttonTypeCode: string | null
   bainSize: string | null
   collarSize: string | null
+  // The two unlabeled quick-entry number boxes below Pancha on the
+  // measurements panel (see extraNo1/extraNo2 in types/shalwar-kameez.ts) --
+  // free-form, tailor's choice what goes in them.
+  extraNo1: number | null
+  extraNo2: number | null
   styleFlagCodes: string[]
   partDesigns: LatestOrderPartDesign[]
 }
@@ -143,6 +148,8 @@ export interface CreateShalwarKameezOrderInput {
   buttonTypeCode: string | null
   bainSize: string | null
   collarSize: string | null
+  extraNo1: number | null
+  extraNo2: number | null
   styleFlagCodes: string[]
   partDesigns: PartDesignInput[]
 }

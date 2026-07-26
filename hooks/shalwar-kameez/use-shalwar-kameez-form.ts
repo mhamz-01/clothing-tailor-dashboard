@@ -332,6 +332,8 @@ export function useShalwarKameezForm() {
         },
         bainSize: data.bainSize ?? "",
         collarSize: data.collarSize ?? "",
+        extraNo1: numberToInput(data.extraNo1),
+        extraNo2: numberToInput(data.extraNo2),
       }
       lastSnapshotRef.current = snapshotEditableState(next)
       return next
@@ -678,6 +680,8 @@ export function useShalwarKameezForm() {
       buttonTypeCode: state.radios.button || null,
       bainSize: state.bainSize || null,
       collarSize: state.collarSize || null,
+      extraNo1: toNullableNumber(state.extraNo1),
+      extraNo2: toNullableNumber(state.extraNo2),
       styleFlagCodes,
       partDesigns,
     }
@@ -1040,6 +1044,8 @@ export function useShalwarKameezForm() {
     deliveryDate: formatDueDate(deliveryDate),
     quantity: String(quantity),
     measurements: measurementRows.map((row) => ({ ur: row.ur, value: row.value })),
+    extraNo1: state.extraNo1,
+    extraNo2: state.extraNo2,
     bain: bainItem,
     bainIsGolGala: bainSelected?.value === "gol_gala",
     collar: collarItem,
