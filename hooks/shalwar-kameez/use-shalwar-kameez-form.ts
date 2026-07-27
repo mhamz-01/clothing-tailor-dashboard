@@ -180,6 +180,11 @@ export function useShalwarKameezForm() {
   const [clientHistory, setClientHistory] = useState<ClientHistoryState>({ entries: [], index: -1 })
   const [pendingNav, setPendingNav] = useState<"prev" | "next" | null>(null)
   const [receiptPreviewOpen, setReceiptPreviewOpen] = useState(false)
+  // Open when a Client Name/Phone No search comes back with more than one
+  // client (see handleSearchClientName/handleSearchPhone) -- `kind` records
+  // which search triggered it, since only a phone match also loads the
+  // picked client's latest order (see handleSelectClientMatch).
+  const [clientMatchPicker, setClientMatchPicker] = useState<{ kind: "name" | "phone"; matches: ClientRow[] } | null>(null)
 
   const buttonPricesQuery = useButtonPrices()
   const pricingSettingsQuery = usePricingSettings()
@@ -700,12 +705,10 @@ export function useShalwarKameezForm() {
     }
   }
 
-  function applyClientSearchResult(results: ClientRow[]): ClientRow | null {
-    if (results.length === 0) {
-      flashStatus("No matching client found.", "error")
-      return null
-    }
-    const client = results[0]
+  // Loads a single, unambiguous search result's identity into the form --
+  // shared by name/phone search once resolved to exactly one client, and by
+  // the multi-match picker's row click (see clientMatchPicker below).
+  function applyResolvedClient(client: ClientRow) {
     const normalized = client.clientNo.toUpperCase()
     queryClient.setQueryData(queryKeys.clientByNo(normalized), [client])
     searchMatchedClientNoRef.current = normalized
@@ -716,14 +719,49 @@ export function useShalwarKameezForm() {
         clientNo: client.clientNo,
         clientName: client.clientName,
         phoneNo: client.phoneNo,
-        statusMsg: results.length > 1 ? `${results.length} matches — showing first.` : "Client found.",
+        statusMsg: "Client found.",
         statusKind: "success",
       }
       lastSnapshotRef.current = snapshotEditableState(next)
       return next
     })
     pushClientHistory(normalized)
-    return client
+  }
+
+  // Phone search additionally loads the resolved client's latest order (name
+  // search does not -- see handleSearchClientName/handleSearchPhone below),
+  // so this is kept as its own step, run once a search resolves to exactly
+  // one client, whether directly or via the multi-match picker.
+  async function loadLatestOrderForResolvedClient(client: ClientRow) {
+    const latest = await fetchLatestOrderCached(client.clientNo)
+    if (latest) {
+      applyLatestOrder(latest)
+      flashStatus("Client found — loaded previous order.", "success")
+    }
+  }
+
+  // Fired when a row is picked from the multi-match picker (see
+  // client-match-picker-modal.tsx) -- opened by handleSearchClientName/
+  // handleSearchPhone below when their search comes back with more than one
+  // client, now that neither Client Name (always a substring match) nor
+  // Phone No (no longer unique -- see
+  // 20260727000000_drop_clients_phone_no_unique.sql) is guaranteed to
+  // resolve to a single client on its own.
+  async function handleSelectClientMatch(client: ClientRow) {
+    const kind = clientMatchPicker?.kind
+    setClientMatchPicker(null)
+    applyResolvedClient(client)
+    if (kind === "phone") {
+      try {
+        await loadLatestOrderForResolvedClient(client)
+      } catch (error) {
+        flashStatus(errorMessage(error), "error")
+      }
+    }
+  }
+
+  function closeClientMatchPicker() {
+    setClientMatchPicker(null)
   }
 
   async function handleSearchClientName() {
@@ -733,7 +771,17 @@ export function useShalwarKameezForm() {
     }
     flashStatus("Searching by client name…")
     try {
-      applyClientSearchResult(await searchClients({ clientName: state.clientName.trim() }))
+      const results = await searchClients({ clientName: state.clientName.trim() })
+      if (results.length === 0) {
+        flashStatus("No matching client found.", "error")
+        return
+      }
+      if (results.length > 1) {
+        flashStatus(`${results.length} matches — pick one.`, "info")
+        setClientMatchPicker({ kind: "name", matches: results })
+        return
+      }
+      applyResolvedClient(results[0])
     } catch (error) {
       flashStatus(errorMessage(error), "error")
     }
@@ -747,16 +795,20 @@ export function useShalwarKameezForm() {
     }
     flashStatus("Searching by phone no…")
     try {
-      const client = applyClientSearchResult(await searchClients({ phoneNo: trimmedPhone }))
-      if (!client) {
+      const results = await searchClients({ phoneNo: trimmedPhone })
+      if (results.length === 0) {
+        flashStatus("No matching client found.", "error")
         resetFormKeepingIdentity({ clientNo: "", clientName: "", phoneNo: trimmedPhone })
         return
       }
-      const latest = await fetchLatestOrderCached(client.clientNo)
-      if (latest) {
-        applyLatestOrder(latest)
-        flashStatus("Client found — loaded previous order.", "success")
+      if (results.length > 1) {
+        flashStatus(`${results.length} matches — pick one.`, "info")
+        setClientMatchPicker({ kind: "phone", matches: results })
+        return
       }
+      const client = results[0]
+      applyResolvedClient(client)
+      await loadLatestOrderForResolvedClient(client)
     } catch (error) {
       flashStatus(errorMessage(error), "error")
     }
@@ -1083,6 +1135,9 @@ export function useShalwarKameezForm() {
     handleSearchClientNo,
     handleAddClient,
     handleSelectExistingClient,
+    clientMatchPicker,
+    handleSelectClientMatch,
+    closeClientMatchPicker,
     handlePrev,
     handleNext,
     canGoPrev,

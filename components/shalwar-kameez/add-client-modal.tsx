@@ -147,18 +147,18 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, on
     setSuccessMsg("")
   }
 
-  // Re-checks Client No and Phone No against the DB right before writing the
-  // new row -- the "matches" list above can be stale (typed after the last
-  // blur, or Save clicked before that lookup resolved), and with phone_no now
-  // unique (see 20260715020000_add_clients_phone_no_unique.sql) a collision
-  // on either field would otherwise fail the insert below with a raw DB
-  // error instead of this friendlier one. Blocks the save and tells the
-  // tailor to pick the existing row or delete it first, rather than ever
-  // attempting to insert colliding values. Once both checks clear, addClient
-  // writes the row to the clients table immediately -- Save no longer just
-  // hands the three fields up for create_shalwar_kameez_order to write later,
-  // so a client added here exists on file even if no order is ever saved for
-  // them.
+  // Re-checks Client No against the DB right before writing the new row --
+  // the "matches" list above can be stale (typed after the last blur, or
+  // Save clicked before that lookup resolved), and Client No is the only
+  // field still unique on clients (phone_no isn't -- see
+  // 20260727000000_drop_clients_phone_no_unique.sql -- so two different
+  // clients can legitimately share a phone number, e.g. a family booking
+  // under separate Client Nos; the live match table above still surfaces
+  // those as a heads-up, it just no longer blocks the save). Once the check
+  // clears, addClient writes the row to the clients table immediately --
+  // Save no longer just hands the three fields up for
+  // create_shalwar_kameez_order to write later, so a client added here
+  // exists on file even if no order is ever saved for them.
   async function handleSave() {
     const clientNo = fields.clientId.trim().toUpperCase()
     const clientName = fields.clientName.trim()
@@ -175,11 +175,7 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, on
     setError("")
     setIsSaving(true)
     try {
-      const [byClientNo, byPhone] = await Promise.all([
-        searchClients({ clientNo }),
-        searchClients({ phoneNo }),
-      ])
-      const clash = byClientNo[0] ?? byPhone[0]
+      const [clash] = await searchClients({ clientNo })
       if (clash) {
         setError(
           `${clash.clientNo} — ${clash.clientName} is already on file. Select existing client first, or delete them to proceed.`

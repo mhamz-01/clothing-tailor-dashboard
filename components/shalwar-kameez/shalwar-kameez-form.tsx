@@ -4,6 +4,7 @@ import { Noto_Naskh_Arabic } from "next/font/google"
 import { useEffect, useRef } from "react"
 import { ActionBar } from "@/components/shalwar-kameez/action-bar"
 import { ClientLookupSection } from "@/components/shalwar-kameez/client-lookup-section"
+import { ClientMatchPickerModal } from "@/components/shalwar-kameez/client-match-picker-modal"
 import { MeasurementsPanel } from "@/components/shalwar-kameez/measurements-panel"
 import { OrderSummaryPanel } from "@/components/shalwar-kameez/order-summary-panel"
 import { PartDesignTable } from "@/components/shalwar-kameez/part-design-table"
@@ -165,6 +166,13 @@ export function ShalwarKameezForm() {
         html={form.receiptHtml}
         onCancel={form.closeReceiptPreview}
         onConfirm={form.confirmPrintReceipt}
+      />
+
+      <ClientMatchPickerModal
+        open={form.clientMatchPicker !== null}
+        matches={form.clientMatchPicker?.matches ?? []}
+        onOpenChange={(open) => !open && form.closeClientMatchPicker()}
+        onSelect={form.handleSelectClientMatch}
       />
 
       <AlertDialog open={form.pendingNav !== null} onOpenChange={(open) => !open && form.cancelNavigation()}>
