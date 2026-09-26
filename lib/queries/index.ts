@@ -1,5 +1,1 @@
-export * from "./tailors"
-export * from "./orders"
-export * from "./dashboard"
-export * from "./history"
 export * from "./garment-orders"

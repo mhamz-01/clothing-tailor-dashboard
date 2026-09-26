@@ -1,8 +1,8 @@
-import { createClient } from "@/lib/supabase/client"
+import { createServiceRoleClient } from "@/lib/supabase/service"
 import type { TailorRow } from "@/types/assign-work"
 
 export async function fetchTailors(): Promise<TailorRow[]> {
-  const supabase = createClient()
+  const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from("tailors")
     .select("id, name")
@@ -18,7 +18,7 @@ export interface InsertTailorInput {
 }
 
 export async function insertTailor(values: InsertTailorInput) {
-  const supabase = createClient()
+  const supabase = createServiceRoleClient()
   const tailorRefId = `T${Date.now().toString().slice(-6)}`
   const { error } = await supabase.from("tailors").insert({
     tailor_ref_id: tailorRefId,
@@ -30,7 +30,7 @@ export async function insertTailor(values: InsertTailorInput) {
 }
 
 export async function deleteTailor(id: string) {
-  const supabase = createClient()
+  const supabase = createServiceRoleClient()
 
   const { count, error: countError } = await supabase
     .from("orders")

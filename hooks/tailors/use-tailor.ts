@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { fetchTailors } from "@/lib/queries"
+import { fetchTailors } from "@/lib/api/admin"
 import { queryKeys } from "@/lib/queries/keys"
 import type { TailorRow } from "@/types/assign-work"
 

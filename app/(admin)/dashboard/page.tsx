@@ -5,7 +5,7 @@ import { Calendar, CheckCircle, Clock, Package, type LucideIcon } from "lucide-r
 import { useQuery } from "@tanstack/react-query"
 import { StatCard } from "@/components/stats-card/stat-card"
 import { StatSkeleton } from "@/components/stats-card/stat-skeleton"
-import { fetchDashboardStats } from "@/lib/queries"
+import { fetchDashboardStats } from "@/lib/api/admin"
 import { ActionButton } from "@/components/quick-action-button/action-button"
 import Footer from "@/components/footer"
 

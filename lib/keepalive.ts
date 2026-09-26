@@ -1,7 +1,7 @@
-import { createClient } from "@/lib/supabase/client"
+import { createServiceRoleClient } from "@/lib/supabase/service"
 
 export async function pingDatabase() {
-  const supabase = createClient()
+  const supabase = createServiceRoleClient()
 
   const { data, error } = await supabase
     .from("orders")

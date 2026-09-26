@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { insertOrders, updateOrderTailor } from "@/lib/queries"
+import { insertOrders, updateOrderTailor } from "@/lib/api/admin"
 import { queryKeys } from "@/lib/queries/keys"
 import { toast } from "@/hooks/shared/use-toast"
 import type { StagedOrder } from "@/types/assign-work"

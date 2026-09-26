@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/client"
-import { startOfDay, startOfMonth } from "@/lib/utils/date"
+import { createServiceRoleClient } from "@/lib/supabase/service"
 
 export interface DashboardStats {
   totalOrdersToday: number
@@ -9,23 +8,28 @@ export interface DashboardStats {
   deliveredMonthly: number
 }
 
-export async function fetchDashboardStats(): Promise<DashboardStats> {
-  const supabase = createClient()
-  const now = new Date()
+// ISO timestamps computed in the browser, so "today"/"this month" follow the
+// shop's local timezone rather than the server's (UTC on Vercel).
+export interface DashboardRange {
+  dayStart: string
+  dayEnd: string
+  monthStart: string
+}
 
-  const dayStart = startOfDay(now)
-  const dayEnd = new Date(dayStart)
-  dayEnd.setDate(dayEnd.getDate() + 1)
-  const monthStart = startOfMonth(now)
+export async function fetchDashboardStats({ dayStart, dayEnd, monthStart }: DashboardRange): Promise<DashboardStats> {
+  const supabase = createServiceRoleClient()
 
   const [ordersToday, ordersMonthly, pendingOrders, deliveredToday, deliveredMonthly] =
     await Promise.all([
-      supabase.from("orders").select("*", { count: "exact", head: true }).gte("created_at", dayStart.toISOString()).lt("created_at", dayEnd.toISOString()),
-      supabase.from("orders").select("*", { count: "exact", head: true }).gte("created_at", monthStart.toISOString()).lt("created_at", dayStart.toISOString()),
+      supabase.from("orders").select("*", { count: "exact", head: true }).gte("created_at", dayStart).lt("created_at", dayEnd),
+      supabase.from("orders").select("*", { count: "exact", head: true }).gte("created_at", monthStart).lt("created_at", dayStart),
       supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "assigned"),
-      supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "delivered").gte("delivered_at", dayStart.toISOString()).lt("delivered_at", dayEnd.toISOString()),
-      supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "delivered").gte("delivered_at", monthStart.toISOString()).lt("delivered_at", dayStart.toISOString()),
+      supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "delivered").gte("delivered_at", dayStart).lt("delivered_at", dayEnd),
+      supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "delivered").gte("delivered_at", monthStart).lt("delivered_at", dayStart),
     ])
+
+  const failed = [ordersToday, ordersMonthly, pendingOrders, deliveredToday, deliveredMonthly].find((r) => r.error)
+  if (failed?.error) throw new Error(failed.error.message)
 
   return {
     totalOrdersToday: ordersToday.count ?? 0,

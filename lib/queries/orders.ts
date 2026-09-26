@@ -1,11 +1,11 @@
-import { createClient } from "@/lib/supabase/client"
+import { createServiceRoleClient } from "@/lib/supabase/service"
 import { normalizeTailorJoin } from "./shared"
 import type { AssignedOrder } from "@/types"
 import type { DeliverableOrder, StagedDelivery } from "@/types/deliver-work"
 import type { StagedOrder } from "@/types/assign-work"
 
 export async function fetchActiveOrderCounts(): Promise<Map<string, number>> {
-  const supabase = createClient()
+  const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from("orders")
     .select("tailor_id")
@@ -21,7 +21,7 @@ export async function fetchActiveOrderCounts(): Promise<Map<string, number>> {
 }
 
 export async function fetchAssignedOrders(): Promise<DeliverableOrder[]> {
-  const supabase = createClient()
+  const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from("orders")
     .select(`id, customer_ref_id, due_date, status, created_at, quantity, tailor:tailors(name)`)
@@ -33,7 +33,7 @@ export async function fetchAssignedOrders(): Promise<DeliverableOrder[]> {
 }
 
 export async function fetchAssignedOrdersWithTailors(): Promise<AssignedOrder[]> {
-  const supabase = createClient()
+  const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from("orders")
     .select(`id, customer_ref_id, quantity, due_date, created_at, tailor_id, tailor:tailors(id, name)`)
@@ -45,7 +45,7 @@ export async function fetchAssignedOrdersWithTailors(): Promise<AssignedOrder[]>
 }
 
 export async function insertOrders(orders: StagedOrder[]) {
-  const supabase = createClient()
+  const supabase = createServiceRoleClient()
   const { error } = await supabase.from("orders").insert(
     orders.map((o) => ({
       customer_ref_id: o.customer_ref_id,
@@ -60,19 +60,19 @@ export async function insertOrders(orders: StagedOrder[]) {
 }
 
 export async function updateOrderTailor(orderId: string, tailorId: string) {
-  const supabase = createClient()
+  const supabase = createServiceRoleClient()
   const { error } = await supabase.from("orders").update({ tailor_id: tailorId }).eq("id", orderId)
   if (error) throw new Error(error.message)
 }
 
 export async function deleteOrder(orderId: string) {
-  const supabase = createClient()
+  const supabase = createServiceRoleClient()
   const { error } = await supabase.from("orders").delete().eq("id", orderId)
   if (error) throw new Error(error.message)
 }
 
 export async function deliverOrders(deliveries: StagedDelivery[]) {
-  const supabase = createClient()
+  const supabase = createServiceRoleClient()
   const results = await Promise.all(
     deliveries.map((d) =>
       supabase

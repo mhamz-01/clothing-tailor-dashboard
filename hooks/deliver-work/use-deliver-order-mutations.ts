@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { deliverOrders } from "@/lib/queries"
+import { deliverOrders } from "@/lib/api/admin"
 import { queryKeys } from "@/lib/queries/keys"
 import { toast } from "@/hooks/shared/use-toast"
 import type { StagedDelivery } from "@/types/deliver-work"

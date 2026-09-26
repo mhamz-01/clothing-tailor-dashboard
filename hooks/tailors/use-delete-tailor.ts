@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { deleteTailor } from "@/lib/queries"
+import { deleteTailor } from "@/lib/api/admin"
 import { queryKeys } from "@/lib/queries/keys"
 import { toast } from "@/hooks/shared/use-toast"
 

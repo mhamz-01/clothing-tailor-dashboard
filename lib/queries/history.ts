@@ -1,9 +1,9 @@
-import { createClient } from "@/lib/supabase/client"
+import { createServiceRoleClient } from "@/lib/supabase/service"
 import { normalizeTailorJoin } from "./shared"
 import type { Order } from "@/types"
 
 export async function fetchOrderHistory(): Promise<Order[]> {
-  const supabase = createClient()
+  const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from("orders")
     .select(`

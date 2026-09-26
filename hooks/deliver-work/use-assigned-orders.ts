@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { fetchAssignedOrders } from "@/lib/queries"
+import { fetchAssignedOrders } from "@/lib/api/admin"
 import { queryKeys } from "@/lib/queries/keys"
 import type { DeliverableOrder } from "@/types/deliver-work"
 

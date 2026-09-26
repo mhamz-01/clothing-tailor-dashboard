@@ -30,11 +30,23 @@ app/(admin)/**/page.tsx  ("use client")
 hooks/<feature>/use-*.ts   (TanStack Query wrappers)
   │  calls
   ▼
-lib/queries/<domain>.ts    (pure Supabase I/O, no React/UI)
+lib/api/admin.ts           (browser fetch client)
+  │  HTTP
+  ▼
+app/api/admin/**/route.ts  (withAdminSession: verifies auth_token)
+  │  calls
+  ▼
+lib/queries/<domain>.ts    (Supabase I/O via the service-role key)
   │
   ▼
-Supabase (Postgres)
+Supabase (Postgres, RLS enabled on admin tables, no policies)
 ```
+
+The admin tables (`tailors`, `orders`, `customers`, `admin_credentials`)
+have RLS enabled with **no** policies (`20260926000000_enable_rls_admin_tables.sql`),
+so the public anon key can't touch them — only server code using the
+service-role key can. That's why admin pages never query Supabase from the
+browser.
 
 Two independent things are protected by two independent JWTs:
 
@@ -76,6 +88,10 @@ should never grant superadmin capability, and vice versa.
   - `superadmin/admins/`, `superadmin/admins/[id]/` — admin-user CRUD, gated by
     the superadmin session, using the Supabase **service-role** key (bypasses
     RLS deliberately, since only a verified superadmin can reach these)
+  - `admin/**` — the admin dashboard's data API (tailors, orders, dashboard
+    stats). Every handler is wrapped in `withAdminSession`
+    (`lib/auth/admin.ts`), which returns 401 without a valid `auth_token` and
+    turns thrown errors into a JSON `{ error }` body
   - `keepalive/` — cron-hit endpoint (see `vercel.json`) that pings Supabase so
     a free-tier project doesn't pause from inactivity
 
@@ -109,8 +125,9 @@ module's `shalwar-kameez/` and `tailor-auth/` hook folders are covered below.
 - `shared/` — cross-feature hooks with no domain knowledge: `use-toast`,
   `use-debounced-value`, `use-combobox-search`, `use-mobile`
 
-Convention: a hook here should not call Supabase directly — it calls a
-function from `lib/queries/`. Query keys used in `useQuery`/`invalidateQueries`
+Convention: a hook here should not call Supabase directly. Admin hooks call
+`lib/api/admin.ts` (which hits `app/api/admin/*`); tailor-module hooks call
+`lib/queries/garment-orders.ts`. Query keys used in `useQuery`/`invalidateQueries`
 come from `lib/queries/keys.ts` (`queryKeys.*`), not inline string literals —
 one shared factory for both the admin and tailor modules.
 
@@ -118,9 +135,9 @@ one shared factory for both the admin and tailor modules.
 
 - **`queries/`** — the data-access layer; the *only* place that talks to
   Supabase. One module per domain: `tailors.ts`, `orders.ts`, `dashboard.ts`,
-  `history.ts`, `admins.ts` (service-role only, used solely by
-  `api/superadmin/*` routes — deliberately excluded from `index.ts`'s barrel so
-  it can never be pulled into client-bundled code), `shared.ts`
+  `history.ts` (service-role, used only by `api/admin/*` routes), `admins.ts`
+  (service-role, used only by `api/superadmin/*` routes) — all excluded from
+  `index.ts`'s barrel so they can never be pulled into client-bundled code, `shared.ts`
   (`normalizeTailorJoin` — un-nests Supabase's joined-row arrays), `keys.ts`
   (query-key factory), plus the tailor module's `garment-orders.ts` and
   `tailor-auth.ts` (service-role only, also excluded from the barrel — see
@@ -130,6 +147,10 @@ one shared factory for both the admin and tailor modules.
   `env.ts` (shared env-var validation), `middleware.ts` (Supabase session
   refresh helper — currently unused by `proxy.ts`'s own JWT check, kept
   for future use if Supabase Auth is ever adopted)
+- **`api/admin.ts`** — browser-side fetch client for `app/api/admin/*`,
+  same function names as the `lib/queries` functions it fronts.
+- **`auth/admin.ts`** — admin `auth_token` verification + the
+  `withAdminSession` route-handler wrapper.
 - **`auth/superadmin.ts`** — superadmin JWT sign/verify + cookie name constant.
   **`auth/tailor.ts`** — the same for the tailor module's `tailor_token`.
 - **`constants/`** — shared magic numbers: `orders.ts`
@@ -275,12 +296,6 @@ namespace, different auth system, different session cookie, own
 - `admin_credentials.password` is stored and compared in **plaintext** — not
   hashed. `bcryptjs` is already a dependency for whenever this is revisited
   (and is already used for `tailor_credentials`, see above).
-- All app code now reads/writes `admin_credentials` exclusively through the
-  Supabase **service-role** key (server-side only — see `lib/queries/admins.ts`
-  and `app/api/auth/login/route.ts`), which bypasses Row Level Security by
-  design. That's necessary but not sufficient: it's still worth confirming RLS
-  on that table denies the **anon** key directly, as defense in depth against
-  anything outside this app that might have the public anon key.
 - **Every garment-order table has RLS disabled outright** (clients, orders,
   `shalwar_kameez_details`, `order_style_flags`, `order_part_designs`, every
   catalog table, `order_pricing_settings`, `record_counter`) — the anon key
