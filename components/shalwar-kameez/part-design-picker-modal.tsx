@@ -1,8 +1,7 @@
 "use client"
 
-import { Check } from "lucide-react"
+import { Check, X } from "lucide-react"
 import Image from "next/image"
-import { useEffect, useState } from "react"
 import {
   AlertDialog,
   AlertDialogContent,
@@ -10,7 +9,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
 import { PART_DESIGN_IMAGES, PART_DESIGN_SIZE_CONFIG } from "@/lib/constants/shalwar-kameez"
 import { cn } from "@/lib/utils"
 import { formatSizeLabel } from "@/lib/utils/format-size"
@@ -42,7 +40,7 @@ interface PartDesignPickerModalProps {
   open: boolean
   row: PartDesignRowState | null
   onOpenChange: (open: boolean) => void
-  onApply: (designNo: string, size1: string, size2: string) => void
+  onChange: (field: "designNo" | "size1" | "size2", value: string) => void
   fiveButtonsItem: CheckboxItem
 }
 
@@ -52,34 +50,31 @@ interface PartDesignPickerModalProps {
 // each list is a fixed height (see SizeOptionList) rather than stretched to
 // match the image grid, so a short image grid (e.g. bazu/kuf's 2 rows) won't
 // squeeze the size lists down below a usable row count.
-export function PartDesignPickerModal({ open, row, onOpenChange, onApply, fiveButtonsItem }: PartDesignPickerModalProps) {
-  const [designNo, setDesignNo] = useState("")
-  const [size1, setSize1] = useState("")
-  const [size2, setSize2] = useState("")
-
-  useEffect(() => {
-    if (open && row) {
-      setDesignNo(row.designNo)
-      setSize1(row.size1)
-      setSize2(row.size2)
-    }
-  }, [open, row])
-
+//
+// Every pick is written straight through `onChange` into the form's own
+// state -- there is no local draft and no Save/Cancel step, so closing the
+// dialog by any route (the X, Esc, the backdrop) keeps whatever was picked.
+export function PartDesignPickerModal({ open, row, onOpenChange, onChange, fiveButtonsItem }: PartDesignPickerModalProps) {
   if (!row) return null
+
+  const { designNo, size1, size2 } = row
 
   const images = PART_DESIGN_IMAGES[row.key]
   const imageColumns = IMAGE_COLUMNS_BY_PART[row.key] ?? DEFAULT_IMAGE_COLUMNS
   const imageRowHeight = IMAGE_ROW_HEIGHT_BY_PART[row.key] ?? DEFAULT_IMAGE_ROW_HEIGHT
   const sizeConfig = PART_DESIGN_SIZE_CONFIG[row.key]
 
-  function handleSave() {
-    onApply(designNo, size1, size2)
-    onOpenChange(false)
-  }
-
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-h-[90vh] w-full max-w-[820px] gap-3 overflow-y-auto rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
+      <AlertDialogContent className="relative max-h-[95vh] w-full max-w-[820px] gap-3 overflow-y-auto rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={() => onOpenChange(false)}
+          className="absolute top-3 right-3 flex size-8 items-center justify-center rounded-[5px] text-[#222226] hover:bg-[#f0f0f2]"
+        >
+          <X className="size-5" />
+        </button>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-[14px] font-bold text-black">
             <span className="font-[family-name:var(--font-naskh)] text-[20px]" dir="rtl">
@@ -97,7 +92,7 @@ export function PartDesignPickerModal({ open, row, onOpenChange, onApply, fiveBu
                 <button
                   key={image.value}
                   type="button"
-                  onClick={() => setDesignNo(image.value)}
+                  onClick={() => onChange("designNo", image.value)}
                   style={{ gridColumn: (i % imageColumns) + 1, gridRow: Math.floor(i / imageColumns) + 1 }}
                   className={cn(
                     "relative overflow-hidden rounded-[6px] border-2 bg-[#fafafb] p-1.5",
@@ -123,13 +118,13 @@ export function PartDesignPickerModal({ open, row, onOpenChange, onApply, fiveBu
           </div>
 
           <div className="flex w-[170px] shrink-0 flex-col gap-2">
-            <SizeOptionList label={sizeConfig.size1Label} options={sizeConfig.size1Options} value={size1} onChange={setSize1} />
-            <SizeOptionList label={sizeConfig.size2Label} options={sizeConfig.size2Options} value={size2} onChange={setSize2} />
+            <SizeOptionList label={sizeConfig.size1Label} options={sizeConfig.size1Options} value={size1} onChange={(v) => onChange("size1", v)} />
+            <SizeOptionList label={sizeConfig.size2Label} options={sizeConfig.size2Options} value={size2} onChange={(v) => onChange("size2", v)} />
           </div>
         </div>
 
-        <AlertDialogFooter className="items-center gap-2">
-          {row.key === "buttonPatti" && (
+        {row.key === "buttonPatti" && (
+          <AlertDialogFooter className="items-center gap-2">
             <label className="mr-auto flex cursor-pointer items-center gap-1.5 text-[13px] font-semibold text-[#222226]">
               <input
                 type="checkbox"
@@ -139,14 +134,8 @@ export function PartDesignPickerModal({ open, row, onOpenChange, onApply, fiveBu
               />
               {fiveButtonsItem.label}
             </label>
-          )}
-          <Button type="button" variant="outline" className="h-9" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button type="button" className="h-9" onClick={handleSave}>
-            Save
-          </Button>
-        </AlertDialogFooter>
+          </AlertDialogFooter>
+        )}
       </AlertDialogContent>
     </AlertDialog>
   )
@@ -159,25 +148,25 @@ interface SizeOptionListProps {
   onChange: (value: string) => void
 }
 
-// Deliberately not a <select>/dropdown — a bordered, scrollable list of always-
-// visible option buttons, per spec. Fixed at h-64 (not stretched to match the
-// image grid's height) so at least 6 rows sit in view at once without
-// scrolling, per client request -- kept modest rather than h-80 so the modal
-// itself doesn't grow past a comfortable size.
+// Deliberately not a <select>/dropdown — a bordered list of always-visible
+// option buttons, per spec. Rows are tight and stacked with hairline dividers
+// (not spaced-out pills), and the two lists stack in a single column. Each
+// list shows every option at full height, with no inner scroll (the modal
+// itself only scrolls as a last resort on a very short viewport).
 function SizeOptionList({ label, options, value, onChange }: SizeOptionListProps) {
   return (
-    <div className="flex h-64 flex-col overflow-hidden rounded-[5px] border border-[#dcdce1] bg-white">
-      <div className="shrink-0 border-b border-[#dcdce1] bg-[#fafafb] px-2 py-1 text-center text-[10px] font-bold tracking-[0.05em] text-[#8a8a92] uppercase">
+    <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[5px] border border-[#dcdce1] bg-white">
+      <div className="shrink-0 border-b border-[#dcdce1] bg-[#fafafb] px-1 py-1 text-center text-[10px] font-bold tracking-[0.05em] text-[#8a8a92] uppercase">
         {label}
       </div>
-      <div className="flex flex-1 flex-col gap-[2px] overflow-y-auto p-1">
+      <div className="flex flex-col divide-y divide-[#ececf0]">
         {options.map((option) => (
           <button
             key={option}
             type="button"
             onClick={() => onChange(option)}
             className={cn(
-              "block w-full shrink-0 rounded-[4px] px-2 py-[7px] text-center text-[15px] font-semibold whitespace-nowrap",
+              "block w-full shrink-0 px-1 py-[1px] text-center text-[14px] leading-[18px] font-semibold whitespace-nowrap",
               value === option ? "bg-black text-white" : "text-[#222226] hover:bg-[#f0f0f2]"
             )}
           >

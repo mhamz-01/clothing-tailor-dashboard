@@ -132,6 +132,7 @@ export function ShalwarKameezForm() {
                 order={state.order}
                 onOrderFieldChange={form.updateOrderField}
                 tailoringAmount={form.tailoringAmount}
+                defaultAmounts={form.defaultAmounts}
                 total={form.total}
                 balance={form.balance}
                 buttonOptions={form.buttonOptions}

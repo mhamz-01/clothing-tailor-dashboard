@@ -28,7 +28,7 @@
 //      (right)
 //   4. Kaj Patti (left) | Kuf ("cuff") + stacked size1/size2, with a
 //      "Kaf Dboty Na Ho" note directly under the Kuf image when Kaf Dboty
-//      is NOT checked -- nothing prints there at all when it is checked
+//      IS checked -- nothing prints there at all when it is not checked
 //      (right)
 //   5. Shalwar Zip (left) | Bazu ("arm") + stacked size1/size2 (right)
 //   6. Daman (left) -- Delivery Date is NOT this row's right column anymore;
@@ -69,6 +69,8 @@
 // isolated document instead. Page size stays fixed at A5 (148mm x 210mm) --
 // every element below is sized to fit that without overflowing, not to
 // grow the page.
+
+import { printHtmlInPopup } from "@/lib/utils/print-window"
 
 export interface OrderSheetMeasurement {
   ur: string
@@ -126,9 +128,9 @@ export interface OrderSheetData {
   jaib: OrderSheetDesignItem | null
   kajPatti: OrderSheetDesignItem | null
   cuff: OrderSheetDesignItem | null
-  // Whether Kaf Dboty is checked -- when not checked, "Kaf Dboty Na Ho"
-  // prints directly under the Kuf image as a note; when checked, that spot
-  // is left blank (checked is the assumed default, so it needs no note).
+  // Whether Kaf Dboty is checked -- when checked, "Kaf Dboty Na Ho"
+  // prints directly under the Kuf image as a note; when not checked, that
+  // spot is left blank (unchecked is the assumed default, so it needs no note).
   kafDboty: boolean
   shalwarZip: OrderSheetDesignItem | null
   bazu: OrderSheetDesignItem | null
@@ -256,7 +258,7 @@ function designItem(
 ): string {
   // A `belowNote` is allowed to render even with no item at all -- Kaf
   // Dboty Na Ho (see the Kuf/cuff call site) must print whenever Kaf Dboty
-  // is unchecked regardless of whether Kuf itself has anything selected
+  // is checked regardless of whether Kuf itself has anything selected
   // (e.g. the whole sheet is otherwise empty except Collar). Bailing out
   // early on `!item` here used to swallow that note along with the rest of
   // an empty Kuf slot.
@@ -711,7 +713,7 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
               imageSizeClass: "ditem-image-kuf",
               imagePosClass: "pos-kuf-img",
               sizePosClass: "pos-kuf-size",
-              belowNote: data.kafDboty ? "" : "Kaf Dboty Na Ho",
+              belowNote: data.kafDboty ? "Kaf Dboty Na Ho" : "",
               belowNoteClass: "pos-kafdboty-note",
             })}
           </div>
@@ -743,28 +745,9 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
 </html>`
 }
 
-// Same Blob-URL popup pattern as printReceiptHtml (see lib/utils/receipt) --
-// isolates this sheet's @page rule from the receipt's 80mm one, and avoids
-// document.write's deprecation/timing issues. Waits for the popup's own
-// `load` event (so images are actually painted) before printing, and
-// cleans up the window + object URL once the print dialog is dismissed
-// either way.
+// Opens the sheet in its own popup so its @page rule governs that print job
+// in isolation. See lib/utils/print-window.ts -- printing waits for every
+// image to load and decode inside the popup before the dialog opens.
 export function printOrderSheetHtml(html: string): void {
-  const blob = new Blob([html], { type: "text/html" })
-  const url = URL.createObjectURL(blob)
-
-  const printWindow = window.open(url, "_blank", "width=650,height=850")
-  if (!printWindow) {
-    URL.revokeObjectURL(url)
-    throw new Error("Couldn't open the print window — check if your browser is blocking pop-ups for this site.")
-  }
-
-  printWindow.addEventListener("load", () => {
-    printWindow.focus()
-    printWindow.print()
-  })
-  printWindow.addEventListener("afterprint", () => {
-    printWindow.close()
-    URL.revokeObjectURL(url)
-  })
+  printHtmlInPopup(html, "width=650,height=850")
 }

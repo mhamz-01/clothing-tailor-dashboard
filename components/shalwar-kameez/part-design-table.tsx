@@ -89,11 +89,9 @@ export function PartDesignTable({ rows, onSizeChange, fiveButtonsItem }: PartDes
         onOpenChange={(open) => {
           if (!open) setModalIndex(null)
         }}
-        onApply={(designNo, size1, size2) => {
+        onChange={(field, value) => {
           if (modalIndex === null) return
-          onSizeChange(modalIndex, "designNo", designNo)
-          onSizeChange(modalIndex, "size1", size1)
-          onSizeChange(modalIndex, "size2", size2)
+          onSizeChange(modalIndex, field, value)
         }}
         fiveButtonsItem={fiveButtonsItem}
       />

@@ -10,6 +10,8 @@
 // confirmation via an <iframe srcDoc>, so what's approved is pixel-identical
 // to what prints (see ReceiptPreviewDialog).
 
+import { printHtmlInPopup } from "@/lib/utils/print-window"
+
 export interface ReceiptData {
   // Kept for the print popup's own window/tab title only -- not shown on the
   // printed receipt body itself (see buildReceiptHtml's <title> below).
@@ -128,30 +130,9 @@ export function buildReceiptHtml(data: ReceiptData, paperWidthMm = 80): string {
 </html>`
 }
 
-// Opens the receipt in its own window (not an iframe) so its @page rule
-// governs that print job in isolation, prints it, and closes the window
-// again once the print dialog is dismissed (afterprint fires whether the
-// tailor actually printed or cancelled). Navigates the popup to a Blob URL
-// rather than document.write (deprecated, and its timing is less reliable
-// across browsers) -- printing waits for the popup's own `load` event so
-// the content is actually painted first, and the object URL is released
-// once printing is done with it.
+// Opens the receipt in its own popup so its 80mm @page rule governs that print
+// job in isolation. See lib/utils/print-window.ts -- printing waits for the
+// logo to load and decode inside the popup before the dialog opens.
 export function printReceiptHtml(html: string): void {
-  const blob = new Blob([html], { type: "text/html" })
-  const url = URL.createObjectURL(blob)
-
-  const printWindow = window.open(url, "_blank", "width=400,height=640")
-  if (!printWindow) {
-    URL.revokeObjectURL(url)
-    throw new Error("Couldn't open the print window — check if your browser is blocking pop-ups for this site.")
-  }
-
-  printWindow.addEventListener("load", () => {
-    printWindow.focus()
-    printWindow.print()
-  })
-  printWindow.addEventListener("afterprint", () => {
-    printWindow.close()
-    URL.revokeObjectURL(url)
-  })
+  printHtmlInPopup(html, "width=400,height=640")
 }

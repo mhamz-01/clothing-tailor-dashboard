@@ -115,10 +115,14 @@ export interface LatestClientOrder {
 // single-row config the tailor edits from the Settings page (gear icon on
 // /tailor/categories) and the Shalwar Kameez order form reads to compute
 // Tailoring Amt and default Delivery Date. Shilling Amt is a plain
-// tailor-entered order field, not part of this settings config.
+// tailor-entered order field, though the three default*Amount values below
+// fill in when that field is left blank (0 = no default).
 export interface OrderPricingSettings {
   baseTailoringAmount: number
   deliveryTurnaroundDays: number
+  defaultClothAmount: number
+  defaultShillingAmount: number
+  defaultOthersAmount: number
 }
 
 export interface ButtonTypePriceRow {

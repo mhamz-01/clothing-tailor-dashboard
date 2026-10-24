@@ -27,9 +27,16 @@ interface OrderSummaryPanelProps {
   // use-shalwar-kameez-form.ts) rather than a tailor-entered order field --
   // read-only here, hence not part of `order`/`onOrderFieldChange`.
   tailoringAmount: number
+  // Settings-page defaults, shown as placeholders -- they apply whenever the
+  // matching box is left blank (see amountOrDefault in the form hook).
+  defaultAmounts: { clothAmount: number; shillingAmt: number; othersAmt: number }
   total: number
   balance: number
   buttonOptions: RadioItem[]
+}
+
+function placeholderFor(defaultAmount: number): string | undefined {
+  return defaultAmount ? String(defaultAmount) : undefined
 }
 
 const labelClass = "text-[16px] font-bold text-[#333338]"
@@ -39,7 +46,7 @@ const fieldClass = cn(FIELD_CLASS, "h-[22px] text-right tabular-nums")
 // the right, in one bordered box. Mirrors the Claude Design spec (Shalwar
 // Kameez Dashboard.dc.html) pixel-for-pixel, including its field labels
 // ("Suit Qty", "Cloth Amount", "Shiling Amt").
-export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, total, balance, buttonOptions }: OrderSummaryPanelProps) {
+export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, defaultAmounts, total, balance, buttonOptions }: OrderSummaryPanelProps) {
   return (
     <div
       className="flex min-h-0 flex-1 gap-3 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] p-[9px]"
@@ -88,6 +95,7 @@ export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, 
           <Input
             type="number"
             value={order.clothAmount}
+            placeholder={placeholderFor(defaultAmounts.clothAmount)}
             onChange={(e) => onOrderFieldChange("clothAmount", e.target.value)}
             className={cn(fieldClass, NO_SPINNER_CLASS)}
             data-nav-row={3}
@@ -98,6 +106,7 @@ export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, 
           <Input
             type="number"
             value={order.shillingAmt}
+            placeholder={placeholderFor(defaultAmounts.shillingAmt)}
             onChange={(e) => onOrderFieldChange("shillingAmt", e.target.value)}
             className={cn(fieldClass, NO_SPINNER_CLASS)}
             data-nav-row={4}
@@ -108,6 +117,7 @@ export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, 
           <Input
             type="number"
             value={order.othersAmt}
+            placeholder={placeholderFor(defaultAmounts.othersAmt)}
             onChange={(e) => onOrderFieldChange("othersAmt", e.target.value)}
             className={cn(fieldClass, NO_SPINNER_CLASS)}
             data-nav-row={5}

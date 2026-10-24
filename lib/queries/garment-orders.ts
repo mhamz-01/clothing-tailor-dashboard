@@ -70,13 +70,18 @@ export async function fetchOrderPricingSettings(): Promise<OrderPricingSettings>
   const supabase = createClient()
   const { data, error } = await supabase
     .from("order_pricing_settings")
-    .select("base_tailoring_amount, delivery_turnaround_days")
+    .select("*")
     .eq("id", 1)
     .single()
   if (error) throw new Error(error.message)
   return {
     baseTailoringAmount: Number(data.base_tailoring_amount),
     deliveryTurnaroundDays: data.delivery_turnaround_days,
+    // `select("*")` + `?? 0` so the order form keeps working before
+    // 20260717000000_add_default_amounts_to_pricing_settings.sql is applied.
+    defaultClothAmount: Number(data.default_cloth_amount ?? 0),
+    defaultShillingAmount: Number(data.default_shilling_amount ?? 0),
+    defaultOthersAmount: Number(data.default_others_amount ?? 0),
   }
 }
 
@@ -87,6 +92,9 @@ export async function updateOrderPricingSettings(settings: OrderPricingSettings)
     .update({
       base_tailoring_amount: settings.baseTailoringAmount,
       delivery_turnaround_days: settings.deliveryTurnaroundDays,
+      default_cloth_amount: settings.defaultClothAmount,
+      default_shilling_amount: settings.defaultShillingAmount,
+      default_others_amount: settings.defaultOthersAmount,
     })
     .eq("id", 1)
   if (error) throw new Error(error.message)

@@ -81,6 +81,12 @@ function toAmount(value: string): number {
   return Number.isNaN(parsed) ? 0 : parsed
 }
 
+// Blank means "not overridden" -> use the Settings default; anything typed
+// (including 0) is the tailor's own value and wins.
+function amountOrDefault(value: string, fallback: number): number {
+  return value.trim() === "" ? fallback : toAmount(value)
+}
+
 function toNullableNumber(value: string): number | null {
   if (value.trim() === "") return null
   const parsed = parseFloat(value)
@@ -229,7 +235,7 @@ export function useShalwarKameezForm() {
       const delta = currentButtonPrice - (lastAppliedButton?.price ?? 0)
       setLastAppliedButton({ code: state.radios.button, price: currentButtonPrice })
       setState((prev) => {
-        const updatedOthersAmt = toAmount(prev.order.othersAmt) + delta
+        const updatedOthersAmt = amountOrDefault(prev.order.othersAmt, pricingSettings?.defaultOthersAmount ?? 0) + delta
         return { ...prev, order: { ...prev.order, othersAmt: updatedOthersAmt === 0 ? "" : String(updatedOthersAmt) } }
       })
     }
@@ -921,9 +927,16 @@ export function useShalwarKameezForm() {
   // in Others Amt instead (see the render-time adjustment above). Shilling
   // Amt is a plain tailor-entered field.
   const tailoringAmount = pricingSettings ? quantity * pricingSettings.baseTailoringAmount : 0
-  const clothAmount = toAmount(state.order.clothAmount)
-  const shillingAmt = toAmount(state.order.shillingAmt)
-  const othersAmt = toAmount(state.order.othersAmt)
+  // A typed value (even 0) wins; a blank box falls back to the default
+  // configured on the Settings page. Same values feed save, totals and print.
+  const defaultAmounts = {
+    clothAmount: pricingSettings?.defaultClothAmount ?? 0,
+    shillingAmt: pricingSettings?.defaultShillingAmount ?? 0,
+    othersAmt: pricingSettings?.defaultOthersAmount ?? 0,
+  }
+  const clothAmount = amountOrDefault(state.order.clothAmount, defaultAmounts.clothAmount)
+  const shillingAmt = amountOrDefault(state.order.shillingAmt, defaultAmounts.shillingAmt)
+  const othersAmt = amountOrDefault(state.order.othersAmt, defaultAmounts.othersAmt)
   const advance = toAmount(state.order.advance)
   const total = tailoringAmount + clothAmount + shillingAmt + othersAmt
   const balance = total - advance
@@ -1027,14 +1040,15 @@ export function useShalwarKameezForm() {
   // -- a proper "1¼" character reads as a professionally-set fraction in
   // any font, rather than order-sheet.ts's own small-font-span fallback
   // (which only kicks in for a value with no glyph mapped, e.g. "1-1").
-  const bainItem = bainSelected
+  // "None" prints nothing at all -- not even a leftover size entered earlier.
+  const bainItem = bainSelected && bainSelected.value !== "none"
     ? {
         imageSrc: BAIN_GALA_IMAGES[bainSelected.value] ?? null,
         label: bainSelected.label,
         size: state.bainSize ? (SIZE_FRACTION_LABELS[state.bainSize] ?? state.bainSize) : null,
       }
     : null
-  const collarItem = collarSelected
+  const collarItem = collarSelected && collarSelected.value !== "none"
     ? {
         imageSrc: COLLAR_IMAGES[collarSelected.value] ?? null,
         label: collarSelected.label,
@@ -1146,6 +1160,7 @@ export function useShalwarKameezForm() {
     confirmDiscardAndNavigate,
     cancelNavigation,
     handlePrint,
+    defaultAmounts,
     handlePrintReceipt,
     receiptPreviewOpen,
     receiptHtml,

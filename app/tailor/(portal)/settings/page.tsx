@@ -17,9 +17,9 @@ import type { ButtonTypePriceRow, OrderPricingSettings } from "@/types/garment-o
 // Reached via the gear icon on /tailor/categories. Configures the values the
 // Shalwar Kameez order form reads to compute Tailoring Amt ((base + selected
 // button's price) * Suit Qty, read-only there) and to default Delivery Date
-// to Book Date + turnaround days (still hand-editable per order). Shilling
-// Amt is NOT configured here -- it's a plain tailor-entered field on the
-// order form itself. See order_pricing_settings / button_types.price
+// to Book Date + turnaround days (still hand-editable per order). Cloth /
+// Shilling / Others Amt are tailor-entered on the order form; the defaults
+// here only apply when one of those boxes is left blank. See order_pricing_settings / button_types.price
 // (20260716020000_add_pricing_settings.sql) and use-shalwar-kameez-form.ts.
 export default function TailorSettingsPage() {
   const buttonPrices = useButtonPrices()
@@ -64,6 +64,9 @@ function SettingsForm({ buttonPrices, pricingSettings }: SettingsFormProps) {
   )
   const [baseTailoringAmount, setBaseTailoringAmount] = useState(String(pricingSettings.baseTailoringAmount))
   const [deliveryTurnaroundDays, setDeliveryTurnaroundDays] = useState(String(pricingSettings.deliveryTurnaroundDays))
+  const [defaultClothAmount, setDefaultClothAmount] = useState(String(pricingSettings.defaultClothAmount))
+  const [defaultShillingAmount, setDefaultShillingAmount] = useState(String(pricingSettings.defaultShillingAmount))
+  const [defaultOthersAmount, setDefaultOthersAmount] = useState(String(pricingSettings.defaultOthersAmount))
   const [status, setStatus] = useState<{ kind: "success" | "error"; message: string } | null>(null)
 
   const updateButtonPrices = useUpdateButtonPrices()
@@ -87,6 +90,9 @@ function SettingsForm({ buttonPrices, pricingSettings }: SettingsFormProps) {
         updatePricingSettings.mutateAsync({
           baseTailoringAmount: toAmount(baseTailoringAmount),
           deliveryTurnaroundDays: Math.trunc(toAmount(deliveryTurnaroundDays)) || 0,
+          defaultClothAmount: toAmount(defaultClothAmount),
+          defaultShillingAmount: toAmount(defaultShillingAmount),
+          defaultOthersAmount: toAmount(defaultOthersAmount),
         }),
       ])
       setStatus({ kind: "success", message: "Settings saved." })
@@ -102,7 +108,7 @@ function SettingsForm({ buttonPrices, pricingSettings }: SettingsFormProps) {
           <CardTitle>Shalwar Kameez Order Defaults</CardTitle>
           <CardDescription>
             Tailoring Amt fills in automatically on the order form as (Base Tailoring Amt + selected Button Type&apos;s price) ×
-            Suit Qty — the tailor can&apos;t edit it per order there. Shilling Amt is entered directly on the order form instead.
+            Suit Qty — the tailor can&apos;t edit it per order there. Cloth, Shilling and Others Amt are entered on the order form — see the defaults below.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3">
@@ -118,6 +124,30 @@ function SettingsForm({ buttonPrices, pricingSettings }: SettingsFormProps) {
             Delivery Date defaults to Book Date + this many days, but the tailor can still change it for a specific order on the
             order sheet.
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Default Amounts</CardTitle>
+          <CardDescription>
+            Used when the matching box on the order form is left empty. Anything the tailor types there (even 0) overrides
+            the default for that order. Leave at 0 for no default.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3">
+          <div className="grid grid-cols-2 items-center gap-2">
+            <Label>Cloth Amount</Label>
+            <Input type="number" value={defaultClothAmount} onChange={(e) => setDefaultClothAmount(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 items-center gap-2">
+            <Label>Shiling Amt</Label>
+            <Input type="number" value={defaultShillingAmount} onChange={(e) => setDefaultShillingAmount(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 items-center gap-2">
+            <Label>Others Amt</Label>
+            <Input type="number" value={defaultOthersAmount} onChange={(e) => setDefaultOthersAmount(e.target.value)} />
+          </div>
         </CardContent>
       </Card>
 

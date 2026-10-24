@@ -95,11 +95,9 @@ export const CLIENT_NO_PATTERN = /^[A-Za-z]-\d+$/
 
 // collar_type_code — confirmed via real images (public/kameez-shalwar-assets/collar)
 // that "collar" is a genuine 5th style, not a stray UI option (see
-// 20260714010000_add_collar_option_and_seed_images.sql). "none" was dropped
-// from COLLAR_OPTIONS below (UI-only -- the DB enum/catalog row still has it,
-// untouched, in case any live order already has it saved) and so from this
-// whitelist too, since it can no longer be reached by picking a radio option.
-export const VALID_COLLAR_TYPE_CODES: string[] = ["american_cut", "english_cut", "french_cut", "collar"]
+// 20260714010000_add_collar_option_and_seed_images.sql). "none" is a real
+// selectable option again (matches the DB enum/catalog row).
+export const VALID_COLLAR_TYPE_CODES: string[] = ["american_cut", "english_cut", "french_cut", "collar", "none"]
 
 // Each part-design row opens a picker modal (see PartDesignPickerModal) sourced from
 // its own numbered image folder under public/kameez-shalwar-assets. Folder/prefix
@@ -306,6 +304,7 @@ export const BAIN_GALA_OPTIONS: RadioOptionDefinition[] = [
   { value: "half_bain", label: "Half Bain" },
   { value: "gol_gala", label: "Gol Gala" },
   { value: "half_bain_gol", label: "Half Bain Gol" },
+  { value: "none", label: "None" },
 ]
 
 export const COLLAR_OPTIONS: RadioOptionDefinition[] = [
@@ -313,6 +312,7 @@ export const COLLAR_OPTIONS: RadioOptionDefinition[] = [
   { value: "english_cut", label: "English Cut" },
   { value: "french_cut", label: "French Cut" },
   { value: "collar", label: "Collar" },
+  { value: "none", label: "None" },
 ]
 
 export const DAMAN_OPTIONS: RadioOptionDefinition[] = [
