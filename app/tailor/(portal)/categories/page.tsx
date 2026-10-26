@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils"
 
 const CATEGORIES = [
   { en: "Shalwar Kameez", ur: "شلوار قمیض", href: "/tailor/orders/shalwar-kameez" },
-  { en: "Waistcoat", ur: "واسکٹ", href: null },
-  { en: "Pant", ur: "پینٹ", href: null },
-  { en: "Shirt", ur: "شرٹ", href: null },
-  { en: "Coat", ur: "کوٹ", href: null },
+  { en: "Waistcoat", ur: "واسکٹ", href: "/tailor/orders/waistcoat" },
+  { en: "Pant", ur: "پینٹ", href: "/tailor/orders/pant" },
+  { en: "Shirt", ur: "شرٹ", href: "/tailor/orders/shirt" },
+  { en: "Coat", ur: "کوٹ", href: "/tailor/orders/coat" },
 ]
 
 export default function TailorCategoriesPage() {

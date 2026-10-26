@@ -2,14 +2,14 @@
 
 import { Noto_Naskh_Arabic } from "next/font/google"
 import { useEffect, useRef } from "react"
-import { ActionBar } from "@/components/shalwar-kameez/action-bar"
-import { ClientLookupSection } from "@/components/shalwar-kameez/client-lookup-section"
-import { ClientMatchPickerModal } from "@/components/shalwar-kameez/client-match-picker-modal"
+import { ActionBar } from "@/components/tailor-shared/action-bar"
+import { ClientLookupSection } from "@/components/tailor-shared/client-lookup-section"
+import { ClientMatchPickerModal } from "@/components/tailor-shared/client-match-picker-modal"
 import { MeasurementsPanel } from "@/components/shalwar-kameez/measurements-panel"
 import { OrderSummaryPanel } from "@/components/shalwar-kameez/order-summary-panel"
-import { PartDesignTable } from "@/components/shalwar-kameez/part-design-table"
-import { ReceiptPreviewDialog } from "@/components/shalwar-kameez/receipt-preview-dialog"
-import { StatusToast } from "@/components/shalwar-kameez/status-toast"
+import { PartDesignTable } from "@/components/tailor-shared/part-design-table"
+import { ReceiptPreviewDialog } from "@/components/tailor-shared/receipt-preview-dialog"
+import { StatusToast } from "@/components/tailor-shared/status-toast"
 import { StyleOptionsPanel } from "@/components/shalwar-kameez/style-options-panel"
 import {
   AlertDialog,

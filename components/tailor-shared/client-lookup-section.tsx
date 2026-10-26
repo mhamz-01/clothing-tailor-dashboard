@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { AddClientModal } from "@/components/shalwar-kameez/add-client-modal"
-import { ClientNoInput } from "@/components/shalwar-kameez/client-no-input"
+import { AddClientModal } from "@/components/tailor-shared/add-client-modal"
+import { ClientNoInput } from "@/components/tailor-shared/client-no-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
+import { FIELD_CLASS } from "@/lib/constants/tailor-form"
 import { cn } from "@/lib/utils"
 import type { ClientRow } from "@/types/garment-order"
 
@@ -28,12 +28,18 @@ interface ClientLookupSectionProps {
   onClientNameChange: (value: string) => void
   onPhoneNoChange: (value: string) => void
   onSearchRecord: () => void
+  // When given, the Record No. box becomes editable and Enter/search runs
+  // onSearchRecord (Waistcoat/Pant/Coat/Shirt). Omitted on Shalwar Kameez,
+  // where the box stays a read-only system counter.
+  onRecordNoChange?: (value: string) => void
   onSearchClientName: () => void
   onSearchPhone: () => void
   onSearchClientNo: () => void
   onAddClient: (client: { clientNo: string; clientName: string; phoneNo: string }) => void
   onSelectExistingClient: (client: ClientRow) => void
   onClientDeleted: (clientNo: string) => void
+  // Passed through to the Add Client modal (clients.order_type of a new client).
+  orderType?: string
 }
 
 function SearchIcon() {
@@ -78,12 +84,14 @@ export function ClientLookupSection({
   onClientNameChange,
   onPhoneNoChange,
   onSearchRecord,
+  onRecordNoChange,
   onSearchClientName,
   onSearchPhone,
   onSearchClientNo,
   onAddClient,
   onSelectExistingClient,
   onClientDeleted,
+  orderType,
 }: ClientLookupSectionProps) {
   const [isAddClientOpen, setIsAddClientOpen] = useState(false)
 
@@ -123,9 +131,15 @@ export function ClientLookupSection({
         <div className="flex gap-1">
           <Input
             value={recordNo}
-            readOnly
-            title="System-tracked — increments automatically on save"
-            className={cn(field, "tabular-nums bg-[#f0f0f2] text-[#55555c]")}
+            readOnly={!onRecordNoChange}
+            onChange={onRecordNoChange ? (e) => onRecordNoChange(e.target.value) : undefined}
+            onKeyDown={onRecordNoChange ? (e) => e.key === "Enter" && onSearchRecord() : undefined}
+            title={
+              onRecordNoChange
+                ? "Type a Record No. and press Enter to open that order"
+                : "System-tracked — increments automatically on save"
+            }
+            className={cn(field, "tabular-nums", !onRecordNoChange && "bg-[#f0f0f2] text-[#55555c]")}
           />
           <button
             type="button"
@@ -186,6 +200,7 @@ export function ClientLookupSection({
         onAdd={onAddClient}
         onSelectExisting={onSelectExistingClient}
         onClientDeleted={onClientDeleted}
+        orderType={orderType}
       />
     </div>
   )

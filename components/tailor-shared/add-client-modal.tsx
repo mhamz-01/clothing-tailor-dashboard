@@ -13,11 +13,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { ClientNoInput } from "@/components/shalwar-kameez/client-no-input"
+import { ClientNoInput } from "@/components/tailor-shared/client-no-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { addClient, deleteClient, fetchNextClientNumber, findMatchingClients, searchClients } from "@/lib/queries/garment-orders"
-import { CLIENT_NO_PATTERN, FIELD_CLASS } from "@/lib/constants/shalwar-kameez"
+import { CLIENT_NO_PATTERN, FIELD_CLASS } from "@/lib/constants/tailor-form"
 import { cn } from "@/lib/utils"
 import type { ClientRow, ClientSearchQuery } from "@/types/garment-order"
 
@@ -37,11 +37,14 @@ interface AddClientModalProps {
   // below) -- lets the main sheet drop its own cached lookups for this
   // client and clear itself if this was the client currently loaded there.
   onClientDeleted?: (clientNo: string) => void
+  // clients.order_type recorded for a newly added client - the garment form this
+  // modal is open in. Defaults to Shalwar Kameez (the original sole user).
+  orderType?: string
 }
 
 const emptyFields = { clientId: "", clientName: "", clientMobile: "" }
 
-export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, onClientDeleted }: AddClientModalProps) {
+export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, onClientDeleted, orderType }: AddClientModalProps) {
   const [fields, setFields] = useState(emptyFields)
   const [error, setError] = useState("")
   // Confirms a delete actually went through -- cleared the instant the
@@ -182,7 +185,7 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, on
         )
         return
       }
-      await addClient({ clientNo, clientName, phoneNo })
+      await addClient({ clientNo, clientName, phoneNo, orderType })
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save client.")
       return

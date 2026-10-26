@@ -13,6 +13,9 @@ interface SizeQuickPickProps {
   // radio option, so arrow keys can reach it same as any other cell there.
   navRow: number
   navCol: number
+  // Caption beside the dropdown; "Size" for the Shalwar Kameez scales,
+  // "Design #" for the Shirt sheet.
+  label?: string
 }
 
 // Compact "Size" quick-pick dropdown placed alongside a radio option row
@@ -27,10 +30,10 @@ interface SizeQuickPickProps {
 // lib/utils/keyboard-nav) -- Up/Down/Left/Right always just move focus onto
 // or off of it and never touch its value, same "arrows hover, Enter/Space/
 // click selects" convention as the checkboxes and radio options around it.
-export function SizeQuickPick({ value, onChange, options, navRow, navCol }: SizeQuickPickProps) {
+export function SizeQuickPick({ value, onChange, options, navRow, navCol, label = "Size" }: SizeQuickPickProps) {
   return (
     <label className="ml-auto flex shrink-0 items-center gap-1.5">
-      <span className="text-[11px] font-semibold text-[#777]">Size</span>
+      <span className="text-[11px] font-semibold text-[#777]">{label}</span>
       <div className="w-20 shrink-0">
         <Select value={value} onValueChange={onChange} data-nav-row={navRow} data-nav-col={navCol}>
           <SelectTrigger className="flex h-[25px] items-center rounded-[3px] border-[#c7c7cf] bg-white py-0 pr-5 pl-2.5 text-[18px] font-medium text-[#111116]">

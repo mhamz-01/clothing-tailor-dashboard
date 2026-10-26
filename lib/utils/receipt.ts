@@ -10,6 +10,7 @@
 // confirmation via an <iframe srcDoc>, so what's approved is pixel-identical
 // to what prints (see ReceiptPreviewDialog).
 
+import { escapeHtml } from "@/lib/utils/html"
 import { printHtmlInPopup } from "@/lib/utils/print-window"
 
 export interface ReceiptData {
@@ -22,6 +23,12 @@ export interface ReceiptData {
   quantity: string
   deliveryDate: string // formatted, display-ready
   buttonTypeLabel: string | null
+  // Optional, for the non-Shalwar-Kameez garment forms: the garment printed under
+  // the title, and the caption for the quantity row ("Suit Qty" when omitted).
+  garmentLabel?: string
+  quantityLabel?: string
+  // The Pant sheet has no Others Amt; true (shown) when omitted.
+  showOthersAmt?: boolean
   tailoringAmount: string // formatted "Rs 0.00"
   clothAmount: string
   shillingAmt: string
@@ -29,23 +36,6 @@ export interface ReceiptData {
   total: string
   advance: string
   balance: string
-}
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (char) => {
-    switch (char) {
-      case "&":
-        return "&amp;"
-      case "<":
-        return "&lt;"
-      case ">":
-        return "&gt;"
-      case '"':
-        return "&quot;"
-      default:
-        return "&#39;"
-    }
-  })
 }
 
 function row(label: string, value: string, className = ""): string {
@@ -106,19 +96,20 @@ export function buildReceiptHtml(data: ReceiptData, paperWidthMm = 80): string {
     <div class="brand-name">Paradise Tailor</div>
   </div>
   <h1>Receipt</h1>
+  ${data.garmentLabel ? `<div class="center muted">${escapeHtml(data.garmentLabel)}</div>` : ""}
   <div class="divider"></div>
   ${row("Client No", data.clientNo)}
   ${row("Name", data.clientName)}
   ${row("Book Date", data.bookDate)}
   <div class="divider"></div>
-  ${row("Suit Qty", data.quantity)}
+  ${row(data.quantityLabel ?? "Suit Qty", data.quantity)}
   ${row("Delivery Date", data.deliveryDate)}
   ${data.buttonTypeLabel ? row("Button Type", data.buttonTypeLabel) : ""}
   <div class="divider"></div>
   ${row("Tailoring Amt", data.tailoringAmount)}
   ${row("Cloth Amount", data.clothAmount)}
   ${row("Shiling Amt", data.shillingAmt)}
-  ${row("Others Amt", data.othersAmt)}
+  ${data.showOthersAmt === false ? "" : row("Others Amt", data.othersAmt)}
   <div class="divider"></div>
   ${row("Total", data.total, "total")}
   ${row("Advance", data.advance)}

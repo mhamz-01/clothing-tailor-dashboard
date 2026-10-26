@@ -174,13 +174,19 @@ export async function findMatchingClients(query: ClientSearchQuery): Promise<Cli
 // for a clash immediately before calling this, so a unique-constraint error
 // here should only ever mean a race with another tailor saving the same
 // values in between.
-export async function addClient(client: { clientNo: string; clientName: string; phoneNo: string }): Promise<void> {
+export async function addClient(client: {
+  clientNo: string
+  clientName: string
+  phoneNo: string
+  // Garment form the client is being added from; Shalwar Kameez when omitted.
+  orderType?: string
+}): Promise<void> {
   const supabase = createClient()
   const { error } = await supabase.from("clients").insert({
     client_no: client.clientNo,
     client_name: client.clientName,
     phone_no: client.phoneNo,
-    order_type: "kameez_shalwar",
+    order_type: client.orderType ?? "kameez_shalwar",
   })
   if (error) throw new Error(error.message)
 }

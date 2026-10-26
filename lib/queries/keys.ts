@@ -14,4 +14,8 @@ export const queryKeys = {
   nextRecordNo: ["nextRecordNo"] as const,
   clientByNo: (clientNo: string) => ["clientByNo", clientNo] as const,
   clientLatestOrder: (clientNo: string) => ["clientLatestOrder", clientNo] as const,
+  // Waistcoat / Pant / Coat / Shirt forms (hooks/garment-order/*). Client rows,
+  // Record No. preview, pricing settings and button prices reuse the keys above.
+  garmentBasePrices: ["garmentBasePrices"] as const,
+  garmentLatestOrder: (garment: string, clientNo: string) => ["garmentLatestOrder", garment, clientNo] as const,
 }

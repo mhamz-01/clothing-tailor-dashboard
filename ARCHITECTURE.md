@@ -311,3 +311,26 @@ namespace, different auth system, different session cookie, own
   disabled placeholders on `/tailor/categories` pending the same schema
   pattern (`orders` + a garment-specific details table) being extended to
   them.
+
+## Waistcoat / Pant / Coat / Shirt order sheets (data-driven)
+
+The other four categories on `/tailor/categories` run on one shared engine
+instead of one bespoke form each. Full documentation lives in
+[`docs/tailor-garments/`](docs/tailor-garments/README.md) (functional
+requirements, database design, APIs/queries, file-by-file structure).
+
+- **Route** — `app/tailor/orders/[garment]/page.tsx` (`generateStaticParams`
+  over the registry); `orders/shalwar-kameez` stays its own static route.
+- **Definitions** — `lib/garments/{waistcoat,pant,coat,shirt}.ts` describe each
+  garment as data (measurements, option groups); `lib/garments/registry.ts` is
+  the only place a garment is registered. `form-values.ts` and `billing.ts` are
+  the pure form<->DB conversion and the single billing formula.
+- **State** — `hooks/garment-order/use-garment-order-form.ts` (orchestrator) and
+  `use-client-lookup.ts` (client search / Prev-Next / Add Client behind a small
+  host interface).
+- **UI** — `components/garment-order/*` render any definition; components shared
+  with Shalwar Kameez live in `components/tailor-shared/`.
+- **Data** — `lib/queries/garment-order-records.ts` calls the Postgres
+  functions `create_<g>_order`, `get_<g>_order`, `fetch_latest_<g>_order`
+  (migrations `20261027*`). Model: the shared `garment_orders` shell + one 1:1
+  `<g>_details` table per garment, style choices as enum columns.

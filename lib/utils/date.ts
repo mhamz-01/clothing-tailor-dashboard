@@ -48,3 +48,11 @@ export function todayDateInputValue(): string {
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
     return `${hours}h ${minutes}m left`
   }
+
+// "2026-10-27T09:15:00+00:00" (a timestamptz from the API) -> the local
+// calendar day as a date-input value ("2026-10-27"). Local, not UTC, so a
+// record booked just after midnight in the shop's timezone keeps its day.
+export function dateInputValueFromTimestamp(value: string): string {
+  const d = new Date(value)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+}

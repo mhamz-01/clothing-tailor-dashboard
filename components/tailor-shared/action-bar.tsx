@@ -11,6 +11,10 @@ interface ActionBarProps {
   nextDisabled: boolean
   onPrint: () => void
   onExit: () => void
+  // Optional: only the Waistcoat/Pant/Coat/Shirt sheets can delete a saved
+  // record; omit and no Delete button renders (Shalwar Kameez).
+  onDelete?: () => void
+  deleteDisabled?: boolean
 }
 
 const outlinedBtn =
@@ -31,6 +35,8 @@ export function ActionBar({
   nextDisabled,
   onPrint,
   onExit,
+  onDelete,
+  deleteDisabled = false,
 }: ActionBarProps) {
   return (
     <div className="flex shrink-0 items-center gap-2">
@@ -56,6 +62,11 @@ export function ActionBar({
         <button type="button" onClick={onPrint} className={outlinedBtn}>
           Print
         </button>
+        {onDelete && (
+          <button type="button" onClick={onDelete} disabled={deleteDisabled} className={outlinedBtn}>
+            Delete
+          </button>
+        )}
         <button type="button" onClick={onExit} className={outlinedBtn}>
           Exit
         </button>

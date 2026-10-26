@@ -7,11 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useGarmentBasePrices, useUpdateGarmentBasePrices } from "@/hooks/garment-order/use-garment-base-prices"
 import { useButtonPrices } from "@/hooks/shalwar-kameez/use-button-prices"
 import { usePricingSettings } from "@/hooks/shalwar-kameez/use-pricing-settings"
 import { useUpdateButtonPrices, useUpdatePricingSettings } from "@/hooks/shalwar-kameez/use-pricing-settings-mutations"
 import { BUTTON_TYPE_OPTIONS } from "@/lib/constants/shalwar-kameez"
+import { GARMENT_KEYS, GARMENTS } from "@/lib/garments/registry"
 import { cn } from "@/lib/utils"
+import type { GarmentBasePrices } from "@/types/garment-form"
 import type { ButtonTypePriceRow, OrderPricingSettings } from "@/types/garment-order"
 
 // Reached via the gear icon on /tailor/categories. Configures the values the
@@ -24,7 +27,8 @@ import type { ButtonTypePriceRow, OrderPricingSettings } from "@/types/garment-o
 export default function TailorSettingsPage() {
   const buttonPrices = useButtonPrices()
   const pricingSettings = usePricingSettings()
-  const isLoading = buttonPrices.isLoading || pricingSettings.isLoading || !pricingSettings.data
+  const garmentPrices = useGarmentBasePrices()
+  const isLoading = buttonPrices.isLoading || pricingSettings.isLoading || garmentPrices.isLoading || !pricingSettings.data || !garmentPrices.data
 
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col gap-4 px-4 py-10">
@@ -44,7 +48,7 @@ export default function TailorSettingsPage() {
           Loading…
         </div>
       ) : (
-        <SettingsForm buttonPrices={buttonPrices.pricesByCode} pricingSettings={pricingSettings.data!} />
+        <SettingsForm buttonPrices={buttonPrices.pricesByCode} pricingSettings={pricingSettings.data!} garmentPrices={garmentPrices.data!} />
       )}
     </div>
   )
@@ -53,12 +57,13 @@ export default function TailorSettingsPage() {
 interface SettingsFormProps {
   buttonPrices: Record<string, number>
   pricingSettings: OrderPricingSettings
+  garmentPrices: GarmentBasePrices
 }
 
 // Split out so its useState initializers can read straight from the already-
 // loaded query data -- this only mounts once both queries above have
 // resolved, so no effect is needed to sync async data into local edit state.
-function SettingsForm({ buttonPrices, pricingSettings }: SettingsFormProps) {
+function SettingsForm({ buttonPrices, pricingSettings, garmentPrices }: SettingsFormProps) {
   const [prices, setPrices] = useState<Record<string, string>>(() =>
     Object.fromEntries(BUTTON_TYPE_OPTIONS.map((option) => [option.value, String(buttonPrices[option.value] ?? 0)]))
   )
@@ -67,11 +72,15 @@ function SettingsForm({ buttonPrices, pricingSettings }: SettingsFormProps) {
   const [defaultClothAmount, setDefaultClothAmount] = useState(String(pricingSettings.defaultClothAmount))
   const [defaultShillingAmount, setDefaultShillingAmount] = useState(String(pricingSettings.defaultShillingAmount))
   const [defaultOthersAmount, setDefaultOthersAmount] = useState(String(pricingSettings.defaultOthersAmount))
+  const [garmentBase, setGarmentBase] = useState<Record<string, string>>(() =>
+    Object.fromEntries(GARMENT_KEYS.map((garment) => [garment, String(garmentPrices[garment])]))
+  )
   const [status, setStatus] = useState<{ kind: "success" | "error"; message: string } | null>(null)
 
   const updateButtonPrices = useUpdateButtonPrices()
   const updatePricingSettings = useUpdatePricingSettings()
-  const isSaving = updateButtonPrices.isPending || updatePricingSettings.isPending
+  const updateGarmentPrices = useUpdateGarmentBasePrices()
+  const isSaving = updateButtonPrices.isPending || updatePricingSettings.isPending || updateGarmentPrices.isPending
 
   function toAmount(value: string): number {
     const parsed = parseFloat(value)
@@ -84,8 +93,12 @@ function SettingsForm({ buttonPrices, pricingSettings }: SettingsFormProps) {
       code: option.value,
       price: toAmount(prices[option.value] ?? "0"),
     }))
+    const garmentPriceRows = Object.fromEntries(
+      GARMENT_KEYS.map((garment) => [garment, toAmount(garmentBase[garment] ?? "0")])
+    ) as GarmentBasePrices
     try {
       await Promise.all([
+        updateGarmentPrices.mutateAsync(garmentPriceRows),
         updateButtonPrices.mutateAsync(priceRows),
         updatePricingSettings.mutateAsync({
           baseTailoringAmount: toAmount(baseTailoringAmount),
@@ -124,6 +137,29 @@ function SettingsForm({ buttonPrices, pricingSettings }: SettingsFormProps) {
             Delivery Date defaults to Book Date + this many days, but the tailor can still change it for a specific order on the
             order sheet.
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Waistcoat, Pant, Coat &amp; Shirt Tailoring Amt</CardTitle>
+          <CardDescription>
+            Tailoring Amt on each of these order forms defaults to the amount below × Quantity. The tailor can still type a
+            different amount on a specific order. Delivery turnaround and the default amounts further down apply to these
+            garments too.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-x-4 gap-y-3">
+          {GARMENT_KEYS.map((garment) => (
+            <div key={garment} className="flex flex-col gap-1">
+              <Label className="text-xs font-medium text-slate-500">{GARMENTS[garment].titleEn}</Label>
+              <Input
+                type="number"
+                value={garmentBase[garment] ?? ""}
+                onChange={(e) => setGarmentBase((prev) => ({ ...prev, [garment]: e.target.value }))}
+              />
+            </div>
+          ))}
         </CardContent>
       </Card>
 

@@ -3,6 +3,8 @@ import type { RadioItem } from "@/types/shalwar-kameez"
 
 interface RadioOptionGroupProps {
   title: string
+  // Urdu title shown instead of `title` (Pant sheet labels its groups in Urdu).
+  titleUr?: string
   name: string
   options: RadioItem[]
   // Rendered at the far right of the row (margin-left:auto) — the Size
@@ -24,10 +26,16 @@ interface RadioOptionGroupProps {
 // arrow navigation only moves the hover/focus spot, it never selects an
 // option by itself. Enter selects the focused one, same convention as
 // Enter-to-toggle on checkboxes.
-export function RadioOptionGroup({ title, name, options, trailingSlot, navRow }: RadioOptionGroupProps) {
+export function RadioOptionGroup({ title, titleUr, name, options, trailingSlot, navRow }: RadioOptionGroupProps) {
   return (
     <div className="flex items-center gap-3.5 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] px-3 py-[15px]">
-      <span className="w-16 shrink-0 text-[12px] font-bold tracking-[0.06em] text-[#8a8a92] uppercase">{title}</span>
+      {titleUr ? (
+        <span className="w-24 shrink-0 font-[family-name:var(--font-naskh)] text-[18px] font-bold text-[#111116]" dir="rtl">
+          {titleUr}
+        </span>
+      ) : (
+        <span className="w-16 shrink-0 text-[12px] font-bold tracking-[0.06em] text-[#8a8a92] uppercase">{title}</span>
+      )}
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
         {options.map((option, index) => (
           <label

@@ -1,4 +1,4 @@
-import { ButtonTypePanel } from "@/components/shalwar-kameez/button-type-panel"
+import { ButtonTypePanel } from "@/components/tailor-shared/button-type-panel"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FIELD_CLASS, NO_SPINNER_CLASS } from "@/lib/constants/shalwar-kameez"
