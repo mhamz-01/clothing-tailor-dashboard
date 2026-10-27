@@ -34,6 +34,9 @@ interface FormState {
   clientName: string
   phoneNo: string
   bookDate: string
+  // Book Date of the looked-up client's latest order of this garment ("" if
+  // none) - display only, not part of the unsaved-changes snapshot.
+  lastOrderDate: string
   pBal: string
   // "" shows the next Record No. preview; set once a record is saved/loaded.
   recordNo: string
@@ -57,6 +60,7 @@ function createInitialState(def: GarmentDefinition): FormState {
     clientName: "",
     phoneNo: "",
     bookDate: todayDateInputValue(),
+    lastOrderDate: "",
     pBal: "0",
     recordNo: "",
     loadedOrderId: null,
@@ -164,6 +168,8 @@ export function useGarmentOrderForm(def: GarmentDefinition) {
           clientNo: client.clientNo,
           clientName: client.clientName,
           phoneNo: client.phoneNo,
+          // Refilled by applyLatestOrder if this client has an order on file.
+          lastOrderDate: "",
           order: { ...prev.order, deliveryDate: "" },
         }),
         { baseline: true }
@@ -174,6 +180,7 @@ export function useGarmentOrderForm(def: GarmentDefinition) {
           ...prev,
           recordNo: String(order.orderId),
           loadedOrderId: order.orderId,
+          lastOrderDate: dateInputValueFromTimestamp(order.createdAt),
           values: valuesFromRecord(def, order.details, order.partDesigns),
         }),
         { baseline: true }
@@ -299,6 +306,8 @@ export function useGarmentOrderForm(def: GarmentDefinition) {
           clientName: record.clientName,
           phoneNo: record.phoneNo,
           bookDate: dateInputValueFromTimestamp(record.createdAt),
+          // A searched record isn't necessarily the client's latest one.
+          lastOrderDate: "",
           recordNo: String(record.orderId),
           loadedOrderId: record.orderId,
           values: valuesFromRecord(def, record.details, record.partDesigns),

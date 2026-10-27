@@ -97,6 +97,7 @@ export function GarmentOrderForm({ definition }: { definition: GarmentDefinition
             clientNo={state.clientNo}
             clientNoValidation={lookup.clientNoValidation}
             bookDate={state.bookDate}
+            lastOrderDate={state.lastOrderDate}
             recordNo={form.recordNo}
             pBal={state.pBal}
             clientName={state.clientName}

@@ -242,6 +242,7 @@ export async function fetchLatestOrderForClient(clientNo: string): Promise<Lates
 
   const row = data as {
     order_id: number
+    created_at: string
     client_name: string
     phone_no: string
     measurements: {
@@ -272,6 +273,7 @@ export async function fetchLatestOrderForClient(clientNo: string): Promise<Lates
 
   return {
     recordNo: row.order_id,
+    createdAt: row.created_at,
     clientName: row.client_name,
     phoneNo: row.phone_no,
     measurements: {

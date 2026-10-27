@@ -30,7 +30,7 @@ import {
   STYLE_FLAG_DB_CODES,
   VALID_COLLAR_TYPE_CODES,
 } from "@/lib/constants/shalwar-kameez"
-import { addDaysToDateInputValue, formatDueDate, todayDateInputValue } from "@/lib/utils/date"
+import { addDaysToDateInputValue, dateInputValueFromTimestamp, formatDueDate, todayDateInputValue } from "@/lib/utils/date"
 import { formatSizeLabel } from "@/lib/utils/format-size"
 import { buildOrderSheetHtml, printOrderSheetHtml } from "@/lib/utils/order-sheet"
 import { buildReceiptHtml, printReceiptHtml } from "@/lib/utils/receipt"
@@ -56,6 +56,7 @@ function createInitialState(): ShalwarKameezFormState {
   return {
     clientNo: "",
     bookDate: todayDateInputValue(),
+    lastOrderDate: "",
     recordNo: "",
     clientName: "",
     phoneNo: "",
@@ -295,6 +296,7 @@ export function useShalwarKameezForm() {
       const next: ShalwarKameezFormState = {
         ...prev,
         recordNo: String(data.recordNo),
+        lastOrderDate: data.createdAt ? dateInputValueFromTimestamp(data.createdAt) : "",
         clientName: data.clientName,
         phoneNo: data.phoneNo,
         measurements: {
@@ -376,6 +378,8 @@ export function useShalwarKameezForm() {
           clientNo,
           clientName: client.clientName,
           phoneNo: client.phoneNo,
+          // Refilled by applyLatestOrder below if this client has an order.
+          lastOrderDate: "",
           order: computed ? { ...prev.order, deliveryDate: computed } : prev.order,
         }
         lastSnapshotRef.current = snapshotEditableState(next)
@@ -725,6 +729,7 @@ export function useShalwarKameezForm() {
         clientNo: client.clientNo,
         clientName: client.clientName,
         phoneNo: client.phoneNo,
+        lastOrderDate: "",
         statusMsg: "Client found.",
         statusKind: "success",
       }

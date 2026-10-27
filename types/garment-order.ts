@@ -90,6 +90,9 @@ export interface LatestOrderPartDesign {
 
 export interface LatestClientOrder {
   recordNo: number
+  // garment_orders.created_at of that order -- its Book Date, shown as
+  // "Last Order" in the client strip.
+  createdAt: string
   clientName: string
   phoneNo: string
   measurements: LatestOrderMeasurements

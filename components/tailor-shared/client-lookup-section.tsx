@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FIELD_CLASS } from "@/lib/constants/tailor-form"
 import { cn } from "@/lib/utils"
+import { formatDueDate } from "@/lib/utils/date"
 import type { ClientRow } from "@/types/garment-order"
 
 interface ClientNoValidation {
@@ -18,6 +19,9 @@ interface ClientLookupSectionProps {
   clientNo: string
   clientNoValidation: ClientNoValidation
   bookDate: string
+  // Book Date ("YYYY-MM-DD") of the looked-up client's most recent order, or
+  // "" when no client is loaded / the client has no order on file.
+  lastOrderDate: string
   recordNo: string
   pBal: string
   clientName: string
@@ -74,6 +78,7 @@ export function ClientLookupSection({
   clientNo,
   clientNoValidation,
   bookDate,
+  lastOrderDate,
   recordNo,
   pBal,
   clientName,
@@ -192,6 +197,16 @@ export function ClientLookupSection({
             <SearchIcon />
           </button>
         </div>
+
+        {/* Fills the strip's last free cell, under P-Bal. */}
+        <Label className={rowLabel}>Last Order</Label>
+        <Input
+          value={formatDueDate(lastOrderDate || null)}
+          readOnly
+          tabIndex={-1}
+          title="Book Date of this client's most recent order"
+          className={cn(field, "bg-[#f0f0f2] tabular-nums text-[#55555c]")}
+        />
       </div>
 
       <AddClientModal

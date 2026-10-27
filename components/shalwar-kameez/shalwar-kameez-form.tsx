@@ -83,6 +83,7 @@ export function ShalwarKameezForm() {
             clientNo={state.clientNo}
             clientNoValidation={form.clientNoValidation}
             bookDate={state.bookDate}
+            lastOrderDate={state.lastOrderDate}
             recordNo={state.recordNo}
             pBal={state.pBal}
             clientName={state.clientName}

@@ -79,6 +79,9 @@ export interface OrderAmounts {
 export interface ShalwarKameezFormState {
   clientNo: string
   bookDate: string
+  // Book Date of the looked-up client's latest order ("" if none) -- display
+  // only, not part of the unsaved-changes snapshot.
+  lastOrderDate: string
   recordNo: string
   clientName: string
   phoneNo: string
