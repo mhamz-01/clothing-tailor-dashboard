@@ -141,7 +141,7 @@ export const PART_DESIGN_IMAGES: Record<PartDesignKey, PartDesignImageOption[]> 
 
 // Visible (non-dropdown) size scroll-lists shown in the part-design picker
 // modal — each part has its own vocabulary/range, not one shared list.
-// quarterRange/integerRange generate the fixed-step ranges per client spec
+// quarterRange generates the fixed-step ranges per client spec
 // (e.g. bazu "Size": 5 1/2 to 10 in quarter-inch steps).
 function formatQuarterValue(value: number): string {
   const whole = Math.floor(value + 1e-9)
@@ -155,12 +155,6 @@ function quarterRange(start: number, end: number): string[] {
   for (let v = start; v <= end + 1e-9; v += 0.25) {
     values.push(formatQuarterValue(v))
   }
-  return values
-}
-
-function integerRange(start: number, end: number): string[] {
-  const values: string[] = []
-  for (let v = start; v <= end; v++) values.push(String(v))
   return values
 }
 
@@ -206,15 +200,18 @@ export const PART_DESIGN_SIZE_CONFIG: Record<PartDesignKey, PartDesignSizeConfig
     size2Label: "Turn",
     size2Options: quarterRange(1, 3.5),
   },
+  // Kuf: Chorai (width) 7 to 8 3/4 and Lambai (length) 1 3/4 to 3 1/2,
+  // per the client's handwritten size sheet (2026-10-27).
   kuf: {
-    size1Label: "Size 1",
-    size1Options: quarterRange(8, 12),
-    size2Label: "Size 2",
-    size2Options: quarterRange(2, 4),
+    size1Label: "Chorai",
+    size1Options: quarterRange(7, 8.75),
+    size2Label: "Lambai",
+    size2Options: quarterRange(1.75, 3.5),
   },
   buttonPatti: {
     size1Label: "Length",
-    size1Options: integerRange(5, 20),
+    // Same 1 1/2 to 3 1/2 scale as COLLAR_SIZE_OPTIONS (client request).
+    size1Options: quarterRange(1.5, 3.5),
     size2Label: "Width",
     size2Options: quarterRange(1.25, 3),
   },
