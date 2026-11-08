@@ -27,8 +27,6 @@ export interface GarmentOrderSheetData {
   deliveryDate: string // formatted, display-ready
 }
 
-const LOGO_PATH = "/paradise-tailor-logo-lightbackground.png"
-
 // A blob: popup document can't resolve a bare "/path" (see receipt.ts), so
 // every asset needs an absolute same-origin URL.
 function resolveAssetUrl(path: string): string {
@@ -37,6 +35,19 @@ function resolveAssetUrl(path: string): string {
 
 function labelOf(choices: OptionChoice[], value: string): string {
   return choices.find((choice) => choice.value === value)?.label ?? value
+}
+
+// Waistcoat Gala picks (waistcoat.ts "gala" values) -> artwork in public/waiscoat-assets.
+const GALA_IMAGES: Record<string, { src: string; label: string }> = {
+  ban_gala: { src: "/waiscoat-assets/bain-gala-thin.svg", label: "Ban Gala" },
+  v_gala: { src: "/waiscoat-assets/v-gala.svg", label: "V Gala" },
+  u_gala: { src: "/waiscoat-assets/u-gala.svg", label: "U Gala" },
+}
+
+function galaCell(data: GarmentOrderSheetData): string {
+  const gala = GALA_IMAGES[data.values.options.gala ?? ""]
+  if (!gala) return ""
+  return `<div class="gala-cell"><div class="gala-label">${escapeHtml(gala.label)}</div><img src="${escapeHtml(resolveAssetUrl(gala.src))}" alt="${escapeHtml(gala.label)}" /></div>`
 }
 
 function money(value: number): string {
@@ -60,6 +71,7 @@ function optionRows(data: GarmentOrderSheetData): string {
 
   for (const section of definition.sections) {
     if (section.kind !== "radio") continue
+    if (data.definition.key === "waistcoat" && section.column === "gala" && GALA_IMAGES[data.values.options.gala ?? ""]) continue
     const selected = values.options[section.column]
     if (!selected) continue
 
@@ -104,6 +116,8 @@ export function buildGarmentOrderSheetHtml(data: GarmentOrderSheetData): string 
   const { definition, billing, values } = data
   const measurementHeader = definition.measurements.some((m) => m.secondColumn) ? 2 : 1
   const parts = definition.hasPartDesigns ? partRows(data) : ""
+  const isWaistcoat = definition.key === "waistcoat"
+  const measurementWidth = measurementHeader === 2 ? "46mm" : "38mm"
 
   return `<!doctype html>
 <html>
@@ -121,15 +135,25 @@ export function buildGarmentOrderSheetHtml(data: GarmentOrderSheetData): string 
     line-height: 1.35;
   }
   [dir="rtl"], .ur { font-family: "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Segoe UI", Tahoma, Arial, sans-serif; }
-  .head { display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 6px; }
-  .head img { width: 38px; height: 38px; object-fit: contain; }
-  .brand { font-size: 15px; font-weight: 700; letter-spacing: 0.04em; }
-  .garment { margin-left: auto; text-align: right; }
-  .garment .ur { font-size: 18px; font-weight: 700; }
-  .garment .en { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #444; }
-  .info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px 8px; border: 1px solid #000; padding: 5px 7px; margin-bottom: 6px; }
-  .info b { font-weight: 700; }
-  .cols { display: grid; grid-template-columns: ${measurementHeader === 2 ? "46mm" : "38mm"} 1fr; gap: 6px; }
+  /* Page frame, measurement box and design-area box: border widths, padding,
+     page height and zoom copied 1:1 from the Shalwar Kameez sheet. */
+  .page { position: relative; border: 1.5px solid #000; padding: 2.5mm; display: flex; flex-direction: column; height: 198mm; zoom: 0.96; }
+  .body { display: flex; gap: 1.5mm; flex: 1; min-height: 0; align-items: stretch; }
+  .measurements { width: ${measurementWidth}; flex-shrink: 0; }
+  table.meas { border: 1px solid #000; }
+  .design-area { flex: 1; min-width: 0; border: 1px solid #000; padding: 1mm 1mm; display: flex; flex-direction: column; gap: 1mm; }
+  /* Header copied 1:1 from the Shalwar Kameez sheet (order-sheet.ts). */
+  .title { font-size: 17px; font-weight: 800; text-align: center; letter-spacing: 0.02em; text-transform: uppercase; margin-bottom: 1.5mm; }
+  .subheader { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; font-weight: bold; margin-bottom: 1.5mm; }
+  .info-table { display: flex; border: 1px solid #000; margin-bottom: 1.5mm; }
+  .info-cell { padding: 1mm 1.5mm; text-align: center; border-right: 1px solid #000; }
+  .info-cell:last-child { border-right: none; }
+  .info-cell.sno { flex: 0 0 42%; }
+  .info-cell.qty { flex: 1; }
+  .info-heading { font-size: 8.5px; font-weight: bold; margin-bottom: 0.7mm; }
+  .info-value { font-size: 13px; font-weight: bold; }
+  .info-value2 { font-size: 10.5px; color: #333; margin-top: 0.3mm; }
+  .cols { display: grid; grid-template-columns: ${measurementWidth} 1fr; gap: 6px; }
   table { width: 100%; border-collapse: collapse; }
   td { border: 1px solid #000; padding: 3px 6px; vertical-align: middle; }
   td.val, td.num { text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
@@ -138,40 +162,65 @@ export function buildGarmentOrderSheetHtml(data: GarmentOrderSheetData): string 
   td.key { font-weight: 700; white-space: nowrap; width: 30%; }
   td.pic { text-align: center; }
   td.pic img { max-height: 16mm; max-width: 22mm; object-fit: contain; }
+  ${isWaistcoat ? `table.meas td { height: 11mm; padding: 5px 8px; }
+  table.meas td.val { font-size: 16px; }
+  table.meas td.ur { font-size: 19px; }` : ""}
+  ${isWaistcoat ? `/* Waistcoat: shorter sheet (height follows content) and the design area is a
+     4-row x 2-col grid; options span rows 1-2, the Gala picture sits in row 3, col 1. */
+  .page { height: auto; }
+  .design-area { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, auto); align-content: start; }
+  .design-area > .opts { grid-column: 1 / -1; grid-row: 1 / span 2; }
+  .gala-cell { grid-column: 1; grid-row: 3; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 1mm; padding: 2mm 0; }
+  .gala-label { font-size: 12px; font-weight: 700; text-align: center; }
+  .gala-cell img { max-width: 38mm; max-height: 38mm; object-fit: contain; }` : ""}
   .muted { color: #666; }
   .stack { display: flex; flex-direction: column; gap: 6px; }
   .box { border: 1px solid #000; padding: 4px 7px; min-height: 14mm; white-space: pre-wrap; }
   .box h4 { margin: 0 0 2px; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #444; }
+  .note { margin-top: 6px; padding: 4px 7px; min-height: 14mm; white-space: pre-wrap; }
   tr.strong td { font-weight: 700; font-size: 12px; background: #eee; }
-  .footer { margin-top: 6px; text-align: center; font-size: 8px; color: #666; }
+  /* Delivery Date: same look and bottom-right spot as the Shalwar Kameez sheet's
+     .delivery-pin, but in normal flow (margin-top: auto pushes it to the bottom
+     of fixed-height pages) so it can't overlap content on the shorter waistcoat page. */
+  .delivery-pin { margin-top: auto; padding: 1.5mm 2mm 0; font-size: 16px; font-weight: bold; text-align: right; }
+  .delivery-value { display: inline-block; border-bottom: 1px solid #000; padding-bottom: 0.3mm; min-width: 20mm; }
+  .footer { margin-top: 1mm; text-align: center; font-size: 8px; color: #666; }
 </style>
 </head>
 <body>
-  <div class="head">
-    <img src="${escapeHtml(resolveAssetUrl(LOGO_PATH))}" alt="" />
-    <div class="brand">Paradise Tailor</div>
-    <div class="garment"><div class="ur" dir="rtl">${escapeHtml(definition.titleUr)}</div><div class="en">${escapeHtml(definition.titleEn)} order sheet</div></div>
+  <div class="page">
+  <div class="title">Paradise Tailor</div>
+
+  <div class="subheader">
+    <span>${escapeHtml(data.clientName || "—")}</span>
+    <span>B. Date: ${escapeHtml(data.bookDate)}</span>
   </div>
 
-  <div class="info">
-    <div><b>Record No.</b> ${escapeHtml(data.recordNo || "—")}</div>
-    <div><b>Client No.</b> ${escapeHtml(data.clientNo || "—")}</div>
-    <div><b>${escapeHtml(definition.quantityLabel)}</b> ${billing.quantity}</div>
-    <div style="grid-column: span 2"><b>Name</b> ${escapeHtml(data.clientName || "—")}</div>
-    <div><b>Phone</b> ${escapeHtml(data.phoneNo || "—")}</div>
-    <div><b>Book Date</b> ${escapeHtml(data.bookDate)}</div>
-    <div style="grid-column: span 2"><b>Delivery Date</b> ${escapeHtml(data.deliveryDate)}</div>
-  </div>
-
-  <div class="cols">
-    <table>${measurementRows(data)}</table>
-    <div class="stack">
-      <table>${optionRows(data)}</table>
-      ${parts ? `<table>${parts}</table>` : ""}
+  <div class="info-table">
+    <div class="info-cell sno">
+      <div class="info-heading">S. No.</div>
+      <div class="info-value">${escapeHtml(data.clientNo || "—")}</div>
+      <div class="info-value2">${escapeHtml(data.recordNo || "—")}</div>
+    </div>
+    <div class="info-cell qty">
+      <div class="info-heading">Qty</div>
+      <div class="info-value">${billing.quantity}</div>
     </div>
   </div>
 
-  <div class="cols" style="margin-top: 6px">
+  <div class="body">
+    <div class="measurements"><table class="meas">${measurementRows(data)}</table></div>
+    <div class="design-area">
+      <table class="opts">${optionRows(data)}</table>
+      ${parts ? `<table>${parts}</table>` : ""}
+      ${isWaistcoat ? galaCell(data) : ""}
+    </div>
+  </div>
+
+  ${
+    definition.key === "waistcoat"
+      ? `<div class="note">${escapeHtml(values.note)}</div>`
+      : `<div class="cols" style="margin-top: 6px">
     <div class="box"><h4>Note</h4>${escapeHtml(values.note)}</div>
     <table>
       ${amountRow("Tailoring Amt", money(billing.tailoringAmount))}
@@ -182,9 +231,13 @@ export function buildGarmentOrderSheetHtml(data: GarmentOrderSheetData): string 
       ${amountRow("Advance", money(billing.advance))}
       ${amountRow("Balance", money(billing.balance), true)}
     </table>
-  </div>
+  </div>`
+  }
+
+  <div class="delivery-pin">D. Date: <span class="delivery-value">${escapeHtml(data.deliveryDate)}</span></div>
 
   <div class="footer">Developed by IntellectualHut &middot; 0304-9024972</div>
+  </div>
 </body>
 </html>`
 }

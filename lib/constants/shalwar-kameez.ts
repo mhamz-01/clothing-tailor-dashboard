@@ -210,8 +210,8 @@ export const PART_DESIGN_SIZE_CONFIG: Record<PartDesignKey, PartDesignSizeConfig
   },
   buttonPatti: {
     size1Label: "Length",
-    // Same 1 1/2 to 3 1/2 scale as COLLAR_SIZE_OPTIONS (client request).
-    size1Options: quarterRange(1.5, 3.5),
+    // Length runs 5 to 20 in whole numbers, no fractions (client request).
+    size1Options: Array.from({ length: 16 }, (_, i) => String(i + 5)),
     size2Label: "Width",
     size2Options: quarterRange(1.25, 3),
   },
