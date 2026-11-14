@@ -2,11 +2,11 @@
 // (Shalwar Kameez, Waistcoat, Pant, Coat, Shirt).
 
 // Shared field styling — based on the Claude Design spec
-// (Shalwar Kameez Dashboard.dc.html): #c7c7cf borders, 3px radius, black
+// (Shalwar Kameez Dashboard.dc.html): #CFC9BA borders, 3px radius, black
 // focus ring. Text bumped up from the spec's 12px/normal to 13px/medium
 // (client request) for readability, since older users read this form.
 export const FIELD_CLASS =
-  "rounded-[3px] border-[#c7c7cf] bg-white px-[6px] py-0 text-[13px] font-medium text-[#111116] placeholder:text-[#b5b5bd] focus-visible:border-black focus-visible:ring-[3px] focus-visible:ring-black/[0.14]"
+  "rounded-[3px] border-[#BDB59F] bg-[#F3EFE5] px-[6px] py-0 text-[13px] font-medium text-[#1B2233] placeholder:text-[#A8A08A] focus-visible:border-[#B08D57] focus-visible:ring-[3px] focus-visible:ring-[#B08D57]/[0.3]"
 
 // Hides the browser's up/down spin-button counter on type="number" inputs
 // (measurements, Tailoring/Cloth/Shiling/Others Amt) -- these are entered by

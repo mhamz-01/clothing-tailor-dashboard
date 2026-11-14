@@ -18,7 +18,7 @@ interface ActionBarProps {
 }
 
 const outlinedBtn =
-  "h-8 shrink-0 rounded-[4px] border border-[#c2c2ca] bg-white px-3 text-[16px] font-bold whitespace-nowrap text-[#222226] hover:border-black hover:bg-[#f4f4f6] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#c2c2ca] disabled:hover:bg-white"
+  "h-8 shrink-0 rounded-[4px] border border-[#CFC9BA] bg-white px-3 text-[16px] font-bold whitespace-nowrap text-[#1B2233] hover:border-[#1F2A44] hover:bg-[#F1EEE6] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#CFC9BA] disabled:hover:bg-white"
 
 // Full-width single-row bar below the 3-column body. Print Receipt sits on
 // the left (outlined, icon+text); Save + the rest of the actions are
@@ -40,8 +40,8 @@ export function ActionBar({
 }: ActionBarProps) {
   return (
     <div className="flex shrink-0 items-center gap-2">
-      <button type="button" onClick={onPrintReceipt} className="flex h-8 shrink-0 items-center gap-1.5 rounded-[4px] border border-black bg-white px-4 text-[13px] font-bold whitespace-nowrap text-black hover:bg-[#f0f0f2]">
-        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="black" strokeWidth="1.4">
+      <button type="button" onClick={onPrintReceipt} className="flex h-8 shrink-0 items-center gap-1.5 rounded-[4px] border border-[#1F2A44] bg-white px-4 text-[13px] font-bold whitespace-nowrap text-[#1B2233] hover:bg-[#F1EEE6]">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="#1F2A44" strokeWidth="1.4">
           <rect x="3" y="8" width="8" height="4" />
           <path d="M4 8V3h6v5M4 3h6" />
         </svg>
@@ -49,7 +49,7 @@ export function ActionBar({
       </button>
 
       <div className="flex flex-1 items-center justify-center gap-1.5">
-        <button type="button" onClick={onSave} className="h-8 min-w-[74px] shrink-0 rounded-[4px] border border-black bg-black px-3.5 text-[13px] font-bold whitespace-nowrap text-white hover:bg-[#333]">
+        <button type="button" onClick={onSave} className="h-8 min-w-[74px] shrink-0 rounded-[4px] border border-[#C9A66B] bg-[#C9A66B] px-3.5 text-[13px] font-bold whitespace-nowrap text-[#1F2A44] hover:bg-[#D9BC85]">
           Save
         </button>
        

@@ -16,10 +16,10 @@ export default function TailorPortalLayout({ children }: { children: ReactNode }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F6F4EF]">
       <button
         onClick={handleLogout}
-        className="fixed top-4 right-4 z-10 flex items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm hover:text-slate-900"
+        className="fixed top-4 right-4 z-10 flex items-center gap-1.5 rounded-full border border-[#DDD8CC] bg-white px-3 py-1.5 text-xs font-medium text-[#5B6377] shadow-sm hover:border-[#B08D57] hover:text-[#1F2A44]"
       >
         <LogOut className="size-3.5" />
         Logout

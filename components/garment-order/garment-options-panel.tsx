@@ -1,3 +1,4 @@
+import { OptionCard } from "@/components/tailor-shared/option-card"
 import { CheckboxGroup } from "@/components/tailor-shared/checkbox-group"
 import { RadioOptionGroup } from "@/components/tailor-shared/radio-option-group"
 import { SizeQuickPick } from "@/components/tailor-shared/size-quick-pick"
@@ -18,7 +19,8 @@ interface GarmentOptionsPanelProps {
 // is one arrow-key grid (a section = a row), so Up/Down flows through all of them.
 export function GarmentOptionsPanel({ definition, options, flags, onOptionChange, onToggleFlag }: GarmentOptionsPanelProps) {
   return (
-    <div className="flex min-h-0 min-w-0 flex-col gap-2" data-nav-container onKeyDown={handleGridArrowKeyDown}>
+    <div className="min-h-0 min-w-0" data-nav-container onKeyDown={handleGridArrowKeyDown}>
+      <OptionCard>
       {definition.sections.map((section, row) => {
         if (section.kind === "flags") {
           const items = section.flags.map((flag) => ({
@@ -28,7 +30,7 @@ export function GarmentOptionsPanel({ definition, options, flags, onOptionChange
             onChange: () => onToggleFlag(flag.value),
           }))
           return (
-            <div key={`${section.column}-${row}`} className="rounded-[5px] border border-[#dcdce1] bg-[#fafafb] px-3 py-[15px]">
+            <div key={`${section.column}-${row}`} className="px-4 py-3.5">
               <CheckboxGroup items={items} navRowOffset={row} />
             </div>
           )
@@ -65,6 +67,7 @@ export function GarmentOptionsPanel({ definition, options, flags, onOptionChange
           />
         )
       })}
+      </OptionCard>
     </div>
   )
 }

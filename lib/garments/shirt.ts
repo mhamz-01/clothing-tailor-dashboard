@@ -1,7 +1,5 @@
-import { BUTTON_TYPE_OPTIONS } from "@/lib/constants/shalwar-kameez"
+import { BAIN_SIZE_OPTIONS, BUTTON_TYPE_OPTIONS, COLLAR_SIZE_OPTIONS } from "@/lib/constants/shalwar-kameez"
 import type { GarmentDefinition } from "@/types/garment-form"
-
-const DESIGN_NUMBERS = ["1", "2", "3"].map((value) => ({ value, label: value }))
 
 // Shirt Measurement Dashboard copy.dc.html -> shirt_details + shirt_part_designs.
 // Flag values are style_flag_code enum members shared with Shalwar Kameez
@@ -28,9 +26,7 @@ export const shirt: GarmentDefinition = {
       kind: "flags",
       column: "style_flags",
       flags: [
-        { value: "nokdar_tera", label: "Nokdar Tera" },
-        { value: "chak_asten", label: "Chak Asten" },
-        { value: "kaf_dboty", label: "Kuf Dubble Kaj" },
+        { value: "kaf_dboty", label: "Kaf Dboty" },
         { value: "large_buttons", label: "Large Buttons" },
       ],
     },
@@ -39,7 +35,6 @@ export const shirt: GarmentDefinition = {
       column: "style_flags",
       flags: [
         { value: "kaj_patti", label: "Kaj Patti" },
-        { value: "dobat", label: "Dobat" },
         { value: "5_btn", label: "5 Btn" },
         { value: "no_lbl", label: "No Lbl" },
         { value: "2_jeb", label: "2 Jeb" },
@@ -58,7 +53,7 @@ export const shirt: GarmentDefinition = {
         { value: "gol_gala", label: "Gol Gala" },
         { value: "none", label: "None" },
       ],
-      designNo: { column: "bain_design_no", label: "Design #", choices: DESIGN_NUMBERS },
+      designNo: { column: "bain_size", label: "Size", choices: BAIN_SIZE_OPTIONS, text: true },
     },
     {
       kind: "radio",
@@ -73,7 +68,7 @@ export const shirt: GarmentDefinition = {
         { value: "french_cut", label: "French Cut" },
         { value: "none", label: "None" },
       ],
-      designNo: { column: "collar_design_no", label: "Design #", choices: DESIGN_NUMBERS },
+      designNo: { column: "collar_size", label: "Size", choices: COLLAR_SIZE_OPTIONS, text: true },
     },
   ],
   buttonType: { column: "button_type", choices: BUTTON_TYPE_OPTIONS },

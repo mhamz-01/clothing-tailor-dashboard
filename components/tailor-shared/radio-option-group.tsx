@@ -17,6 +17,10 @@ interface RadioOptionGroupProps {
   navRow: number
 }
 
+// Rows sit inside a shared option card (see OptionCard) separated by dividers,
+// so a row carries no border, background or radius of its own.
+const ROW_CLASS = "flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-[#EAE4D5]/70"
+
 // One bordered row per single-select option group (pocket, bain/gala, collar,
 // daman) — each maps to a `*_type_id` FK in the schema. Mirrors the Claude
 // Design spec (Shalwar Kameez Dashboard.dc.html) pixel-for-pixel.
@@ -28,19 +32,19 @@ interface RadioOptionGroupProps {
 // Enter-to-toggle on checkboxes.
 export function RadioOptionGroup({ title, titleUr, name, options, trailingSlot, navRow }: RadioOptionGroupProps) {
   return (
-    <div className="flex items-center gap-3.5 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] px-3 py-[15px]">
+    <div className={ROW_CLASS}>
       {titleUr ? (
-        <span className="w-24 shrink-0 font-[family-name:var(--font-naskh)] text-[18px] font-bold text-[#111116]" dir="rtl">
+        <span className="w-24 shrink-0 font-[family-name:var(--font-naskh)] text-[18px] font-bold text-[#1B2233]" dir="rtl">
           {titleUr}
         </span>
       ) : (
-        <span className="w-16 shrink-0 text-[12px] font-bold tracking-[0.06em] text-[#8a8a92] uppercase">{title}</span>
+        <span className="w-16 shrink-0 text-[12px] font-bold tracking-[0.06em] text-[#4F566B] uppercase">{title}</span>
       )}
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
         {options.map((option, index) => (
           <label
             key={option.value}
-            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[3px] px-1 py-0.5 text-[14px] font-semibold whitespace-nowrap text-[#222226] [&:has(:focus-visible)]:bg-[#eef0ff]"
+            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[3px] px-1 py-0.5 text-[14px] font-semibold whitespace-nowrap text-[#1B2233] [&:has(:focus-visible)]:bg-[#FBF6EA]"
           >
             <input
               type="radio"
@@ -54,7 +58,7 @@ export function RadioOptionGroup({ title, titleUr, name, options, trailingSlot, 
               }}
               data-nav-row={navRow}
               data-nav-col={index}
-              className="size-4 cursor-pointer accent-[#111116]"
+              className="size-4 cursor-pointer accent-[#1B2233]"
             />
             {option.label}
           </label>

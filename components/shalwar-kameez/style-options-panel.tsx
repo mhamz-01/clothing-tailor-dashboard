@@ -1,3 +1,4 @@
+import { OptionCard } from "@/components/tailor-shared/option-card"
 import { CheckboxGroup } from "@/components/tailor-shared/checkbox-group"
 import { RadioOptionGroup } from "@/components/tailor-shared/radio-option-group"
 import { SizeQuickPick } from "@/components/tailor-shared/size-quick-pick"
@@ -55,12 +56,12 @@ export function StyleOptionsPanel({
   const damanRow = collarRow + 1
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-col gap-2" data-nav-container onKeyDown={handleGridArrowKeyDown}>
-      <div className="rounded-[5px] border border-[#dcdce1] bg-[#fafafb] px-2.5 py-[9px]">
+    <div className="min-h-0 min-w-0" data-nav-container onKeyDown={handleGridArrowKeyDown}>
+      <OptionCard>
+      <div className="px-4 py-3.5">
         <CheckboxGroup items={[...styleFlagItems, largeButtonsItem]} columns={CHECKBOX_COLUMNS} />
       </div>
 
-      <div className="flex min-h-0 flex-col gap-2">
         <RadioOptionGroup title="Pockets" name="pocket" options={pocketOptions} navRow={pocketRow} />
 
         <RadioOptionGroup
@@ -101,7 +102,7 @@ export function StyleOptionsPanel({
           options={damanOptions}
           navRow={damanRow}
           trailingSlot={
-            <label className="ml-auto flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[3px] px-1 py-0.5 text-[13px] font-semibold text-[#222226] [&:has(:focus-visible)]:bg-[#eef0ff]">
+            <label className="ml-auto flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[3px] px-1 py-0.5 text-[13px] font-semibold text-[#1B2233] [&:has(:focus-visible)]:bg-[#FBF6EA]">
               <input
                 type="checkbox"
                 checked={shalwarZipItem.checked}
@@ -113,13 +114,13 @@ export function StyleOptionsPanel({
                 }}
                 data-nav-row={damanRow}
                 data-nav-col={damanOptions.length}
-                className="size-4 cursor-pointer accent-[#111116]"
+                className="size-4 cursor-pointer accent-[#1B2233]"
               />
               Shalwar Zip
             </label>
           }
         />
-      </div>
+      </OptionCard>
     </div>
   )
 }

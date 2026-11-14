@@ -24,13 +24,13 @@ export function GarmentMeasurementsPanel({ measurements, values, onChange, note,
 
   return (
     <div
-      className="flex min-h-0 flex-col gap-1.5 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] p-[9px]"
+      className="flex min-h-0 flex-col gap-1.5 rounded-[5px] border border-t-[3px] border-[#C9C0A8] border-t-[#B08D57] bg-[#E3DCCB] p-[9px] shadow-[0_2px_8px_rgba(15,22,38,0.18)]"
       data-nav-container
       onKeyDown={handleGridArrowKeyDown}
     >
-      <div className="flex items-center justify-between border-b border-[#e4e4e9] pb-[5px]">
-        <span className="text-[10px] font-bold tracking-[0.09em] text-[#8a8a92] uppercase">Measurements</span>
-        <span className="font-[family-name:var(--font-naskh)] text-[13px] font-bold text-[#8a8a92]" dir="rtl">
+      <div className="flex items-center justify-between border-b border-[#E9E4D8] pb-[5px]">
+        <span className="text-[10px] font-bold tracking-[0.09em] text-[#4F566B] uppercase">Measurements</span>
+        <span className="font-[family-name:var(--font-naskh)] text-[13px] font-bold text-[#4F566B]" dir="rtl">
           پیمائش
         </span>
       </div>
@@ -58,7 +58,7 @@ export function GarmentMeasurementsPanel({ measurements, values, onChange, note,
             />
           )}
           <label
-            className="font-[family-name:var(--font-naskh)] text-right text-[20px] font-bold whitespace-nowrap text-[#111116]"
+            className="font-[family-name:var(--font-naskh)] text-right text-[20px] font-bold whitespace-nowrap text-[#1B2233]"
             dir="rtl"
           >
             {measurement.ur}

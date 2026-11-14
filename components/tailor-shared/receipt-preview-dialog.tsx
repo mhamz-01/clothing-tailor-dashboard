@@ -95,15 +95,15 @@ export function ReceiptPreviewDialog({ open, html, onCancel, onConfirm }: Receip
 
   return (
     <AlertDialog open={open} onOpenChange={(next) => !next && onCancel()}>
-      <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
+      <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#DDD8CC] bg-white p-5 shadow-xl">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-[14px] font-bold text-black">Print receipt?</AlertDialogTitle>
-          <AlertDialogDescription className="text-[12px] text-[#8a8a92]">
+          <AlertDialogTitle className="text-[14px] font-bold text-[#1B2233]">Print receipt?</AlertDialogTitle>
+          <AlertDialogDescription className="text-[12px] text-[#6B7285]">
             This is exactly what will print. Confirm to send it to the printer.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="flex justify-center rounded-[6px] border border-[#dcdce1] bg-[#f4f4f6] p-3">
+        <div className="flex justify-center rounded-[6px] border border-[#DDD8CC] bg-[#F1EEE6] p-3">
           <div style={{ width: scaledWidth, height: scaledHeight }}>
             <iframe
               ref={iframeRef}
@@ -113,7 +113,7 @@ export function ReceiptPreviewDialog({ open, html, onCancel, onConfirm }: Receip
               style={{
                 width: 310,
                 height: 500,
-                border: "1px solid #dcdce1",
+                border: "1px solid #DDD8CC",
                 background: "white",
                 transform: `scale(${scale})`,
                 transformOrigin: "top left",

@@ -55,7 +55,7 @@ function SearchIcon() {
   )
 }
 
-const rowLabel = "text-[18px] font-bold whitespace-nowrap text-[#333338]"
+const rowLabel = "text-[18px] font-bold whitespace-nowrap text-[#2A3550]"
 const field = cn(FIELD_CLASS, "h-9 w-full text-[18px]")
 
 // "Client strip" — the identity grid a tailor fills or searches by. Mirrors
@@ -66,12 +66,12 @@ const field = cn(FIELD_CLASS, "h-9 w-full text-[18px]")
 // spec was dropped per client request.
 const VALIDATION_TONE: Record<ClientNoValidation["status"], string> = {
   idle: "",
-  checking: "text-[#8a8a92]",
-  ok: "text-[#1a7f37]",
-  invalid_format: "text-[#c0392b]",
+  checking: "text-[#4F566B]",
+  ok: "text-[#2F6F4F]",
+  invalid_format: "text-[#A63D2F]",
   // Existing client is informational, not an error -- their previous order
   // gets loaded into the form rather than blocking the save.
-  existing: "text-[#1a7f37]",
+  existing: "text-[#2F6F4F]",
 }
 
 export function ClientLookupSection({
@@ -101,7 +101,7 @@ export function ClientLookupSection({
   const [isAddClientOpen, setIsAddClientOpen] = useState(false)
 
   return (
-    <div className="shrink-0 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] px-2.5 py-2">
+    <div className="shrink-0 rounded-[5px] border border-t-[3px] border-[#C9C0A8] border-t-[#B08D57] bg-[#E3DCCB] px-2.5 py-2 shadow-[0_2px_8px_rgba(15,22,38,0.18)]">
       <div className="grid grid-cols-[auto_1fr_auto_1fr_auto_1fr] items-center gap-x-2.5 gap-y-1.5">
         <Label className={rowLabel}>Client No.</Label>
         <div className="flex flex-col gap-0.5">
@@ -117,7 +117,7 @@ export function ClientLookupSection({
             <button
               type="button"
               onClick={() => setIsAddClientOpen(true)}
-              className="h-8 shrink-0 rounded-[3px] border border-black bg-white px-2.5 text-[16px] font-bold whitespace-nowrap hover:bg-black hover:text-white"
+              className="h-8 shrink-0 rounded-[3px] border border-[#1F2A44] bg-[#F3EFE5] px-2.5 text-[16px] font-bold whitespace-nowrap hover:bg-[#1F2A44] hover:text-white"
             >
               Add
             </button>
@@ -144,13 +144,13 @@ export function ClientLookupSection({
                 ? "Type a Record No. and press Enter to open that order"
                 : "System-tracked — increments automatically on save"
             }
-            className={cn(field, "tabular-nums", !onRecordNoChange && "bg-[#f0f0f2] text-[#55555c]")}
+            className={cn(field, "tabular-nums", !onRecordNoChange && "bg-[#F1EEE6] text-[#5B6377]")}
           />
           <button
             type="button"
             onClick={onSearchRecord}
             aria-label="Search record"
-            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#c7c7cf] bg-white hover:border-black"
+            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#BDB59F] bg-[#F3EFE5] hover:border-[#1F2A44]"
           >
             <SearchIcon />
           </button>
@@ -170,7 +170,7 @@ export function ClientLookupSection({
             type="button"
             onClick={onSearchClientName}
             aria-label="Search client name"
-            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#c7c7cf] bg-white hover:border-black"
+            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#BDB59F] bg-[#F3EFE5] hover:border-[#1F2A44]"
           >
             <SearchIcon />
           </button>
@@ -192,7 +192,7 @@ export function ClientLookupSection({
             type="button"
             onClick={onSearchPhone}
             aria-label="Search phone"
-            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#c7c7cf] bg-white hover:border-black"
+            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#BDB59F] bg-[#F3EFE5] hover:border-[#1F2A44]"
           >
             <SearchIcon />
           </button>
@@ -205,7 +205,7 @@ export function ClientLookupSection({
           readOnly
           tabIndex={-1}
           title="Book Date of this client's most recent order"
-          className={cn(field, "bg-[#f0f0f2] tabular-nums text-[#55555c]")}
+          className={cn(field, "bg-[#F1EEE6] tabular-nums text-[#5B6377]")}
         />
       </div>
 

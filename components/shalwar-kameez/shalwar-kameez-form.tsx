@@ -1,6 +1,5 @@
 "use client"
 
-import { Noto_Naskh_Arabic } from "next/font/google"
 import { useEffect, useRef } from "react"
 import { ActionBar } from "@/components/tailor-shared/action-bar"
 import { ClientLookupSection } from "@/components/tailor-shared/client-lookup-section"
@@ -26,21 +25,12 @@ import { useShalwarKameezForm } from "@/hooks/shalwar-kameez/use-shalwar-kameez-
 const BOARD_WIDTH = 1610
 const BOARD_HEIGHT = 770
 
-// The design spec calls for Noto Naskh Arabic specifically (not the
-// Noto Nastaliq Urdu used by the rest of the tailor module) — scoped to
-// this board only via its own CSS variable so it doesn't affect other pages.
-const notoNaskhArabic = Noto_Naskh_Arabic({
-  variable: "--font-naskh",
-  subsets: ["arabic"],
-  weight: ["600", "500", "700"],
-})
-
 // Order-entry form for the Shalwar Kameez category, rebuilt to match the
 // Claude Design spec (project "Shalwar Kameez Measurement Dashboard",
 // file "Shalwar Kameez Dashboard.dc.html") pixel-for-pixel: a fixed
 // 1360x764 board, uniformly scaled to fit the viewport (never reflows,
 // never overflows — small screens just see a smaller board, same
-// proportions) on a full-viewport #dcdce1 backdrop. All state lives in
+// proportions) on a full-viewport #DDD8CC backdrop. All state lives in
 // use-shalwar-kameez-form; this component only lays the panels out.
 export function ShalwarKameezForm() {
   const form = useShalwarKameezForm()
@@ -60,25 +50,25 @@ export function ShalwarKameezForm() {
   }, [])
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center overflow-hidden bg-[#dcdce1]">
+    <div className="flex h-screen w-screen items-center justify-center overflow-hidden bg-[#0F1626]">
       <div
         ref={boardRef}
         style={{ width: BOARD_WIDTH, height: BOARD_HEIGHT }}
-        className={`relative flex flex-none origin-center flex-col overflow-hidden bg-white shadow-[0_6px_34px_rgba(0,0,0,0.16)] ${notoNaskhArabic.variable}`}
+        className={`relative flex flex-none origin-center flex-col overflow-hidden bg-[#18223A] shadow-[0_6px_34px_rgba(0,0,0,0.45)]`}
       >
         {/* Title bar */}
-        <div className="flex h-8 flex-none items-center gap-2.5 bg-black px-3 text-white">
+        <div className="anim-fade-down flex h-8 flex-none items-center gap-2.5 border-b-2 border-[#B08D57] bg-[#111A2E] px-3 text-[#E3C894]">
           <span className="font-[family-name:var(--font-naskh)] text-[14px] font-bold" dir="rtl">
             شلوار قمیض
           </span>
-          <span className="h-3.5 w-px bg-[#4a4a52]" />
-          <span className="text-[12px] font-bold tracking-[0.06em] text-[#c9c9d1] uppercase">Measurement &amp; Order Sheet</span>
-          <span className="ml-auto text-[12px] font-bold text-[#9a9aa4]">
+          <span className="h-3.5 w-px bg-[#5B6377]" />
+          <span className="text-[12px] font-bold tracking-[0.06em] text-[#CFC9BA] uppercase">Measurement &amp; Order Sheet</span>
+          <span className="ml-auto text-[12px] font-bold text-[#8A90A0]">
             Record No. <b className="tabular-nums text-white">{state.recordNo || "—"}</b>
           </span>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-2 p-2.5">
+        <div className="anim-stagger flex min-h-0 flex-1 flex-col gap-2 p-2.5">
           <ClientLookupSection
             clientNo={state.clientNo}
             clientNoValidation={form.clientNoValidation}
@@ -178,10 +168,10 @@ export function ShalwarKameezForm() {
       />
 
       <AlertDialog open={form.pendingNav !== null} onOpenChange={(open) => !open && form.cancelNavigation()}>
-        <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
+        <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#DDD8CC] bg-white p-5 shadow-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-[14px] font-bold text-black">Discard unsaved changes?</AlertDialogTitle>
-            <AlertDialogDescription className="text-[12px] text-[#8a8a92]">
+            <AlertDialogTitle className="text-[14px] font-bold text-[#1B2233]">Discard unsaved changes?</AlertDialogTitle>
+            <AlertDialogDescription className="text-[12px] text-[#6B7285]">
               This order has changes that haven&apos;t been saved. Moving to the {form.pendingNav === "prev" ? "previous" : "next"}{" "}
               client will lose them.
             </AlertDialogDescription>

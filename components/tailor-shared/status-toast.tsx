@@ -12,15 +12,15 @@ interface StatusToastProps {
 }
 
 const TOAST_STYLES: Record<Exclude<StatusKind, "idle">, string> = {
-  info: "border-[#c2c2ca] border-l-[#8a8a92] bg-[#f4f4f6] text-[#333338]",
-  success: "border-[#bfe4c9] border-l-[#1a7f37] bg-[#eaf7ee] text-[#146c2e]",
-  error: "border-[#f3c6c0] border-l-[#c0392b] bg-[#fdecea] text-[#a5291b]",
+  info: "border-[#CFC9BA] border-l-[#6B7285] bg-[#F1EEE6] text-[#2A3550]",
+  success: "border-[#bfe4c9] border-l-[#2F6F4F] bg-[#eaf7ee] text-[#265C41]",
+  error: "border-[#f3c6c0] border-l-[#A63D2F] bg-[#fdecea] text-[#8F3326]",
 }
 
 const TOAST_ICON_STYLES: Record<Exclude<StatusKind, "idle">, string> = {
-  info: "bg-[#e2e2e6] text-[#5c5c64]",
-  success: "bg-[#d3efdb] text-[#146c2e]",
-  error: "bg-[#f9d9d4] text-[#a5291b]",
+  info: "bg-[#E9E4D8] text-[#5B6377]",
+  success: "bg-[#d3efdb] text-[#265C41]",
+  error: "bg-[#f9d9d4] text-[#8F3326]",
 }
 
 function StatusIcon({ kind }: { kind: Exclude<StatusKind, "idle"> }) {

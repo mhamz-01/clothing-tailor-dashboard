@@ -39,25 +39,25 @@ export function ClientMatchPickerModal({ open, matches, onOpenChange, onSelect }
           only the table body scrolls (below), so the header/footer stay put
           and the dialog itself never grows past the screen no matter how
           many clients matched. */}
-      <AlertDialogContent className="flex max-h-[85vh] w-full max-w-2xl flex-col gap-4 overflow-hidden rounded-[10px] border border-[#dcdce1] bg-white p-6 shadow-xl">
+      <AlertDialogContent className="flex max-h-[85vh] w-full max-w-2xl flex-col gap-4 overflow-hidden rounded-[10px] border border-[#DDD8CC] bg-white p-6 shadow-xl">
         <AlertDialogHeader className="shrink-0">
-          <div className="mb-1 flex size-10 items-center justify-center rounded-[6px] border border-[#dcdce1] bg-[#f5f5f7]">
-            <Users className="size-5 text-[#333338]" strokeWidth={2} />
+          <div className="mb-1 flex size-10 items-center justify-center rounded-[6px] border border-[#DDD8CC] bg-[#F1EEE6]">
+            <Users className="size-5 text-[#2A3550]" strokeWidth={2} />
           </div>
-          <AlertDialogTitle className="text-[17px] font-bold text-black">
+          <AlertDialogTitle className="text-[17px] font-bold text-[#1B2233]">
             {matches.length} matching clients
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-[13px] text-[#8a8a92]">
+          <AlertDialogDescription className="text-[13px] text-[#6B7285]">
             More than one client matches — pick the one to load.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="min-h-0 flex-1 overflow-y-auto rounded-[5px] border border-[#ececef]">
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-[5px] border border-[#E9E4D8]">
           <table className="w-full border-collapse text-[13.5px]">
             {/* sticky + z-10 keeps the column headers visible while the rows
                 scroll underneath them. */}
             <thead className="sticky top-0 z-10">
-              <tr className="bg-[#f5f5f7] text-left text-[#55555c] shadow-[0_1px_0_0_#ececef]">
+              <tr className="bg-[#F1EEE6] text-left text-[#5B6377] shadow-[0_1px_0_0_#E9E4D8]">
                 <th className="px-3 py-2 font-semibold">Client No.</th>
                 <th className="px-3 py-2 font-semibold">Name</th>
                 <th className="px-3 py-2 font-semibold">Phone</th>
@@ -69,8 +69,8 @@ export function ClientMatchPickerModal({ open, matches, onOpenChange, onSelect }
                   key={client.clientId}
                   onClick={() => handleSelect(client)}
                   className={cn(
-                    "cursor-pointer border-t border-[#ececef] hover:bg-[#f5f5f7]",
-                    index % 2 === 1 && "bg-[#fafafb]"
+                    "cursor-pointer border-t border-[#E9E4D8] hover:bg-[#F1EEE6]",
+                    index % 2 === 1 && "bg-[#FBFAF6]"
                   )}
                 >
                   <td className="px-3 py-2.5 font-medium whitespace-nowrap">{client.clientNo}</td>

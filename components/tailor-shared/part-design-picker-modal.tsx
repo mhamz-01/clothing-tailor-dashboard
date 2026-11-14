@@ -66,17 +66,17 @@ export function PartDesignPickerModal({ open, row, onOpenChange, onChange, fiveB
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="relative max-h-[95vh] w-full max-w-[820px] gap-3 overflow-y-auto rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
+      <AlertDialogContent className="relative max-h-[95vh] w-full max-w-[820px] gap-3 overflow-y-auto rounded-[10px] border border-[#DDD8CC] bg-white p-5 shadow-xl">
         <button
           type="button"
           aria-label="Close"
           onClick={() => onOpenChange(false)}
-          className="absolute top-3 right-3 flex size-8 items-center justify-center rounded-[5px] text-[#222226] hover:bg-[#f0f0f2]"
+          className="absolute top-3 right-3 flex size-8 items-center justify-center rounded-[5px] text-[#1B2233] hover:bg-[#F1EEE6]"
         >
           <X className="size-5" />
         </button>
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2 text-[14px] font-bold text-black">
+          <AlertDialogTitle className="flex items-center gap-2 text-[14px] font-bold text-[#1B2233]">
             <span className="font-[family-name:var(--font-naskh)] text-[20px]" dir="rtl">
               {row.ur}
             </span>
@@ -95,8 +95,8 @@ export function PartDesignPickerModal({ open, row, onOpenChange, onChange, fiveB
                   onClick={() => onChange("designNo", image.value)}
                   style={{ gridColumn: (i % imageColumns) + 1, gridRow: Math.floor(i / imageColumns) + 1 }}
                   className={cn(
-                    "relative overflow-hidden rounded-[6px] border-2 bg-[#fafafb] p-1.5",
-                    selected ? "border-black" : "border-[#dcdce1] hover:border-[#b5b5bd]"
+                    "relative overflow-hidden rounded-[6px] border-2 bg-[#FBFAF6] p-1.5",
+                    selected ? "border-[#1F2A44]" : "border-[#DDD8CC] hover:border-[#CFC9BA]"
                   )}
                 >
                   {/* object-contain (not cover) — these are line-art references, cropping would cut off part of the design */}
@@ -104,12 +104,12 @@ export function PartDesignPickerModal({ open, row, onOpenChange, onChange, fiveB
                   <span
                     className={cn(
                       "absolute top-1.5 left-1.5 flex size-5 items-center justify-center rounded-sm border",
-                      selected ? "border-black bg-black" : "border-[#c7c7cf] bg-white"
+                      selected ? "border-[#1F2A44] bg-[#1F2A44]" : "border-[#CFC9BA] bg-white"
                     )}
                   >
                     {selected && <Check className="size-3.5 text-white" strokeWidth={3} />}
                   </span>
-                  <span className="absolute right-1.5 bottom-1.5 rounded-[3px] bg-black/70 px-1.5 py-0.5 text-[11px] font-bold text-white">
+                  <span className="absolute right-1.5 bottom-1.5 rounded-[3px] bg-[#1F2A44]/70 px-1.5 py-0.5 text-[11px] font-bold text-white">
                     {image.value}
                   </span>
                 </button>
@@ -125,12 +125,12 @@ export function PartDesignPickerModal({ open, row, onOpenChange, onChange, fiveB
 
         {row.key === "buttonPatti" && (
           <AlertDialogFooter className="items-center gap-2">
-            <label className="mr-auto flex cursor-pointer items-center gap-1.5 text-[13px] font-semibold text-[#222226]">
+            <label className="mr-auto flex cursor-pointer items-center gap-1.5 text-[13px] font-semibold text-[#1B2233]">
               <input
                 type="checkbox"
                 checked={fiveButtonsItem.checked}
                 onChange={fiveButtonsItem.onChange}
-                className="size-4 cursor-pointer accent-[#111116]"
+                className="size-4 cursor-pointer accent-[#1B2233]"
               />
               {fiveButtonsItem.label}
             </label>
@@ -155,11 +155,11 @@ interface SizeOptionListProps {
 // itself only scrolls as a last resort on a very short viewport).
 function SizeOptionList({ label, options, value, onChange }: SizeOptionListProps) {
   return (
-    <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[5px] border border-[#dcdce1] bg-white">
-      <div className="shrink-0 border-b border-[#dcdce1] bg-[#fafafb] px-1 py-1 text-center text-[10px] font-bold tracking-[0.05em] text-[#8a8a92] uppercase">
+    <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[5px] border border-[#DDD8CC] bg-white">
+      <div className="shrink-0 border-b border-[#DDD8CC] bg-[#FBFAF6] px-1 py-1 text-center text-[10px] font-bold tracking-[0.05em] text-[#6B7285] uppercase">
         {label}
       </div>
-      <div className="flex flex-col divide-y divide-[#ececf0]">
+      <div className="flex flex-col divide-y divide-[#E9E4D8]">
         {options.map((option) => (
           <button
             key={option}
@@ -167,7 +167,7 @@ function SizeOptionList({ label, options, value, onChange }: SizeOptionListProps
             onClick={() => onChange(option)}
             className={cn(
               "block w-full shrink-0 px-1 py-[1px] text-center text-[14px] leading-[18px] font-semibold whitespace-nowrap",
-              value === option ? "bg-black text-white" : "text-[#222226] hover:bg-[#f0f0f2]"
+              value === option ? "bg-[#1F2A44] text-white" : "text-[#1B2233] hover:bg-[#F1EEE6]"
             )}
           >
             {formatSizeLabel(option)}

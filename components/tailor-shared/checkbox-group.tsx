@@ -40,7 +40,7 @@ export function CheckboxGroup({ items, columns, navRowOffset = 0 }: CheckboxGrou
       {items.map((item, index) => (
         <label
           key={item.key}
-          className="flex cursor-pointer items-center gap-1.5 rounded-[3px] px-1 py-0.5 text-[14px] font-semibold text-[#222226] [&:has(:focus-visible)]:bg-[#eef0ff]"
+          className="flex cursor-pointer items-center gap-1.5 rounded-[3px] px-1 py-0.5 text-[14px] font-semibold text-[#1B2233] [&:has(:focus-visible)]:bg-[#FBF6EA]"
         >
           <input
             type="checkbox"
@@ -53,7 +53,7 @@ export function CheckboxGroup({ items, columns, navRowOffset = 0 }: CheckboxGrou
             }}
             data-nav-row={navRowOffset + Math.floor(index / columnCount)}
             data-nav-col={index % columnCount}
-            className="size-4 cursor-pointer accent-[#111116]"
+            className="size-4 cursor-pointer accent-[#1B2233]"
           />
           {item.label}
         </label>

@@ -39,7 +39,7 @@ function placeholderFor(defaultAmount: number): string | undefined {
   return defaultAmount ? String(defaultAmount) : undefined
 }
 
-const labelClass = "text-[16px] font-bold text-[#333338]"
+const labelClass = "text-[16px] font-bold text-[#2A3550]"
 const fieldClass = cn(FIELD_CLASS, "h-[22px] text-right tabular-nums")
 
 // Bottom half of the right column: amounts on the left, Button Type list on
@@ -49,7 +49,7 @@ const fieldClass = cn(FIELD_CLASS, "h-[22px] text-right tabular-nums")
 export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, defaultAmounts, total, balance, buttonOptions }: OrderSummaryPanelProps) {
   return (
     <div
-      className="flex min-h-0 flex-1 gap-3 rounded-[5px] border border-[#dcdce1] bg-[#fafafb] p-[9px]"
+      className="flex min-h-0 flex-1 gap-3 rounded-[5px] border border-t-[3px] border-[#C9C0A8] border-t-[#B08D57] bg-[#E3DCCB] p-[9px] shadow-[0_2px_8px_rgba(15,22,38,0.18)]"
       data-nav-container
       onKeyDown={handleGridArrowKeyDown}
     >
@@ -86,7 +86,7 @@ export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, 
             value={tailoringAmount}
             readOnly
             title="Set from Settings — base amount × Suit Qty"
-            className={cn(fieldClass, NO_SPINNER_CLASS, "bg-[#f0f0f2] text-[#55555c]")}
+            className={cn(fieldClass, NO_SPINNER_CLASS, "bg-[#F1EEE6] text-[#5B6377]")}
             data-nav-row={2}
             data-nav-col={AMOUNT_NAV_COL}
           />
@@ -125,9 +125,9 @@ export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, 
           />
         </div>
 
-        <div className="mt-0.5 grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1.5 border-t border-[#e4e4e9] pt-1.5">
-          <Label className="text-[13px] font-bold text-black">Total</Label>
-          <div className="flex h-6 items-center justify-end rounded-[3px] border border-black bg-white px-1.5 text-[14px] font-bold tabular-nums text-black">
+        <div className="mt-0.5 grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1.5 border-t border-[#E9E4D8] pt-1.5">
+          <Label className="text-[13px] font-bold text-[#1B2233]">Total</Label>
+          <div className="flex h-6 items-center justify-end rounded-[3px] border border-[#1F2A44] bg-[#F3EFE5] px-1.5 text-[14px] font-bold tabular-nums text-[#1B2233]">
             Rs {total.toFixed(2)}
           </div>
 
@@ -141,8 +141,8 @@ export function OrderSummaryPanel({ order, onOrderFieldChange, tailoringAmount, 
             data-nav-col={AMOUNT_NAV_COL}
           />
 
-          <Label className="text-[13px] font-bold text-black">Balance</Label>
-          <div className="flex h-6 items-center justify-end rounded-[3px] border border-black bg-black px-1.5 text-[14px] font-bold tabular-nums text-white">
+          <Label className="text-[13px] font-bold text-[#1B2233]">Balance</Label>
+          <div className="flex h-6 items-center justify-end rounded-[3px] border border-[#1F2A44] bg-[#1F2A44] px-1.5 text-[14px] font-bold tabular-nums text-white">
             Rs {balance.toFixed(2)}
           </div>
         </div>

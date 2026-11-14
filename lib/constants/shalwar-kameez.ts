@@ -213,7 +213,8 @@ export const PART_DESIGN_SIZE_CONFIG: Record<PartDesignKey, PartDesignSizeConfig
     // Length runs 5 to 20 in whole numbers, no fractions (client request).
     size1Options: Array.from({ length: 16 }, (_, i) => String(i + 5)),
     size2Label: "Width",
-    size2Options: quarterRange(1.25, 3),
+    // Width options per client request (stored as literal strings).
+    size2Options: ["1/2", "3/4", "1-1", "1+1", "1 1/4", "1 1/2", "1 3/4", "2"],
   },
   jaib: {
     size1Label: "Size 1",

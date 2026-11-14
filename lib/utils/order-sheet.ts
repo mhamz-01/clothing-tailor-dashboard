@@ -75,6 +75,9 @@ import { printHtmlInPopup } from "@/lib/utils/print-window"
 export interface OrderSheetMeasurement {
   ur: string
   value: string
+  // Shirt only: a second value column (the Shirt form has two number boxes per
+  // measurement). Shalwar Kameez never sets it, so its sheet is unchanged.
+  value2?: string
 }
 
 // One design slot (a part design, a selected radio option, or a checked
@@ -171,6 +174,9 @@ function resolveAssetUrl(path: string): string {
 }
 
 function measurementRow(m: OrderSheetMeasurement): string {
+  if (m.value2 !== undefined) {
+    return `<tr><td class="mval mval-half">${escapeHtml(m.value || "—")}</td><td class="mval mval-half">${escapeHtml(m.value2 || "—")}</td><td class="mur" dir="rtl">${escapeHtml(m.ur)}</td></tr>`
+  }
   return `<tr><td class="mval">${escapeHtml(m.value || "—")}</td><td class="mur" dir="rtl">${escapeHtml(m.ur)}</td></tr>`
 }
 
@@ -341,7 +347,7 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
   html, body { margin: 0; padding: 0; background: #fff; color: #000; }
   body {
     width: 136mm;
-    font-family: "Segoe UI", Tahoma, "Noto Nastaliq Urdu", "Noto Naskh Arabic", Arial, sans-serif;
+    font-family: Inter, "Segoe UI", Tahoma, "Noto Nastaliq Urdu", "Noto Naskh Arabic", Arial, sans-serif;
     font-size: 10px;
   }
   [dir="rtl"] { font-family: "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Segoe UI", Tahoma, Arial, sans-serif; }
@@ -386,6 +392,7 @@ export function buildOrderSheetHtml(data: OrderSheetData): string {
   .mtable td { border: 1px solid #000; padding: 0.8mm 0.6mm; text-align: center; font-size: 18px; }
   .mtable td.mval { font-weight: bold; width: 42%; }
   .mtable td.mur { font-size: 14px; }
+  .mtable td.mval-half { width: 26%; font-size: 15px; }
 
   /* The gap property here is a floor, not the whole story -- space-between
      still tops it up with any leftover height, split equally across every

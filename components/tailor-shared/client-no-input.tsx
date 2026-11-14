@@ -151,8 +151,8 @@ export function ClientNoInput({ value, onChange, invalid, className, inputClassN
       ref={containerRef}
       onClick={handleContainerClick}
       className={cn(
-        "flex h-6 w-full items-center gap-1 rounded-[3px] border bg-white px-[6px] focus-within:border-black focus-within:ring-[3px] focus-within:ring-black/[0.14]",
-        invalid ? "border-[#c0392b]" : "border-[#c7c7cf]",
+        "flex h-6 w-full items-center gap-1 rounded-[3px] border bg-[#F3EFE5] px-[6px] focus-within:border-[#B08D57] focus-within:ring-[3px] focus-within:ring-[#B08D57]/[0.22]",
+        invalid ? "border-[#A63D2F]" : "border-[#BDB59F]",
         className
       )}
     >
@@ -166,11 +166,11 @@ export function ClientNoInput({ value, onChange, invalid, className, inputClassN
         aria-label="Client No. letter"
         maxLength={1}
         className={cn(
-          "w-6 shrink-0 border-none bg-transparent p-0 text-center text-[13px] font-medium text-[#111116] uppercase outline-none placeholder:text-[#b5b5bd]",
+          "w-6 shrink-0 border-none bg-transparent p-0 text-center text-[13px] font-medium text-[#1B2233] uppercase outline-none placeholder:text-[#A8A08A]",
           inputClassName
         )}
       />
-      <span className={cn("shrink-0 text-[13px] font-bold text-[#8a8a92]", inputClassName)}>-</span>
+      <span className={cn("shrink-0 text-[13px] font-bold text-[#6B7285]", inputClassName)}>-</span>
       <input
         ref={numberRef}
         value={isSuggesting ? "…" : numberPart}
@@ -184,8 +184,8 @@ export function ClientNoInput({ value, onChange, invalid, className, inputClassN
         aria-label="Client No. number"
         aria-busy={isSuggesting}
         className={cn(
-          "min-w-0 flex-1 border-none bg-transparent p-0 text-[13px] font-medium text-[#111116] outline-none placeholder:text-[#b5b5bd]",
-          isSuggesting && "cursor-wait text-[#8a8a92]",
+          "min-w-0 flex-1 border-none bg-transparent p-0 text-[13px] font-medium text-[#1B2233] outline-none placeholder:text-[#A8A08A]",
+          isSuggesting && "cursor-wait text-[#6B7285]",
           inputClassName
         )}
       />

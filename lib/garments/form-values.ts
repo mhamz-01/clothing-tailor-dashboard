@@ -56,7 +56,8 @@ export function serializeDetails(def: GarmentDefinition, values: GarmentFormValu
     if (section.kind !== "radio") continue
     details[section.column] = castOption(values.options[section.column] ?? "", section.valueKind)
     if (section.designNo) {
-      details[section.designNo.column] = toNullableInt(values.options[section.designNo.column] ?? "")
+      const picked = values.options[section.designNo.column] ?? ""
+      details[section.designNo.column] = section.designNo.text ? toNullableString(picked) : toNullableInt(picked)
     }
   }
   for (const column of flagColumns(def)) details[column] = values.flags

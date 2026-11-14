@@ -56,7 +56,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: #1F2A44;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -67,7 +67,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: #B08D57;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -129,4 +129,33 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ---- Entrance animations (first render) ------------------------------------
+   Opacity + translate only (fill-mode backwards, so hover transforms still work afterwards), so they never fight the order sheet board's own
+   transform: scale() fit. All of it is switched off for reduced-motion users. */
+@keyframes tailor-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes tailor-fade-down {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes tailor-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.anim-fade-up { animation: tailor-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards; animation-delay: var(--anim-delay, 0ms); }
+.anim-fade-down { animation: tailor-fade-down 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards; animation-delay: var(--anim-delay, 0ms); }
+.anim-fade-in { animation: tailor-fade-in 0.6s ease-out backwards; animation-delay: var(--anim-delay, 0ms); }
+/* Order sheet body: each direct child (lookup bar, panels, action bar) rises in turn. */
+.anim-stagger > * { animation: tailor-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.anim-stagger > *:nth-child(1) { animation-delay: 80ms; }
+.anim-stagger > *:nth-child(2) { animation-delay: 160ms; }
+.anim-stagger > *:nth-child(3) { animation-delay: 240ms; }
+.anim-stagger > *:nth-child(4) { animation-delay: 320ms; }
+.anim-stagger > *:nth-child(n + 5) { animation-delay: 400ms; }
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade-up, .anim-fade-down, .anim-fade-in, .anim-stagger > * { animation: none; }
 }

@@ -16,6 +16,8 @@ export type OptionValueKind = "text" | "int" | "decimal"
 export interface OptionChoice {
   value: string
   label: string
+  // Urdu label printed on the tailor's order sheet (falls back to `label`).
+  ur?: string
 }
 
 // One measurement row. `column` is the details-table column; `secondColumn`
@@ -32,13 +34,15 @@ export interface RadioSection {
   column: string
   title: string
   titleUr?: string
+  // Urdu title printed on the order sheet only; the form keeps the English `title`.
+  titleSheetUr?: string
   choices: OptionChoice[]
   valueKind: OptionValueKind
   // Preselected value on a fresh form and after Clear. "" = nothing selected;
   // every current garment uses "" so the tailor makes each choice.
   defaultValue: string
   // Optional "Design #" dropdown beside the row (Shirt Bain/Gala, Collar/Cut).
-  designNo?: { column: string; label: string; choices: OptionChoice[] }
+  designNo?: { column: string; label: string; choices: OptionChoice[]; text?: boolean }
 }
 
 // A row of independent checkboxes. Every flags section of a garment writes

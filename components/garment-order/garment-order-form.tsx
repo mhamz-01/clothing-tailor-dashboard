@@ -1,6 +1,5 @@
 "use client"
 
-import { Noto_Naskh_Arabic } from "next/font/google"
 import { useEffect, useRef } from "react"
 import { GarmentBillingPanel } from "@/components/garment-order/garment-billing-panel"
 import { GarmentMeasurementsPanel } from "@/components/garment-order/garment-measurements-panel"
@@ -28,12 +27,6 @@ import type { GarmentDefinition } from "@/types/garment-form"
 // order sheets look and behave alike.
 const BOARD_WIDTH = 1610
 const BOARD_HEIGHT = 770
-
-const notoNaskhArabic = Noto_Naskh_Arabic({
-  variable: "--font-naskh",
-  subsets: ["arabic"],
-  weight: ["600", "500", "700"],
-})
 
 const FIVE_BUTTONS_FLAG = "5_btn"
 
@@ -73,26 +66,26 @@ export function GarmentOrderForm({ definition }: { definition: GarmentDefinition
   }
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center overflow-hidden bg-[#dcdce1]">
+    <div className="flex h-screen w-screen items-center justify-center overflow-hidden bg-[#0F1626]">
       <div
         ref={boardRef}
         style={{ width: BOARD_WIDTH, height: BOARD_HEIGHT }}
-        className={`relative flex flex-none origin-center flex-col overflow-hidden bg-white shadow-[0_6px_34px_rgba(0,0,0,0.16)] ${notoNaskhArabic.variable}`}
+        className={`relative flex flex-none origin-center flex-col overflow-hidden bg-[#18223A] shadow-[0_6px_34px_rgba(0,0,0,0.45)]`}
       >
-        <div className="flex h-8 flex-none items-center gap-2.5 bg-black px-3 text-white">
+        <div className="anim-fade-down flex h-8 flex-none items-center gap-2.5 border-b-2 border-[#B08D57] bg-[#111A2E] px-3 text-[#E3C894]">
           <span className="font-[family-name:var(--font-naskh)] text-[14px] font-bold" dir="rtl">
             {definition.titleUr}
           </span>
-          <span className="h-3.5 w-px bg-[#4a4a52]" />
-          <span className="text-[12px] font-bold tracking-[0.06em] text-[#c9c9d1] uppercase">
+          <span className="h-3.5 w-px bg-[#5B6377]" />
+          <span className="text-[12px] font-bold tracking-[0.06em] text-[#CFC9BA] uppercase">
             {definition.titleEn} Measurement &amp; Order Sheet
           </span>
-          <span className="ml-auto text-[12px] font-bold text-[#9a9aa4]">
+          <span className="ml-auto text-[12px] font-bold text-[#8A90A0]">
             Record No. <b className="tabular-nums text-white">{form.recordNo || "—"}</b>
           </span>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-2 p-2.5">
+        <div className="anim-stagger flex min-h-0 flex-1 flex-col gap-2 p-2.5">
           <ClientLookupSection
             clientNo={state.clientNo}
             clientNoValidation={lookup.clientNoValidation}
@@ -187,10 +180,10 @@ export function GarmentOrderForm({ definition }: { definition: GarmentDefinition
       />
 
       <AlertDialog open={lookup.pendingNav !== null} onOpenChange={(open) => !open && lookup.cancelNavigation()}>
-        <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
+        <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#DDD8CC] bg-white p-5 shadow-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-[14px] font-bold text-black">Discard unsaved changes?</AlertDialogTitle>
-            <AlertDialogDescription className="text-[12px] text-[#8a8a92]">
+            <AlertDialogTitle className="text-[14px] font-bold text-[#1B2233]">Discard unsaved changes?</AlertDialogTitle>
+            <AlertDialogDescription className="text-[12px] text-[#6B7285]">
               This order has changes that haven&apos;t been saved. Moving to the {lookup.pendingNav === "prev" ? "previous" : "next"}{" "}
               client will lose them.
             </AlertDialogDescription>
@@ -207,10 +200,10 @@ export function GarmentOrderForm({ definition }: { definition: GarmentDefinition
       </AlertDialog>
 
       <AlertDialog open={form.deleteConfirmOpen} onOpenChange={(open) => !open && form.cancelDelete()}>
-        <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#dcdce1] bg-white p-5 shadow-xl">
+        <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#DDD8CC] bg-white p-5 shadow-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-[14px] font-bold text-black">Delete this record?</AlertDialogTitle>
-            <AlertDialogDescription className="text-[12px] text-[#8a8a92]">
+            <AlertDialogTitle className="text-[14px] font-bold text-[#1B2233]">Delete this record?</AlertDialogTitle>
+            <AlertDialogDescription className="text-[12px] text-[#6B7285]">
               {definition.titleEn} record {state.recordNo} for {state.clientName || "this client"} will be permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -1,16 +1,7 @@
 "use client"
 
 import type { ReactNode } from "react"
-import { Noto_Nastaliq_Urdu } from "next/font/google"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-
-// Scoped to app/tailor/** only, deliberately separate from the fonts loaded
-// by the root layout for the admin dashboard.
-const notoNastaliqUrdu = Noto_Nastaliq_Urdu({
-  variable: "--font-urdu",
-  subsets: ["arabic"],
-  weight: ["400", "700"],
-})
 
 // Lives here (the layout shared by every app/tailor/** route) rather than
 // down in app/tailor/(portal)/layout.tsx -- orders/shalwar-kameez is a
@@ -30,7 +21,7 @@ const queryClient = new QueryClient({
 export default function TailorModuleLayout({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className={`${notoNastaliqUrdu.variable} min-h-screen`}>{children}</div>
+      <div className="min-h-screen font-[family-name:var(--font-inter)]">{children}</div>
     </QueryClientProvider>
   )
 }

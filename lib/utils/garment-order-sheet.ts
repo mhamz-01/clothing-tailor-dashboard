@@ -9,7 +9,15 @@
 // receipt.ts / order-sheet.ts: @page can't be scoped to a CSS class, so each
 // print flow gets its own popup document (see print-window.ts).
 
-import { PART_DESIGN_IMAGES } from "@/lib/constants/shalwar-kameez"
+import {
+  BAIN_GALA_IMAGES,
+  COLLAR_IMAGES,
+  PART_DESIGN_IMAGES,
+  SIZE_FRACTION_LABELS,
+  STYLE_FLAG_IMAGES,
+} from "@/lib/constants/shalwar-kameez"
+import { buildOrderSheetHtml, type OrderSheetDesignItem } from "@/lib/utils/order-sheet"
+import type { PartDesignKey } from "@/types/shalwar-kameez"
 import { escapeHtml } from "@/lib/utils/html"
 import { formatSizeLabel } from "@/lib/utils/format-size"
 import { printHtmlInPopup } from "@/lib/utils/print-window"
@@ -37,21 +45,26 @@ function labelOf(choices: OptionChoice[], value: string): string {
   return choices.find((choice) => choice.value === value)?.label ?? value
 }
 
+// Value cell for a picked choice: Urdu (right-to-left) when the choice has an
+// Urdu label, otherwise the English label.
+function choiceCell(choices: OptionChoice[], value: string, suffix = ""): string {
+  const ur = choices.find((choice) => choice.value === value)?.ur
+  return ur
+    ? `<td class="ur" dir="rtl">${escapeHtml(ur)}${suffix}</td>`
+    : `<td>${escapeHtml(labelOf(choices, value))}${suffix}</td>`
+}
+
 // Waistcoat Gala picks (waistcoat.ts "gala" values) -> artwork in public/waiscoat-assets.
 const GALA_IMAGES: Record<string, { src: string; label: string }> = {
-  ban_gala: { src: "/waiscoat-assets/bain-gala-thin.svg", label: "Ban Gala" },
-  v_gala: { src: "/waiscoat-assets/v-gala.svg", label: "V Gala" },
-  u_gala: { src: "/waiscoat-assets/u-gala.svg", label: "U Gala" },
+  ban_gala: { src: "/waiscoat-assets/bain-gala-thin.svg", label: "بین گلا" },
+  v_gala: { src: "/waiscoat-assets/v-gala.svg", label: "وی گلا" },
+  u_gala: { src: "/waiscoat-assets/u-gala.svg", label: "یو گلا" },
 }
 
 function galaCell(data: GarmentOrderSheetData): string {
   const gala = GALA_IMAGES[data.values.options.gala ?? ""]
   if (!gala) return ""
-  return `<div class="gala-cell"><div class="gala-label">${escapeHtml(gala.label)}</div><img src="${escapeHtml(resolveAssetUrl(gala.src))}" alt="${escapeHtml(gala.label)}" /></div>`
-}
-
-function money(value: number): string {
-  return `Rs ${value.toFixed(2)}`
+  return `<div class="gala-cell"><div class="gala-label ur" dir="rtl">${escapeHtml(gala.label)}</div><img src="${escapeHtml(resolveAssetUrl(gala.src))}" alt="${escapeHtml(gala.label)}" /></div>`
 }
 
 function measurementRows(data: GarmentOrderSheetData): string {
@@ -74,24 +87,34 @@ function optionRows(data: GarmentOrderSheetData): string {
     if (data.definition.key === "waistcoat" && section.column === "gala" && GALA_IMAGES[data.values.options.gala ?? ""]) continue
     const selected = values.options[section.column]
     if (!selected) continue
+    // Waistcoat: "None" means nothing to stitch, so the row is left off the sheet.
+    if (section.column === "shoulder" && selected === "none" && (definition.key === "waistcoat" || definition.key === "coat")) continue
+    if (definition.key === "waistcoat" && ((section.column !== "shoulder" && selected === "none") || (section.column === "fancy_button" && selected === "no"))) continue
 
+    // Waistcoat Fancy Button: when "Yes", the sheet just says so (one full-width
+    // cell); "No" / unselected prints nothing (skipped above).
+    if (definition.key === "waistcoat" && section.column === "fancy_button") {
+      rows.push(`<tr><td colspan="2" class="ur" dir="rtl" style="text-align:center">${escapeHtml(section.titleSheetUr ?? section.title)}</td></tr>`)
+      continue
+    }
     const design = section.designNo ? values.options[section.designNo.column] : ""
     const designSuffix = design && section.designNo ? ` &middot; ${escapeHtml(section.designNo.label)} ${escapeHtml(design)}` : ""
-    const title = section.titleUr
-      ? `<td class="ur" dir="rtl">${escapeHtml(section.titleUr)}</td>`
+    const sheetTitleUr = section.titleSheetUr ?? section.titleUr
+    const title = sheetTitleUr
+      ? `<td class="ur" dir="rtl">${escapeHtml(sheetTitleUr)}</td>`
       : `<td class="key">${escapeHtml(section.title)}</td>`
-    rows.push(`<tr>${title}<td>${escapeHtml(labelOf(section.choices, selected))}${designSuffix}</td></tr>`)
+    rows.push(`<tr>${choiceCell(section.choices, selected, designSuffix)}${title}</tr>`)
   }
 
   const checked = definition.sections
     .flatMap((section) => (section.kind === "flags" ? section.flags : []))
     .filter((flag) => values.flags.includes(flag.value))
     .map((flag) => escapeHtml(flag.label))
-  if (checked.length > 0) rows.push(`<tr><td class="key">Options</td><td>${checked.join(", ")}</td></tr>`)
+  if (checked.length > 0) rows.push(`<tr><td>${checked.join(", ")}</td><td class="key">Options</td></tr>`)
 
   if (definition.buttonType) {
     const picked = values.options[definition.buttonType.column]
-    if (picked) rows.push(`<tr><td class="key">Button Type</td><td>${escapeHtml(labelOf(definition.buttonType.choices, picked))}</td></tr>`)
+    if (picked) rows.push(`<tr><td>${escapeHtml(labelOf(definition.buttonType.choices, picked))}</td><td class="key">Button Type</td></tr>`)
   }
   return rows.join("")
 }
@@ -108,11 +131,73 @@ function partRows(data: GarmentOrderSheetData): string {
     .join("")
 }
 
-function amountRow(label: string, value: string, strong = false): string {
-  return `<tr class="${strong ? "strong" : ""}"><td class="key">${escapeHtml(label)}</td><td class="num">${escapeHtml(value)}</td></tr>`
+// Shirt prints on the exact Shalwar Kameez sheet (order-sheet.ts) -- the two
+// garments share a layout, so the shirt's values are mapped into that sheet's
+// data shape instead of keeping a second copy of its CSS. Shirt-only extras the
+// Kameez sheet has no place for (Nokdar Tera, Chak Asten, Dobat, Button Type,
+// old Bain/Collar design #) are not printed, same as that sheet.
+function buildShirtSheetHtml(data: GarmentOrderSheetData): string {
+  const { definition, values, billing } = data
+  const has = (flag: string) => values.flags.includes(flag)
+
+  function partItem(key: PartDesignKey, labelUr: string, separator = " / ", reverse = false): OrderSheetDesignItem | null {
+    const row = values.parts.find((r) => r.key === key)
+    if (!row) return null
+    const image = PART_DESIGN_IMAGES[key].find((option) => option.value === row.designNo)
+    const sizes = [row.size1 && formatSizeLabel(row.size1), row.size2 && formatSizeLabel(row.size2)]
+    const size = (reverse ? sizes.reverse() : sizes).filter(Boolean).join(separator) || null
+    if (!image && !size) return null
+    return { imageSrc: image?.src ?? null, label: labelUr, size }
+  }
+
+  function flagItem(flag: string, label: string): OrderSheetDesignItem | null {
+    return has(flag) ? { imageSrc: STYLE_FLAG_IMAGES[flag] ?? null, label, size: null } : null
+  }
+
+  function pick(column: string, sizeColumn: string, images: Record<string, string>): OrderSheetDesignItem | null {
+    const value = values.options[column]
+    if (!value || value === "none") return null
+    const size = values.options[sizeColumn]
+    return { imageSrc: images[value] ?? null, label: value, size: size ? (SIZE_FRACTION_LABELS[size] ?? size) : null }
+  }
+
+  return buildOrderSheetHtml({
+    recordNo: data.recordNo,
+    clientNo: data.clientNo,
+    clientName: data.clientName,
+    bookDate: data.bookDate,
+    deliveryDate: data.deliveryDate,
+    quantity: String(billing.quantity),
+    measurements: definition.measurements.map((m) => ({
+      ur: m.ur,
+      value: values.measurements[m.column] ?? "",
+      value2: m.secondColumn ? (values.measurements[m.secondColumn] ?? "") : undefined,
+    })),
+    extraNo1: "",
+    extraNo2: "",
+    bain: pick("bain_gala", "bain_size", BAIN_GALA_IMAGES),
+    bainIsGolGala: values.options.bain_gala === "gol_gala",
+    collar: pick("collar_type", "collar_size", COLLAR_IMAGES),
+    largeButtons: flagItem("large_buttons", "Large Buttons"),
+    btnDboty: null,
+    buttonPatti: partItem("buttonPatti", "بٹن پٹی", "-"),
+    fiveBtn: has("5_btn"),
+    pockets: null,
+    jaib: partItem("jaib", "جیب", " / ", true),
+    kajPatti: flagItem("kaj_patti", "Kaj Patti"),
+    cuff: partItem("kuf", "کف", " / ", true),
+    kafDboty: has("kaf_dboty"),
+    shalwarZip: null,
+    bazu: partItem("bazu", "بازو", " / ", true),
+    daman: null,
+    noLbl: has("no_lbl"),
+    twoJeb: has("2_jeb"),
+    note: values.note,
+  })
 }
 
 export function buildGarmentOrderSheetHtml(data: GarmentOrderSheetData): string {
+  if (data.definition.key === "shirt") return buildShirtSheetHtml(data)
   const { definition, billing, values } = data
   const measurementHeader = definition.measurements.some((m) => m.secondColumn) ? 2 : 1
   const parts = definition.hasPartDesigns ? partRows(data) : ""
@@ -130,7 +215,7 @@ export function buildGarmentOrderSheetHtml(data: GarmentOrderSheetData): string 
   html, body { margin: 0; padding: 0; background: #fff; color: #000; }
   body {
     width: 136mm;
-    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-family: Inter, "Segoe UI", Tahoma, Arial, sans-serif;
     font-size: 11px;
     line-height: 1.35;
   }
@@ -153,21 +238,25 @@ export function buildGarmentOrderSheetHtml(data: GarmentOrderSheetData): string 
   .info-heading { font-size: 8.5px; font-weight: bold; margin-bottom: 0.7mm; }
   .info-value { font-size: 13px; font-weight: bold; }
   .info-value2 { font-size: 10.5px; color: #333; margin-top: 0.3mm; }
-  .cols { display: grid; grid-template-columns: ${measurementWidth} 1fr; gap: 6px; }
   table { width: 100%; border-collapse: collapse; }
   td { border: 1px solid #000; padding: 3px 6px; vertical-align: middle; }
   td.val, td.num { text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
   td.num { text-align: right; }
   td.ur { text-align: right; font-size: 14px; font-weight: 700; white-space: nowrap; }
-  td.key { font-weight: 700; white-space: nowrap; width: 30%; }
+  td.key { font-weight: 700; white-space: nowrap; width: 30%; text-align: right; }
   td.pic { text-align: center; }
   td.pic img { max-height: 16mm; max-width: 22mm; object-fit: contain; }
-  ${isWaistcoat ? `table.meas td { height: 11mm; padding: 5px 8px; }
-  table.meas td.val { font-size: 16px; }
-  table.meas td.ur { font-size: 19px; }` : ""}
-  ${isWaistcoat ? `/* Waistcoat: shorter sheet (height follows content) and the design area is a
+  /* Larger type so the content fills the fixed-height page. */
+  table.meas td { height: 13mm; padding: 5px 8px; }
+  table.meas td.val { font-size: 18px; }
+  table.meas td.ur { font-size: 21px; }
+  table.opts td { padding: 6px 8px; font-size: 14px; }
+  table.opts td.key { font-size: 14px; }
+  table.opts td.ur { font-size: 18px; }
+  table.opts td:first-child { text-align: left; }
+  table.opts td:last-child { text-align: right; }
+  ${isWaistcoat ? `/* Waistcoat: same page height as the other sheets; the design area is a
      4-row x 2-col grid; options span rows 1-2, the Gala picture sits in row 3, col 1. */
-  .page { height: auto; }
   .design-area { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, auto); align-content: start; }
   .design-area > .opts { grid-column: 1 / -1; grid-row: 1 / span 2; }
   .gala-cell { grid-column: 1; grid-row: 3; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 1mm; padding: 2mm 0; }
@@ -175,10 +264,7 @@ export function buildGarmentOrderSheetHtml(data: GarmentOrderSheetData): string 
   .gala-cell img { max-width: 38mm; max-height: 38mm; object-fit: contain; }` : ""}
   .muted { color: #666; }
   .stack { display: flex; flex-direction: column; gap: 6px; }
-  .box { border: 1px solid #000; padding: 4px 7px; min-height: 14mm; white-space: pre-wrap; }
-  .box h4 { margin: 0 0 2px; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #444; }
   .note { margin-top: 6px; padding: 4px 7px; min-height: 14mm; white-space: pre-wrap; }
-  tr.strong td { font-weight: 700; font-size: 12px; background: #eee; }
   /* Delivery Date: same look and bottom-right spot as the Shalwar Kameez sheet's
      .delivery-pin, but in normal flow (margin-top: auto pushes it to the bottom
      of fixed-height pages) so it can't overlap content on the shorter waistcoat page. */
@@ -217,22 +303,7 @@ export function buildGarmentOrderSheetHtml(data: GarmentOrderSheetData): string 
     </div>
   </div>
 
-  ${
-    definition.key === "waistcoat"
-      ? `<div class="note">${escapeHtml(values.note)}</div>`
-      : `<div class="cols" style="margin-top: 6px">
-    <div class="box"><h4>Note</h4>${escapeHtml(values.note)}</div>
-    <table>
-      ${amountRow("Tailoring Amt", money(billing.tailoringAmount))}
-      ${amountRow("Cloth Amount", money(billing.clothAmount))}
-      ${amountRow("Shiling Amt", money(billing.shillingAmt))}
-      ${definition.showOthersAmt ? amountRow("Others Amt", money(billing.othersAmt)) : ""}
-      ${amountRow("Total", money(billing.total), true)}
-      ${amountRow("Advance", money(billing.advance))}
-      ${amountRow("Balance", money(billing.balance), true)}
-    </table>
-  </div>`
-  }
+  <div class="note">${escapeHtml(values.note)}</div>
 
   <div class="delivery-pin">D. Date: <span class="delivery-value">${escapeHtml(data.deliveryDate)}</span></div>
 

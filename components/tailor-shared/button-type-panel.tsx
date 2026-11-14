@@ -23,12 +23,12 @@ interface ButtonTypePanelProps {
 // match the Claude Design spec's checkbox look pixel-for-pixel.
 export function ButtonTypePanel({ options, navCol, leftFallbackRow, leftFallbackCol }: ButtonTypePanelProps) {
   return (
-    <div className="flex w-[98px] shrink-0 flex-col gap-1.5 border-l border-[#e4e4e9] pl-2.5">
-      <div className="text-[10px] font-bold tracking-[0.05em] text-[#8a8a92] uppercase">Button Type</div>
+    <div className="flex w-[98px] shrink-0 flex-col gap-1.5 border-l border-[#E9E4D8] pl-2.5">
+      <div className="text-[10px] font-bold tracking-[0.05em] text-[#4F566B] uppercase">Button Type</div>
       {options.map((option, index) => (
         <label
           key={option.value}
-          className="flex cursor-pointer items-center gap-1.5 rounded-[3px] text-[12px] font-semibold text-[#222226] [&:has(:focus-visible)]:bg-[#eef0ff]"
+          className="flex cursor-pointer items-center gap-1.5 rounded-[3px] text-[12px] font-semibold text-[#1B2233] [&:has(:focus-visible)]:bg-[#FBF6EA]"
         >
           <input
             type="radio"
@@ -43,7 +43,7 @@ export function ButtonTypePanel({ options, navCol, leftFallbackRow, leftFallback
             data-nav-row={index}
             data-nav-col={navCol}
             data-nav-left-fallback={`${leftFallbackRow}:${leftFallbackCol}`}
-            className="size-[14px] shrink-0 cursor-pointer appearance-none rounded-[2px] border border-[#c7c7cf] bg-white checked:border-black checked:bg-black"
+            className="size-[14px] shrink-0 cursor-pointer appearance-none rounded-[2px] border border-[#BDB59F] bg-[#F3EFE5] checked:border-[#1F2A44] checked:bg-[#1F2A44]"
           />
           {option.label}
         </label>
