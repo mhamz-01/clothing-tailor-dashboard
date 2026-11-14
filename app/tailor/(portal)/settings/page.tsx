@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -43,9 +43,13 @@ export default function TailorSettingsPage() {
       </h1>
 
       {isLoading ? (
-        <div className="flex items-center gap-2 py-10 text-slate-500">
-          <Loader2 className="size-4 animate-spin" />
-          Loading…
+        <div className="mt-2 space-y-3" role="status" aria-live="polite" aria-label="Loading settings">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} className="rounded-xl border border-[#DDD8CC] bg-white p-4">
+              <div className="sk mb-3 h-4 w-36" />
+              <div className="sk h-10 w-full" />
+            </div>
+          ))}
         </div>
       ) : (
         <SettingsForm buttonPrices={buttonPrices.pricesByCode} pricingSettings={pricingSettings.data!} garmentPrices={garmentPrices.data!} />

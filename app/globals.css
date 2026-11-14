@@ -159,3 +159,20 @@
 @media (prefers-reduced-motion: reduce) {
   .anim-fade-up, .anim-fade-down, .anim-fade-in, .anim-stagger > * { animation: none; }
 }
+
+/* ---- Skeleton shimmer ------------------------------------------------------
+   Used by the tailor module loading states (components/tailor-shared/skeletons.tsx).
+   A soft highlight sweeps across a flat block; static for reduced-motion users. */
+@keyframes tailor-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.sk {
+  border-radius: 6px;
+  background-color: var(--sk-base, #E3DCCB);
+  background-image: linear-gradient(100deg, transparent 30%, var(--sk-shine, rgba(255, 255, 255, 0.55)) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: tailor-shimmer 1.6s linear infinite;
+}
+.sk-dark { --sk-base: #223052; --sk-shine: rgba(255, 255, 255, 0.08); }
+@media (prefers-reduced-motion: reduce) { .sk { animation: none; } }

@@ -54,16 +54,16 @@ export function ShalwarKameezForm() {
       <div
         ref={boardRef}
         style={{ width: BOARD_WIDTH, height: BOARD_HEIGHT }}
-        className={`relative flex flex-none origin-center flex-col overflow-hidden bg-[#18223A] shadow-[0_6px_34px_rgba(0,0,0,0.45)]`}
+        className={`relative flex flex-none origin-center flex-col overflow-hidden bg-[#EDE9DF] shadow-[0_6px_34px_rgba(0,0,0,0.45)]`}
       >
         {/* Title bar */}
-        <div className="anim-fade-down flex h-8 flex-none items-center gap-2.5 border-b-2 border-[#B08D57] bg-[#111A2E] px-3 text-[#E3C894]">
+        <div className="anim-fade-down flex h-8 flex-none items-center gap-2.5 border-b border-[#0F1626] bg-[#1F2A44] px-3 text-white">
           <span className="font-[family-name:var(--font-naskh)] text-[14px] font-bold" dir="rtl">
             شلوار قمیض
           </span>
-          <span className="h-3.5 w-px bg-[#5B6377]" />
-          <span className="text-[12px] font-bold tracking-[0.06em] text-[#CFC9BA] uppercase">Measurement &amp; Order Sheet</span>
-          <span className="ml-auto text-[12px] font-bold text-[#8A90A0]">
+          <span className="h-3.5 w-px bg-[#C3CADB]" />
+          <span className="text-[12px] font-bold tracking-[0.06em] text-[#C3CADB] uppercase">Measurement &amp; Order Sheet</span>
+          <span className="ml-auto text-[12px] font-bold text-[#C3CADB]">
             Record No. <b className="tabular-nums text-white">{state.recordNo || "—"}</b>
           </span>
         </div>
@@ -171,7 +171,7 @@ export function ShalwarKameezForm() {
         <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#DDD8CC] bg-white p-5 shadow-xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-[14px] font-bold text-[#1B2233]">Discard unsaved changes?</AlertDialogTitle>
-            <AlertDialogDescription className="text-[12px] text-[#6B7285]">
+            <AlertDialogDescription className="text-[12px] text-[#565D70]">
               This order has changes that haven&apos;t been saved. Moving to the {form.pendingNav === "prev" ? "previous" : "next"}{" "}
               client will lose them.
             </AlertDialogDescription>

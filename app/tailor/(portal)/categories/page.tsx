@@ -2,21 +2,22 @@ import type { CSSProperties } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Settings } from "lucide-react"
+import { GarmentIllustration, type GarmentIllustrationKey } from "@/components/tailor-shared/garment-illustrations"
 import { cn } from "@/lib/utils"
 
-const CATEGORIES = [
-  { en: "Shalwar Kameez", ur: "شلوار قمیض", href: "/tailor/orders/shalwar-kameez" },
-  { en: "Waistcoat", ur: "واسکٹ", href: "/tailor/orders/waistcoat" },
-  { en: "Pant", ur: "پینٹ", href: "/tailor/orders/pant" },
-  { en: "Shirt", ur: "شرٹ", href: "/tailor/orders/shirt" },
-  { en: "Coat", ur: "کوٹ", href: "/tailor/orders/coat" },
+const CATEGORIES: { en: string; ur: string; href: string; art: GarmentIllustrationKey }[] = [
+  { art: "shalwar-kameez", en: "Shalwar Kameez", ur: "شلوار قمیض", href: "/tailor/orders/shalwar-kameez" },
+  { art: "waistcoat", en: "Waistcoat", ur: "واسکٹ", href: "/tailor/orders/waistcoat" },
+  { art: "pant", en: "Pant", ur: "پینٹ", href: "/tailor/orders/pant" },
+  { art: "shirt", en: "Shirt", ur: "شرٹ", href: "/tailor/orders/shirt" },
+  { art: "coat", en: "Coat", ur: "کوٹ", href: "/tailor/orders/coat" },
 ]
 
 const delay = (index: number) => ({ "--anim-delay": `${260 + index * 90}ms` }) as CSSProperties
 
 export default function TailorCategoriesPage() {
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-[radial-gradient(ellipse_at_top,#2A3A5E_0%,#1F2A44_45%,#141C30_100%)]">
+    <div className="flex h-dvh flex-col overflow-hidden bg-[radial-gradient(ellipse_at_20%_0%,rgba(96,132,214,0.45)_0%,transparent_55%),radial-gradient(ellipse_at_90%_100%,rgba(51,80,140,0.55)_0%,transparent_50%),linear-gradient(160deg,#0E1830_0%,#1F2A44_45%,#2C4276_100%)]">
       <header className="relative shrink-0 px-4 pt-[clamp(1rem,3vh,2rem)] pb-[clamp(1rem,3vh,2rem)] text-center">
         <Link
           href="/tailor/settings"
@@ -50,7 +51,7 @@ export default function TailorCategoriesPage() {
             const isEnabled = Boolean(category.href)
 
             const cardClassName = cn(
-              "anim-fade-up group relative flex min-h-0 flex-col items-center justify-center gap-[clamp(0.4rem,1.6vh,1rem)] overflow-hidden rounded-2xl border bg-white p-4 text-center shadow-[0_2px_10px_rgba(31,42,68,0.08)] transition-all duration-200 focus-visible:ring-[3px] focus-visible:ring-[#B08D57]/40 focus-visible:outline-none",
+              "anim-fade-up group relative flex min-h-0 flex-col items-center justify-center gap-[clamp(0.25rem,1.2vh,0.75rem)] overflow-hidden rounded-2xl border bg-white p-4 text-center shadow-[0_2px_10px_rgba(31,42,68,0.08)] transition-all duration-200 focus-visible:ring-[3px] focus-visible:ring-[#B08D57]/40 focus-visible:outline-none",
               "sm:col-span-2",
               index >= 3 && "sm:col-span-3",
               isEnabled
@@ -60,7 +61,6 @@ export default function TailorCategoriesPage() {
 
             const content = (
               <>
-                <span className="absolute inset-x-0 top-0 h-[3px] bg-[#B08D57] opacity-0 transition-opacity group-hover:opacity-100" />
                 <span className="absolute top-3 left-4 text-[11px] font-semibold tracking-widest text-[#B08D57]/70 tabular-nums">
                   {String(index + 1).padStart(2, "0")}
                 </span>
@@ -69,8 +69,11 @@ export default function TailorCategoriesPage() {
                     Soon
                   </span>
                 )}
+                <div className="flex h-[clamp(3.5rem,13vh,7.5rem)] items-center justify-center transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-105">
+                  <GarmentIllustration garment={category.art} />
+                </div>
                 <div className="flex flex-col items-center gap-0.5">
-                  <p className="font-[family-name:var(--font-urdu)] text-[clamp(1.5rem,4.2vh,2.4rem)] leading-loose text-[#1F2A44]">
+                  <p className="font-[family-name:var(--font-urdu)] text-[clamp(1.25rem,3.4vh,2rem)] leading-loose text-[#1F2A44]">
                     {category.ur}
                   </p>
                   <p className="text-[clamp(0.8rem,1.8vh,1rem)] font-semibold tracking-[0.12em] text-[#5B6377] uppercase">

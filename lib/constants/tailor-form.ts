@@ -6,7 +6,7 @@
 // focus ring. Text bumped up from the spec's 12px/normal to 13px/medium
 // (client request) for readability, since older users read this form.
 export const FIELD_CLASS =
-  "rounded-[3px] border-[#BDB59F] bg-[#F3EFE5] px-[6px] py-0 text-[13px] font-medium text-[#1B2233] placeholder:text-[#A8A08A] focus-visible:border-[#B08D57] focus-visible:ring-[3px] focus-visible:ring-[#B08D57]/[0.3]"
+  "rounded-[3px] border-[#6A6F7E] bg-white px-[6px] py-0 text-[13px] font-medium text-[#1B2233] placeholder:text-[#686D7A] focus-visible:border-[#1F2A44] focus-visible:ring-[3px] focus-visible:ring-[#1F2A44]/[0.22]"
 
 // Hides the browser's up/down spin-button counter on type="number" inputs
 // (measurements, Tailoring/Cloth/Shiling/Others Amt) -- these are entered by

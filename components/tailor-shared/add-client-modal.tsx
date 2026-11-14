@@ -265,7 +265,7 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, on
               <UserPlus className="size-5 text-[#2A3550]" strokeWidth={2} />
             </div>
             <AlertDialogTitle className="text-[17px] font-bold text-[#1B2233]">Add Client</AlertDialogTitle>
-            <AlertDialogDescription className="text-[13px] text-[#6B7285]">
+            <AlertDialogDescription className="text-[13px] text-[#565D70]">
               Enter the client&apos;s details below. Finish a field to check if they&apos;re already on file.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -313,26 +313,26 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, on
                 />
               </div>
 
-              {error && <span className="text-[12.5px] font-semibold text-[#A63D2F]">{error}</span>}
-              {successMsg && <span className="text-[12.5px] font-semibold text-[#2F6F4F]">{successMsg}</span>}
+              {error && <span className="text-[12.5px] font-semibold text-[#A12B1D]">{error}</span>}
+              {successMsg && <span className="text-[12.5px] font-semibold text-[#1E6B45]">{successMsg}</span>}
             </div>
 
             <div
               className={cn(
                 "flex min-w-0 flex-1 flex-col gap-2 rounded-[6px] border p-3 sm:pl-4",
-                matches.length > 0 ? "border-[#f0dca3] bg-[#FBF6EA]" : "border-[#E9E4D8] bg-[#FBFAF6] sm:border-l-0",
+                matches.length > 0 ? "border-[#f0dca3] bg-[#FBF6EA]" : "border-[#D9D4C6] bg-[#FBFAF6] sm:border-l-0",
               )}
             >
               <div
                 className={cn(
                   "flex items-center gap-1.5 text-[13px] font-semibold",
                   isSearching
-                    ? "text-[#6B7285]"
+                    ? "text-[#565D70]"
                     : matches.length > 0
                       ? "text-[#7C5E28]"
                       : hasSearched
-                        ? "text-[#2F6F4F]"
-                        : "text-[#6B7285]",
+                        ? "text-[#1E6B45]"
+                        : "text-[#565D70]",
                 )}
               >
                 {isSearching ? (
@@ -357,7 +357,7 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, on
               <div className="max-h-80 overflow-y-auto rounded-[5px] border border-[#e8d9a8] bg-white">
                 <table className="w-full text-[13.5px]">
                   <thead>
-                    <tr className="bg-[#F1EEE6] text-left text-[#5B6377]">
+                    <tr className="bg-[#F1EEE6] text-left text-[#444C60]">
                       <th className="px-3 py-2 font-semibold">Client No.</th>
                       <th className="px-3 py-2 font-semibold">Name</th>
                       <th className="px-3 py-2 font-semibold">Phone</th>
@@ -370,7 +370,7 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, on
                         <tr
                           key={client.clientId}
                           onClick={() => handleSelectMatch(client)}
-                          className="cursor-pointer border-t border-[#E9E4D8] hover:bg-[#F1EEE6]"
+                          className="cursor-pointer border-t border-[#D9D4C6] hover:bg-[#F1EEE6]"
                         >
                           <td className="px-3 py-2.5 font-medium whitespace-nowrap">{client.clientNo}</td>
                           <td className="px-3 py-2.5">{client.clientName}</td>
@@ -384,14 +384,14 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, on
                               }
                               onClick={(e) => e.stopPropagation()}
                               aria-label={`Select ${client.clientNo} to delete`}
-                              className="size-4 accent-[#A63D2F]"
+                              className="size-4 accent-[#A12B1D]"
                             />
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={4} className="px-3 py-4 text-center text-[#6B7285]">
+                        <td colSpan={4} className="px-3 py-4 text-center text-[#565D70]">
                           {isSearching ? "Searching…" : "No matches yet"}
                         </td>
                       </tr>
@@ -432,10 +432,10 @@ export function AddClientModal({ open, onOpenChange, onAdd, onSelectExisting, on
             <>
               <AlertDialogHeader>
                 <div className="mb-1 flex size-8 items-center justify-center rounded-[6px] border border-[#f3c6c6] bg-[#fdecec]">
-                  <Trash2 className="size-4 text-[#A63D2F]" strokeWidth={2} />
+                  <Trash2 className="size-4 text-[#A12B1D]" strokeWidth={2} />
                 </div>
                 <AlertDialogTitle className="text-[14px] font-bold text-[#1B2233]">Delete client?</AlertDialogTitle>
-                <AlertDialogDescription className="text-[12px] text-[#6B7285]">
+                <AlertDialogDescription className="text-[12px] text-[#565D70]">
                   {pendingDelete.clientNo} — {pendingDelete.clientName} and all of their orders, measurements, and style
                   choices will be permanently removed. This can&apos;t be undone.
                 </AlertDialogDescription>

@@ -30,15 +30,15 @@ export function PartDesignTable({ rows, onSizeChange, fiveButtonsItem }: PartDes
   const modalRow = modalIndex !== null ? rows[modalIndex] : null
 
   return (
-    <div className="rounded-[5px] border border-t-[3px] border-[#C9C0A8] border-t-[#B08D57] bg-[#E3DCCB] p-[9px] shadow-[0_2px_8px_rgba(15,22,38,0.18)]">
+    <div className="rounded-lg border border-[#857F70] bg-white p-[9px] shadow-[0_1px_3px_rgba(31,42,68,0.12)]">
       <div
         className="grid grid-cols-[1fr_1fr_1fr_54px] items-center gap-x-1.5 gap-y-[5px]"
         data-nav-container
         onKeyDown={handleGridArrowKeyDown}
       >
-        <div className="text-center text-[13px] font-bold tracking-[0.05em] text-[#4F566B] uppercase">Design #</div>
-        <div className="text-center text-[13px] font-bold tracking-[0.05em] text-[#4F566B] uppercase">Size 1</div>
-        <div className="text-center text-[13px] font-bold tracking-[0.05em] text-[#4F566B] uppercase">Size 2</div>
+        <div className="text-center text-[13px] font-bold tracking-[0.05em] text-[#444C60] uppercase">Design #</div>
+        <div className="text-center text-[13px] font-bold tracking-[0.05em] text-[#444C60] uppercase">Size 1</div>
+        <div className="text-center text-[13px] font-bold tracking-[0.05em] text-[#444C60] uppercase">Size 2</div>
         <div />
 
         {rows.map((row, index) => (
@@ -73,7 +73,7 @@ export function PartDesignTable({ rows, onSizeChange, fiveButtonsItem }: PartDes
               type="button"
               onClick={() => setModalIndex(index)}
               dir="rtl"
-              className="flex h-[29px] items-center justify-center rounded-[3px] border border-[#1F2A44] bg-[#F3EFE5] font-[family-name:var(--font-naskh)] text-[18px] font-bold text-[#1B2233]"
+              className="flex h-[29px] items-center justify-center rounded-[3px] border border-[#1F2A44] bg-white font-[family-name:var(--font-naskh)] text-[18px] font-bold text-[#1B2233]"
               data-nav-row={index}
               data-nav-col={3}
             >

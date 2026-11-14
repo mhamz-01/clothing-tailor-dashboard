@@ -98,7 +98,7 @@ export function ReceiptPreviewDialog({ open, html, onCancel, onConfirm }: Receip
       <AlertDialogContent className="w-full max-w-sm gap-3 rounded-[10px] border border-[#DDD8CC] bg-white p-5 shadow-xl">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-[14px] font-bold text-[#1B2233]">Print receipt?</AlertDialogTitle>
-          <AlertDialogDescription className="text-[12px] text-[#6B7285]">
+          <AlertDialogDescription className="text-[12px] text-[#565D70]">
             This is exactly what will print. Confirm to send it to the printer.
           </AlertDialogDescription>
         </AlertDialogHeader>

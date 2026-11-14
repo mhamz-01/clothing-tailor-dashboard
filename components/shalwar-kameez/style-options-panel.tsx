@@ -1,3 +1,4 @@
+import { CHOICE_LABEL_CLASS, CheckMark } from "@/components/tailor-shared/choice-marks"
 import { OptionCard } from "@/components/tailor-shared/option-card"
 import { CheckboxGroup } from "@/components/tailor-shared/checkbox-group"
 import { RadioOptionGroup } from "@/components/tailor-shared/radio-option-group"
@@ -102,7 +103,7 @@ export function StyleOptionsPanel({
           options={damanOptions}
           navRow={damanRow}
           trailingSlot={
-            <label className="ml-auto flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[3px] px-1 py-0.5 text-[13px] font-semibold text-[#1B2233] [&:has(:focus-visible)]:bg-[#FBF6EA]">
+            <label className={`${CHOICE_LABEL_CLASS} ml-auto`}>
               <input
                 type="checkbox"
                 checked={shalwarZipItem.checked}
@@ -114,8 +115,9 @@ export function StyleOptionsPanel({
                 }}
                 data-nav-row={damanRow}
                 data-nav-col={damanOptions.length}
-                className="size-4 cursor-pointer accent-[#1B2233]"
+                className="peer sr-only"
               />
+              <CheckMark />
               Shalwar Zip
             </label>
           }

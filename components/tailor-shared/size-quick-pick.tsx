@@ -33,10 +33,10 @@ interface SizeQuickPickProps {
 export function SizeQuickPick({ value, onChange, options, navRow, navCol, label = "Size" }: SizeQuickPickProps) {
   return (
     <label className="ml-auto flex shrink-0 items-center gap-1.5">
-      <span className="text-[11px] font-semibold text-[#4F566B]">{label}</span>
+      <span className="text-[11px] font-semibold text-[#444C60]">{label}</span>
       <div className="w-20 shrink-0">
         <Select value={value} onValueChange={onChange} data-nav-row={navRow} data-nav-col={navCol}>
-          <SelectTrigger className="flex h-[25px] items-center rounded-[3px] border-[#BDB59F] bg-[#F3EFE5] py-0 pr-5 pl-2.5 text-[18px] font-medium text-[#1B2233]">
+          <SelectTrigger className="flex h-[25px] items-center rounded-[3px] border-[#6A6F7E] bg-white py-0 pr-5 pl-2.5 text-[18px] font-medium text-[#1B2233]">
             <SelectValue placeholder="—" />
           </SelectTrigger>
           <SelectContent>

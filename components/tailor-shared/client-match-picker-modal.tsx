@@ -47,17 +47,17 @@ export function ClientMatchPickerModal({ open, matches, onOpenChange, onSelect }
           <AlertDialogTitle className="text-[17px] font-bold text-[#1B2233]">
             {matches.length} matching clients
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-[13px] text-[#6B7285]">
+          <AlertDialogDescription className="text-[13px] text-[#565D70]">
             More than one client matches — pick the one to load.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="min-h-0 flex-1 overflow-y-auto rounded-[5px] border border-[#E9E4D8]">
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-[5px] border border-[#D9D4C6]">
           <table className="w-full border-collapse text-[13.5px]">
             {/* sticky + z-10 keeps the column headers visible while the rows
                 scroll underneath them. */}
             <thead className="sticky top-0 z-10">
-              <tr className="bg-[#F1EEE6] text-left text-[#5B6377] shadow-[0_1px_0_0_#E9E4D8]">
+              <tr className="bg-[#F1EEE6] text-left text-[#444C60] shadow-[0_1px_0_0_#E9E4D8]">
                 <th className="px-3 py-2 font-semibold">Client No.</th>
                 <th className="px-3 py-2 font-semibold">Name</th>
                 <th className="px-3 py-2 font-semibold">Phone</th>
@@ -69,7 +69,7 @@ export function ClientMatchPickerModal({ open, matches, onOpenChange, onSelect }
                   key={client.clientId}
                   onClick={() => handleSelect(client)}
                   className={cn(
-                    "cursor-pointer border-t border-[#E9E4D8] hover:bg-[#F1EEE6]",
+                    "cursor-pointer border-t border-[#D9D4C6] hover:bg-[#F1EEE6]",
                     index % 2 === 1 && "bg-[#FBFAF6]"
                   )}
                 >

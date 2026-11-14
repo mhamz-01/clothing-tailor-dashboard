@@ -13,12 +13,12 @@ interface StatusToastProps {
 
 const TOAST_STYLES: Record<Exclude<StatusKind, "idle">, string> = {
   info: "border-[#CFC9BA] border-l-[#6B7285] bg-[#F1EEE6] text-[#2A3550]",
-  success: "border-[#bfe4c9] border-l-[#2F6F4F] bg-[#eaf7ee] text-[#265C41]",
-  error: "border-[#f3c6c0] border-l-[#A63D2F] bg-[#fdecea] text-[#8F3326]",
+  success: "border-[#bfe4c9] border-l-[#1E6B45] bg-[#eaf7ee] text-[#265C41]",
+  error: "border-[#f3c6c0] border-l-[#A12B1D] bg-[#fdecea] text-[#8F3326]",
 }
 
 const TOAST_ICON_STYLES: Record<Exclude<StatusKind, "idle">, string> = {
-  info: "bg-[#E9E4D8] text-[#5B6377]",
+  info: "bg-[#E9E4D8] text-[#444C60]",
   success: "bg-[#d3efdb] text-[#265C41]",
   error: "bg-[#f9d9d4] text-[#8F3326]",
 }

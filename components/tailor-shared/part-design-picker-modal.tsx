@@ -156,7 +156,7 @@ interface SizeOptionListProps {
 function SizeOptionList({ label, options, value, onChange }: SizeOptionListProps) {
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[5px] border border-[#DDD8CC] bg-white">
-      <div className="shrink-0 border-b border-[#DDD8CC] bg-[#FBFAF6] px-1 py-1 text-center text-[10px] font-bold tracking-[0.05em] text-[#6B7285] uppercase">
+      <div className="shrink-0 border-b border-[#DDD8CC] bg-[#FBFAF6] px-1 py-1 text-center text-[10px] font-bold tracking-[0.05em] text-[#565D70] uppercase">
         {label}
       </div>
       <div className="flex flex-col divide-y divide-[#E9E4D8]">

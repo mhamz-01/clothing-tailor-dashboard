@@ -66,12 +66,12 @@ const field = cn(FIELD_CLASS, "h-9 w-full text-[18px]")
 // spec was dropped per client request.
 const VALIDATION_TONE: Record<ClientNoValidation["status"], string> = {
   idle: "",
-  checking: "text-[#4F566B]",
-  ok: "text-[#2F6F4F]",
-  invalid_format: "text-[#A63D2F]",
+  checking: "text-[#444C60]",
+  ok: "text-[#1E6B45]",
+  invalid_format: "text-[#A12B1D]",
   // Existing client is informational, not an error -- their previous order
   // gets loaded into the form rather than blocking the save.
-  existing: "text-[#2F6F4F]",
+  existing: "text-[#1E6B45]",
 }
 
 export function ClientLookupSection({
@@ -101,7 +101,7 @@ export function ClientLookupSection({
   const [isAddClientOpen, setIsAddClientOpen] = useState(false)
 
   return (
-    <div className="shrink-0 rounded-[5px] border border-t-[3px] border-[#C9C0A8] border-t-[#B08D57] bg-[#E3DCCB] px-2.5 py-2 shadow-[0_2px_8px_rgba(15,22,38,0.18)]">
+    <div className="shrink-0 rounded-lg border border-[#857F70] bg-white px-2.5 py-2 shadow-[0_1px_3px_rgba(31,42,68,0.12)]">
       <div className="grid grid-cols-[auto_1fr_auto_1fr_auto_1fr] items-center gap-x-2.5 gap-y-1.5">
         <Label className={rowLabel}>Client No.</Label>
         <div className="flex flex-col gap-0.5">
@@ -117,7 +117,7 @@ export function ClientLookupSection({
             <button
               type="button"
               onClick={() => setIsAddClientOpen(true)}
-              className="h-8 shrink-0 rounded-[3px] border border-[#1F2A44] bg-[#F3EFE5] px-2.5 text-[16px] font-bold whitespace-nowrap hover:bg-[#1F2A44] hover:text-white"
+              className="h-8 shrink-0 rounded-[3px] border border-[#1F2A44] bg-white px-2.5 text-[16px] font-bold whitespace-nowrap hover:bg-[#1F2A44] hover:text-white"
             >
               Add
             </button>
@@ -144,13 +144,13 @@ export function ClientLookupSection({
                 ? "Type a Record No. and press Enter to open that order"
                 : "System-tracked — increments automatically on save"
             }
-            className={cn(field, "tabular-nums", !onRecordNoChange && "bg-[#F1EEE6] text-[#5B6377]")}
+            className={cn(field, "tabular-nums", !onRecordNoChange && "bg-[#F1EEE6] text-[#444C60]")}
           />
           <button
             type="button"
             onClick={onSearchRecord}
             aria-label="Search record"
-            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#BDB59F] bg-[#F3EFE5] hover:border-[#1F2A44]"
+            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#6A6F7E] bg-white hover:border-[#1F2A44]"
           >
             <SearchIcon />
           </button>
@@ -170,7 +170,7 @@ export function ClientLookupSection({
             type="button"
             onClick={onSearchClientName}
             aria-label="Search client name"
-            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#BDB59F] bg-[#F3EFE5] hover:border-[#1F2A44]"
+            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#6A6F7E] bg-white hover:border-[#1F2A44]"
           >
             <SearchIcon />
           </button>
@@ -192,7 +192,7 @@ export function ClientLookupSection({
             type="button"
             onClick={onSearchPhone}
             aria-label="Search phone"
-            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#BDB59F] bg-[#F3EFE5] hover:border-[#1F2A44]"
+            className="flex h-6 w-[26px] shrink-0 items-center justify-center rounded-[3px] border border-[#6A6F7E] bg-white hover:border-[#1F2A44]"
           >
             <SearchIcon />
           </button>
@@ -205,7 +205,7 @@ export function ClientLookupSection({
           readOnly
           tabIndex={-1}
           title="Book Date of this client's most recent order"
-          className={cn(field, "bg-[#F1EEE6] tabular-nums text-[#5B6377]")}
+          className={cn(field, "bg-[#F1EEE6] tabular-nums text-[#444C60]")}
         />
       </div>
 

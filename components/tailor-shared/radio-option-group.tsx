@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { CHOICE_LABEL_CLASS, RadioMark } from "@/components/tailor-shared/choice-marks"
 import type { RadioItem } from "@/types/shalwar-kameez"
 
 interface RadioOptionGroupProps {
@@ -19,7 +20,7 @@ interface RadioOptionGroupProps {
 
 // Rows sit inside a shared option card (see OptionCard) separated by dividers,
 // so a row carries no border, background or radius of its own.
-const ROW_CLASS = "flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-[#EAE4D5]/70"
+const ROW_CLASS = "flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-[#F7F4EA]"
 
 // One bordered row per single-select option group (pocket, bain/gala, collar,
 // daman) — each maps to a `*_type_id` FK in the schema. Mirrors the Claude
@@ -34,18 +35,17 @@ export function RadioOptionGroup({ title, titleUr, name, options, trailingSlot, 
   return (
     <div className={ROW_CLASS}>
       {titleUr ? (
-        <span className="w-24 shrink-0 font-[family-name:var(--font-naskh)] text-[18px] font-bold text-[#1B2233]" dir="rtl">
-          {titleUr}
+        <span className="flex w-28 shrink-0 flex-col gap-0.5">
+          <span className="font-[family-name:var(--font-naskh)] text-[18px] font-bold text-[#1B2233]" dir="rtl">{titleUr}</span>
         </span>
       ) : (
-        <span className="w-16 shrink-0 text-[12px] font-bold tracking-[0.06em] text-[#4F566B] uppercase">{title}</span>
+        <span className="flex w-28 shrink-0 flex-col gap-0.5">
+          <span className="text-[12px] font-bold tracking-[0.06em] text-[#1B2233] uppercase">{title}</span>
+        </span>
       )}
-      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-1">
         {options.map((option, index) => (
-          <label
-            key={option.value}
-            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-[3px] px-1 py-0.5 text-[14px] font-semibold whitespace-nowrap text-[#1B2233] [&:has(:focus-visible)]:bg-[#FBF6EA]"
-          >
+          <label key={option.value} className={CHOICE_LABEL_CLASS}>
             <input
               type="radio"
               name={name}
@@ -58,8 +58,9 @@ export function RadioOptionGroup({ title, titleUr, name, options, trailingSlot, 
               }}
               data-nav-row={navRow}
               data-nav-col={index}
-              className="size-4 cursor-pointer accent-[#1B2233]"
+              className="peer sr-only"
             />
+            <RadioMark />
             {option.label}
           </label>
         ))}

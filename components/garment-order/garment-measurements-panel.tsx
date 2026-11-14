@@ -24,13 +24,13 @@ export function GarmentMeasurementsPanel({ measurements, values, onChange, note,
 
   return (
     <div
-      className="flex min-h-0 flex-col gap-1.5 rounded-[5px] border border-t-[3px] border-[#C9C0A8] border-t-[#B08D57] bg-[#E3DCCB] p-[9px] shadow-[0_2px_8px_rgba(15,22,38,0.18)]"
+      className="flex min-h-0 flex-col gap-1.5 rounded-lg border border-[#857F70] bg-white p-[9px] shadow-[0_1px_3px_rgba(31,42,68,0.12)]"
       data-nav-container
       onKeyDown={handleGridArrowKeyDown}
     >
-      <div className="flex items-center justify-between border-b border-[#E9E4D8] pb-[5px]">
-        <span className="text-[10px] font-bold tracking-[0.09em] text-[#4F566B] uppercase">Measurements</span>
-        <span className="font-[family-name:var(--font-naskh)] text-[13px] font-bold text-[#4F566B]" dir="rtl">
+      <div className="flex items-center justify-between border-b border-[#D9D4C6] pb-[5px]">
+        <span className="text-[10px] font-bold tracking-[0.09em] text-[#444C60] uppercase">Measurements</span>
+        <span className="font-[family-name:var(--font-naskh)] text-[13px] font-bold text-[#444C60]" dir="rtl">
           پیمائش
         </span>
       </div>

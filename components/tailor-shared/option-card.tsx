@@ -5,7 +5,7 @@ import type { ReactNode } from "react"
 // so the whole block reads as a single, calm surface.
 export function OptionCard({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-0 min-w-0 flex-col divide-y divide-[#C9C0A8] overflow-hidden rounded-md border border-t-[3px] border-[#C9C0A8] border-t-[#B08D57] bg-[#E3DCCB] shadow-[0_2px_8px_rgba(15,22,38,0.18)]">
+    <div className="flex min-h-0 min-w-0 flex-col divide-y divide-[#D9D4C6] overflow-hidden rounded-lg border border-[#857F70] bg-white shadow-[0_1px_3px_rgba(31,42,68,0.12)]">
       {children}
     </div>
   )

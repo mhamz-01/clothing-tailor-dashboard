@@ -18,7 +18,7 @@ interface ActionBarProps {
 }
 
 const outlinedBtn =
-  "h-8 shrink-0 rounded-[4px] border border-[#CFC9BA] bg-white px-3 text-[16px] font-bold whitespace-nowrap text-[#1B2233] hover:border-[#1F2A44] hover:bg-[#F1EEE6] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#CFC9BA] disabled:hover:bg-white"
+  "h-8 shrink-0 rounded-[4px] border border-[#6A6F7E] bg-white px-3 text-[16px] font-bold whitespace-nowrap text-[#1B2233] hover:border-[#1F2A44] hover:bg-[#F1EEE6] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#6A6F7E] disabled:hover:bg-white"
 
 // Full-width single-row bar below the 3-column body. Print Receipt sits on
 // the left (outlined, icon+text); Save + the rest of the actions are
@@ -49,7 +49,7 @@ export function ActionBar({
       </button>
 
       <div className="flex flex-1 items-center justify-center gap-1.5">
-        <button type="button" onClick={onSave} className="h-8 min-w-[74px] shrink-0 rounded-[4px] border border-[#C9A66B] bg-[#C9A66B] px-3.5 text-[13px] font-bold whitespace-nowrap text-[#1F2A44] hover:bg-[#D9BC85]">
+        <button type="button" onClick={onSave} className="h-8 min-w-[74px] shrink-0 rounded-[4px] border border-[#1F2A44] bg-[#1F2A44] px-3.5 text-[13px] font-bold whitespace-nowrap text-white hover:bg-[#2A3A5E]">
           Save
         </button>
        

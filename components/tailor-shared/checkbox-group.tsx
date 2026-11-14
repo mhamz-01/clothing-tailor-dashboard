@@ -1,3 +1,4 @@
+import { CHOICE_LABEL_CLASS, CheckMark } from "@/components/tailor-shared/choice-marks"
 import type { CheckboxItem } from "@/types/shalwar-kameez"
 
 interface CheckboxGroupProps {
@@ -13,9 +14,9 @@ interface CheckboxGroupProps {
 }
 
 const COLUMNS_CLASS: Record<2 | 3 | 4, string> = {
-  2: "grid grid-cols-2 gap-x-4 gap-y-1.5",
-  3: "grid grid-cols-3 gap-x-4 gap-y-1.5",
-  4: "grid grid-cols-4 gap-x-2 gap-y-2.5",
+  2: "grid grid-cols-2 gap-x-1 gap-y-1",
+  3: "grid grid-cols-3 gap-x-1 gap-y-1",
+  4: "grid grid-cols-4 gap-x-1 gap-y-1",
 }
 
 // Reused for every plain checkbox list on the form — same look, different
@@ -36,12 +37,11 @@ export function CheckboxGroup({ items, columns, navRowOffset = 0 }: CheckboxGrou
   const columnCount = columns ?? items.length
 
   return (
-    <div className={columns ? COLUMNS_CLASS[columns] : "flex flex-wrap items-center gap-x-4 gap-y-2"}>
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[11px] font-medium text-[#565D70]">Select all that apply</span>
+      <div className={columns ? COLUMNS_CLASS[columns] : "flex flex-wrap items-center gap-x-1 gap-y-1"}>
       {items.map((item, index) => (
-        <label
-          key={item.key}
-          className="flex cursor-pointer items-center gap-1.5 rounded-[3px] px-1 py-0.5 text-[14px] font-semibold text-[#1B2233] [&:has(:focus-visible)]:bg-[#FBF6EA]"
-        >
+        <label key={item.key} className={CHOICE_LABEL_CLASS}>
           <input
             type="checkbox"
             checked={item.checked}
@@ -53,11 +53,13 @@ export function CheckboxGroup({ items, columns, navRowOffset = 0 }: CheckboxGrou
             }}
             data-nav-row={navRowOffset + Math.floor(index / columnCount)}
             data-nav-col={index % columnCount}
-            className="size-4 cursor-pointer accent-[#1B2233]"
+            className="peer sr-only"
           />
+          <CheckMark />
           {item.label}
         </label>
       ))}
+      </div>
     </div>
   )
 }
